@@ -1,5 +1,6 @@
 programs/cache_*
 programs/WIP_*
+programs/.R*
 R_export/
 Py_export/
 graph_outputs/
