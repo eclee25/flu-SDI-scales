@@ -1,0 +1,17 @@
+programs/cache_*
+programs/WIP_*
+R_export/
+Py_export/
+graph_outputs/
+reference_data/
+*~
+*.[oa]
+*.py[cod~]
+*.csv
+*.zip
+*.ods
+*.sas
+*.txt
+*.TXT
+*.dat
+*.nc
