@@ -17,7 +17,7 @@ require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
-modCodeLs <- c("11a_iliSum_v2-2")
+modCodeLs <- c("11a_iliSum_v2-3")
 
 
 for (i in 1:length(modCodeLs)){
@@ -105,6 +105,23 @@ for (i in 1:length(modCodeLs)){
   #### run models for all seasons ################################
   modData_hurdle <- convert_aggBias_spatiotemporal(modData_full)
 
+  starting3 <- inla(formula,
+                    family = "gaussian",
+                    data = modData_hurdle,
+                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+                    control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
+                    control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 10, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
+                    verbose = TRUE)
+
+  starting4 <- inla(formula,
+                    family = "gaussian",
+                    data = modData_hurdle,
+                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+                    control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
+                    control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
+                    control.mode = list(result = starting3, restart = TRUE),
+                    verbose = TRUE)
+  
   mod <- inla(formula,
               family = "gaussian",
               data = modData_hurdle,
@@ -112,6 +129,7 @@ for (i in 1:length(modCodeLs)){
               control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
               control.compute = list(dic = TRUE, cpo = TRUE),
               control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
+              control.mode = list(result = starting4, restart = TRUE),
               verbose = TRUE,
               keep = TRUE, debug = TRUE)
 
