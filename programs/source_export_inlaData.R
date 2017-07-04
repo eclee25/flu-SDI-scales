@@ -124,4 +124,22 @@ export_ids <- function(exportPath, modDataFullOutput){
 }
 ################################
 
+export_posterior_samples <- function(exportPath, inlaModelOutput){
+  # export posterior predictive samples from the model
+  print(match.call())
+
+  # random sample settings
+  set.seed(68334)
+  inlaSeed = as.integer(runif(1)*.Machine$integer.max)
+  nsamples <- 200
+
+  # prepare data for export
+  post_samples_dummy <- inla.posterior.sample(nsamples, mod, seed = inlaSeed)
+  latent_field_names <- rownames(post_samples_dummy[[1]]$latent)
+  post_samples <- as.data.frame(t(sapply(post_samples_dummy, function(x) x$latent)))
+  names(post_samples) <- latent_field_names
+
+  write_csv(post_samples, exportPath)
+
+}
 

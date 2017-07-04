@@ -29,7 +29,7 @@ for (i in 1:length(modCodeLs)){
   likString <- "normal"
   dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
   s <- 999 # all seasons code for spatiotemporal analysis = 999
-  
+
   #### SOURCE: clean and import model data #################################
   setwd(dirname(sys.frame(1)$ofile))
   source("source_clean_response_functions_cty.R") # functions to clean response and IMS coverage data (cty)
@@ -102,33 +102,35 @@ for (i in 1:length(modCodeLs)){
   path_csvExport <- getwd()
 
   #### run models for all seasons ################################
-  modData_hurdle <- convert_aggBias_spatiotemporal(modData_full)
+  modData_hurdle <- convert_aggBias_spatiotemporal(modData_full[1:100,])
 
-  starting3 <- inla(formula,
-                    family = "gaussian",
-                    data = modData_hurdle,
-                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-                    control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
-                    control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 10, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
-                    verbose = TRUE)
-  
-  starting4 <- inla(formula,
-                    family = "gaussian",
-                    data = modData_hurdle,
-                    control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-                    control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
-                    control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
-                    control.mode = list(result = starting3, restart = TRUE),
-                    verbose = TRUE)
+  # starting3 <- inla(formula,
+  #                   family = "gaussian",
+  #                   data = modData_hurdle,
+  #                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+  #                   control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
+  #                   control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 10, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
+  #                   verbose = TRUE)
+  # 
+  # starting4 <- inla(formula,
+  #                   family = "gaussian",
+  #                   data = modData_hurdle,
+  #                   control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+  #                   control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
+  #                   control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 1, strategy = "gaussian", int.strategy = "eb"), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015; http://www.r-inla.org/?place=msg%2Fr-inla-discussion-group%2Fuf2ZGh4jmWc%2FA0rdPE5W7uMJ
+  #                   control.mode = list(result = starting3, restart = TRUE),
+  #                   verbose = TRUE)
   
   mod <- inla(formula,
               family = "gaussian",
               data = modData_hurdle,
               control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
-              control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
-              control.compute = list(dic = TRUE, cpo = TRUE),
+              control.predictor = list(compute = TRUE
+                                       # ,link = rep(1, nrow(modData_full))
+                                       ),
+              control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE),
               control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
-              control.mode = list(result = starting4, restart = TRUE),
+              # control.mode = list(result = starting4, restart = TRUE),
               verbose = TRUE,
               keep = TRUE, debug = TRUE)
 
@@ -172,6 +174,11 @@ for (i in 1:length(modCodeLs)){
   mod_nz_fitted <- export_summaryStats_fitted_aggBias(path_csvExport_fittedNonzero, dummy_nz, modData_full, modCodeStr, dbCodeStr, s)
 
 
+  #### draw sample posteriors ################################
+  path_csvExport_posteriorSamples <- paste0(path_csvExport, sprintf("/posteriorSamples_%s_%s.csv", likString, modCodeStr))
+  export_posterior_samples(path_csvExport_posteriorSamples, mod)
+  
+  
   #### Diagnostic plots ################################
 
   #### normal likelihood figures ####
