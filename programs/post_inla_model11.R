@@ -25,7 +25,7 @@ source("source_clean_response_functions_cty.R") # cty response functions
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 seasons <- c(3:9)
 
-modCodeStrLs <- paste0("11a_iliSum_v", 1, "-4")
+modCodeStrLs <- paste0("11a_iliSum_v", 2, "-4")
 likString <- "normal"; likStrings <- c(likString) 
 source("source_calculate_residuals.R") # calculate_residuals function 
 

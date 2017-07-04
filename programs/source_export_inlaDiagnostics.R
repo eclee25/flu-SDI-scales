@@ -290,7 +290,6 @@ importPlot_coefDistr_RV_spatiotemporal <- function(path_csvExport, path_plotExpo
 }
 ################################
 
-
 #### functions for data processing  ################################
 ################################ 
 
