@@ -127,3 +127,21 @@ export_summaryStats_fitted_aggBias <- function(exportPath, oneLik_fits, modDataF
 }
 ################################
 
+export_summaryStats_fitted_hurdle <- function(exportPath, oneLik_fits, modDataFullOutput, modCodeString, dbCodeString, season){
+  # process binomial likelihood or gamma likelihood fitted values for diagnostic plotting
+  print(match.call())
+  
+  names(oneLik_fits) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode")
+  modOutput_fitted <- bind_cols(modDataFullOutput %>% select(fips, ID, y, y1, season), oneLik_fits) %>% 
+    mutate(modCodeStr = modCodeString, dbCodeStr = dbCodeString, exportDate = as.character(Sys.Date())) %>% # 10/11/16: grab season from modDataFullOutput instead of function argument
+    select(modCodeStr, dbCodeStr, season, exportDate, fips, ID, mean, sd, q_025, q_5, q_975, mode, y, y1)
+  
+  # export data to file
+  write_csv(modOutput_fitted, exportPath)
+  # return modified output
+  modOutput_fitted2 <- modOutput_fitted %>%
+    select(-modCodeStr, -dbCodeStr, -exportDate)
+  
+  return(modOutput_fitted2)
+}
+################################

@@ -41,6 +41,7 @@ for (i in 1:length(modCodeLs)){
   source("source_clean_data_functions_st.R") # state model only covariate data
   source("source_export_inlaData.R") # functions to plot general model diagnostics
   source("source_export_inlaData_hurdle.R") # data export functions for hurdle model
+  source("source_export_inlaData_st.R")
   
   #### FILEPATHS #################################
   setwd('../reference_data')
