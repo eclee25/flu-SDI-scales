@@ -124,6 +124,31 @@ export_ids <- function(exportPath, modDataFullOutput){
 }
 ################################
 
+export_ids_st <- function(exportPath, modDataFullOutput){
+  # export random and state/region group effect ids with true identities, as a key
+  print(match.call())
+  
+  # 10/30/16 control flow for spatial structure
+  if(is.null(modDataFullOutput$graphIdx) & is.null(modDataFullOutput$graphIdx_st)){ # without spatially structured terms
+    ids <- modDataFullOutput %>% 
+      select(season, fips_st, ID, regionID)
+  } else if(is.null(modDataFullOutput$graphIdx_st) & !is.null(modDataFullOutput$graphIdx)){ # with spatially structured county term
+    ids <- modDataFullOutput %>% 
+      select(season, fips_st, ID, regionID)
+  } else if(!is.null(modDataFullOutput$graphIdx_st) & is.null(modDataFullOutput$graphIdx)){ # with spatially structured state term
+    ids <- modDataFullOutput %>% 
+      select(season, fips_st, ID, regionID, graphIdx_st)
+  } else{
+    ids <- modDataFullOutput %>% 
+      select(season, fips_st, ID, regionID, graphIdx_st)
+  }
+  
+  # export data to file
+  write_csv(ids, exportPath)
+  
+}
+################################
+
 export_posterior_samples <- function(exportPath, inlaModelOutput){
   # export posterior predictive samples from the model
   print(match.call())
