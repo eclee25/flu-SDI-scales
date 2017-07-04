@@ -1,5 +1,5 @@
 # 12/22/16: separate files for calculate_residuals functions
-# load this function when response variable is log(y+1) (shift1): normal likelihood
+# load this function when response variable is y: normal likelihood
 
 ################################
 
