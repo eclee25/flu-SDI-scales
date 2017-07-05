@@ -71,6 +71,31 @@ cleanR_iliSum_shift1_st_aggBias <- function(filepathList){
 }
 ################################  
 
+cleanR_wksToEpi_st <- function(filepathList){
+  # clean response variable: wks.to.epi; 7/5/17
+  print(match.call())
+  
+  pop_data <- clean_pop_st(filepathList) # 4/12/16 all 51 pops are there
+
+  # clean data
+  wksToEpi_data <- read_csv(filepathList$path_response_st, col_types = "icllcd") %>%
+    filter(metric == "wks.to.epi") %>%
+    select(-metric) %>%
+    rename(y = burden, abbr_st = state)
+
+  # merge final data  
+  return_data <- full_join(wksToEpi_data, pop_data, by = c("season", "abbr_st")) %>% # 4/12/16 full_join so pops don't drop
+    select(fips_st, abbr_st, state, lat, lon, season, year, pop, y, has.epi) %>% 
+    mutate(y1 = ifelse(y>0, y, NA)) %>%
+    group_by(season) %>%
+    mutate(E = weighted.mean(y1, pop, na.rm=TRUE)) %>%
+    ungroup %>%
+    filter(season >= 3 & season <= 9)
+  
+  return(return_data)
+}
+################################  
+
 ##### SAMPLING EFFORT DATA ##########################################
 
 cleanX_priorBurden_st <- function(filepathList){

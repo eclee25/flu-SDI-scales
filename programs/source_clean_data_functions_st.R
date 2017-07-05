@@ -522,6 +522,39 @@ cleanX_noaanarrSpecHum_st <- function(){
 }
 ################################
 
+cleanX_noaanarrSpecHum_wksToEpi_st <- function(filepathList){
+  # clean average specific humidity near population-weighted centroid of the state in the two weeks prior to the epidemic start (daily)
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "env_NOAANARR_specHum_state")
+  # sel.statement <- "SELECT * from env_NOAANARR_specHum_state limit 5"
+  sel.statement <- "SELECT fips as fips_st, year, date as dayDate, humidity from env_NOAANARR_specHum_state where (MONTH(date) <= 4 or MONTH(date) >= 10)"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+
+  # identify weekdate of epidemic start 
+  epiWeekDat <- identify_firstEpiWeekdate_st(filepathList)
+  
+  output <- tbl_df(dummy) %>%
+    mutate(season = as.numeric(substr.Right(as.character(year), 2))) %>%
+    mutate(season = ifelse(as.numeric(substring(dayDate, 6, 7)) >= 11, season + 1, season)) %>%
+    left_join(epiWeekDat, by = c("fips_st", "season")) %>%
+    mutate(dayDate = as.Date(dayDate), t.firstepiweek = as.Date(t.firstepiweek)) %>%
+    mutate(epiMin14 = t.firstepiweek-14) %>%
+    filter(dayDate >= epiMin14 & dayDate <= t.firstepiweek) %>%
+    group_by(fips_st, season) %>%
+    summarise(humidity = mean(humidity, na.rm = TRUE)) %>%
+    ungroup
+  
+  return(output)
+  
+}
+################################
+
 cleanX_noaanarrSfcTemp_st <- function(){
   # clean average surface temperature near population-weighted centroid of the state during flu months (daily, Kelvin)
   print(match.call())
@@ -571,6 +604,38 @@ cleanX_wonderAirParticulateMatter_st <- function(){
   return(output)
   
 }
+################################
+
+cleanX_wonderAirParticulateMatter_wksToEpi_st <- function(filepathList){
+  # 7/5/17 for wksToEpi model: include only month of epidemic start time
+  # clean data on fine particulate matter (air pollution) with aerodynamic diameter < 2.5 micrometers by state, which was aggregated from 10 km square grids (monthly, micrograms/meter^3); monthly data are averages of daily observations
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "airpollution_wonder0311_state")
+  # sel.statement <- "SELECT * from airpollution_wonder0311_state limit 5"
+  sel.statement <- "SELECT fips_st, season, month, avg_pm from airpollution_wonder0311_state where month <= 4 or month >= 11"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+
+  # identify weekdate of epidemic start 
+  epiWeekDat <- identify_firstEpiWeekdate_st(filepathList) %>%
+    mutate(epiMonth = as.integer(substring(as.character(t.firstepiweek), 6, 7)))
+  
+  output <- tbl_df(dummy) %>%
+    left_join(epiWeekDat, by = c("season", "fips_st")) %>%
+    filter(month == epiMonth) %>%
+    group_by(fips_st, season) %>%
+    summarise(avg_pm = mean(avg_pm, na.rm = TRUE)) %>%
+    ungroup %>%
+    arrange(fips_st, season)
+  
+  return(output)
+  
+}
 
 ##### social cohesion ##########
 ################################
@@ -601,6 +666,27 @@ cleanX_acsOnePersonHH_st <- function(){
   
   return(output)
   
+}
+################################
+#### broad data cleaning functions 
+################################
+
+identify_firstEpiWeekdate_st <- function(filepathList){
+  # grab weekdate of first epidemic week in each state-season combination 
+
+  print(match.call())
+  
+  fullIndicDat <- read_csv(filepathList$path_fullIndic_st, col_types = cols_only(st_FIPS = "c", Thu.week = "D", season = "i", in.season = "l")) %>%
+    rename(fips_st = st_FIPS) %>%
+    filter(in.season) %>%
+    group_by(season, fips_st) %>%
+    mutate(t.firstepiweek = ifelse(Thu.week==min(Thu.week), Thu.week, 0)) %>%
+    ungroup %>%
+    filter(t.firstepiweek != 0) %>%
+    mutate(t.firstepiweek = as.Date(t.firstepiweek, origin = "1970-01-01")) %>%
+    select(fips_st, season, t.firstepiweek)
+
+  return(fullIndicDat)
 }
 
 # #### testing area ################################
