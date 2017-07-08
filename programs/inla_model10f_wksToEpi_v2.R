@@ -18,7 +18,7 @@ require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 
-modCodeLs <- c("10f_wksToEpi_v2-1")
+modCodeLs <- c("10f_wksToEpi_v2-2")
 
 for (i in 1:length(modCodeLs)){
   
@@ -76,7 +76,13 @@ for (i in 1:length(modCodeLs)){
     f(graphIdx_st_nonzero, model = "besag", graph = stPassenger_adjMx) +
     f(regionID_nonzero, model = "iid") +
     f(season_nonzero, model = "iid") +
-    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + offset(logE_nonzero)
+    intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + 
+    # X_hospaccess_nonzero + 
+    X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + 
+    # X_H3A_nonzero + X_B_nonzero + 
+    X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + 
+    # X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + 
+    offset(logE_nonzero)
 
   #### export formatting ####
   # diagnostic plot export directories
@@ -97,7 +103,7 @@ for (i in 1:length(modCodeLs)){
   mod <- inla(formula,
               family = "poisson",
               data = modData_hurdle,
-              control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+              control.fixed = list(mean = 0, prec = 1/1000), # set prior parameters for regression coefficients
               control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
               control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE),
               control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
