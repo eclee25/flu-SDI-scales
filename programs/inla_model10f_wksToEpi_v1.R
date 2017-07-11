@@ -18,7 +18,7 @@ require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 
-modCodeLs <- c("10f_wksToEpi_v1-2")
+modCodeLs <- c("10f_wksToEpi_v1-3")
 
 for (i in 1:length(modCodeLs)){
   
@@ -77,9 +77,9 @@ for (i in 1:length(modCodeLs)){
     # X_hospaccess_nonzero + 
     X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + 
     # X_H3A_nonzero + X_B_nonzero + 
-    X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero + 
+    X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero #+ 
     # X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + 
-    offset(logE_nonzero)
+    # offset(logE_nonzero)
 
   #### export formatting ####
   # diagnostic plot export directories

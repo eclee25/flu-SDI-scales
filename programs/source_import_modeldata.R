@@ -62,7 +62,7 @@ import_obsFit_wksToEpi_st <- function(modCodeStr, filepathList){
 }
 ################################
 
-import_obsFit_wksToEpi_ctySt <- function(modCodeStr_cty, modCodeStr_st, offset_l,filepathList){
+import_obsFit_wksToEpi_ctySt <- function(modCodeStr_cty, modCodeStr_st, offset_l, filepathList){
   print(match.call())
   # import fitted values for county and state models: weeks to epidemic onset
 
@@ -71,14 +71,14 @@ import_obsFit_wksToEpi_ctySt <- function(modCodeStr_cty, modCodeStr_st, offset_l
     ctyDat <- import_obsFit_wksToEpi(modCodeStr_cty, filepathList) %>%
       mutate(fit_rr_cty = fit_y/E) %>%
       rename(fit_y_cty = fit_y) %>%
-      rename(cty_LB = q025/E, cty_UB = q975/E) %>%
+      rename(cty_LB = q_025/E, cty_UB = q_975/E) %>%
       select(season, fips, fit_rr_cty, fit_y_cty, cty_LB, cty_UB) %>%
       mutate(fips_st = substring(fips, 1, 2))
   
     stDat <- import_obsFit_wksToEpi_st(modCodeStr_st, filepathList) %>%
       mutate(fit_rr_st = fit_y/E) %>%
       rename(fit_y_st = fit_y) %>%
-      rename(st_LB = q025/E, st_UB = q975/E) %>%
+      rename(st_LB = q_025/E, st_UB = q_975/E) %>%
       select(season, fips_st, fit_rr_st, fit_y_st, st_LB, st_UB)
 
     fullFitDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
@@ -88,17 +88,17 @@ import_obsFit_wksToEpi_ctySt <- function(modCodeStr_cty, modCodeStr_st, offset_l
   } else{ # data without offset adjustment
     ctyDat <- import_obsFit_wksToEpi(modCodeStr_cty, filepathList) %>%
       rename(fit_y_cty = fit_y) %>%
-      rename(cty_LB = q025, cty_UB = q975) %>%
+      rename(cty_LB = q_025, cty_UB = q_975) %>%
       select(season, fips, fit_y_cty, cty_LB, cty_UB) %>%
       mutate(fips_st = substring(fips, 1, 2))
   
     stDat <- import_obsFit_wksToEpi_st(modCodeStr_st, filepathList) %>%
       rename(fit_y_st = fit_y) %>%
-      rename(st_LB = q025, st_UB = q975) %>%
+      rename(st_LB = q_025, st_UB = q_975) %>%
       select(season, fips_st, fit_y_st, st_LB, st_UB)
 
     fullFitDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
-      select(season, fips, fips_st, cty_LB, cty_UB, st_LB, st_UB)
+      select(season, fips, fips_st, fit_y_cty, fit_y_st, cty_LB, cty_UB, st_LB, st_UB)
 
   }
   
@@ -128,7 +128,7 @@ string_exportFig_aggBias_folder <- function(){
 import_county_geomMap <- function(){
   print(match.call())
   
-  countyMap <- map_data("county")
+  countyMap <- ggplot2::map_data("county")
   data(county.fips)
   polynameSplit <- tstrsplit(county.fips$polyname, ",")
   county_geomMap <- tbl_df(county.fips) %>%

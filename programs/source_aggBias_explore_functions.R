@@ -64,13 +64,13 @@ scatter_fitCompare_stCty_wksToEpi <- function(modCodeStr_cty, modCodeStr_st, plt
   offset_l <- datFormats$offset_l
   
   # import county and state data
-  fullDatDat <- import_obsFit_wksToEpi_ctySt(modCodeStr_cty, modCodeStr_st, path_list) %>%
+  plotDat <- import_obsFit_wksToEpi_ctySt(modCodeStr_cty, modCodeStr_st, offset_l, path_list) %>%
     mutate(season = as.character(season))
 
   exportFname <- paste0(string_exportFig_aggBias_folder(), "scatter_fitCompare_stCty_wksToEpi.png")
 
   # scatterplot with offset
-  if (offset_l){
+  if(offset_l){
     scatter <- ggplot(plotDat, aes(x = fit_rr_cty, y = fit_rr_st)) +
       geom_point(colour = "blue", alpha = 0.3) +
       geom_abline(colour = "black", intercept = 0, slope = 1) +
@@ -89,6 +89,7 @@ scatter_fitCompare_stCty_wksToEpi <- function(modCodeStr_cty, modCodeStr_st, plt
       theme_bw() +
       theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
       facet_wrap(~season, nrow = 2)
+
     }
 
   ggsave(exportFname, scatter, height = h, width = w, dpi = dp)

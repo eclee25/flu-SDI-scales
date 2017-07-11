@@ -31,12 +31,15 @@ path_list <- list(path_abbr_st = path_abbr_st,
 ## MAIN ##
 setwd(dirname(sys.frame(1)$ofile))
 
-# # choropleth of overlap between state and county fitted weeks to epi onset
-# plotFormats <- list(w = 3, h = 2.5)
-# dataFormats <- list(offset_l = TRUE)
-# choro_fitOverlap_stCty_wksToEpi_oneSeason("8f_wksToEpi_v2-3", "10f_wksToEpi_v1-2", plotFormats, dataFormats, path_list)
+# choropleth of overlap between state and county fitted weeks to epi onset
+plotFormats <- list(w = 3, h = 2.5)
+dataFormats <- list(offset_l = FALSE)
+choro_fitOverlap_stCty_wksToEpi_oneSeason("8f_wksToEpi_v2-4", "10f_wksToEpi_v1-3", plotFormats, dataFormats, path_list)
 
 # scatterplot of state versus county
 plotFormats <- list(w = 6, h = 4)
-dataFormats <- list(offset_l = TRUE)
-scatter_fitCompare_stCty_wksToEpi("8f_wksToEpi_v2-3", "10f_wksToEpi_v1-2", plotFormats, dataFormats, path_list)
+dataFormats <- list(offset_l = FALSE)
+scatter_fitCompare_stCty_wksToEpi("8f_wksToEpi_v2-4", "10f_wksToEpi_v1-3", plotFormats, dataFormats, path_list)
+
+
+

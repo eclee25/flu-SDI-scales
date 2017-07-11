@@ -22,7 +22,7 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-dbCodeStr <- "_iliRate" # _ilinDt_Octfit_span0.4_degree2
+dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2" # _ilinDt_Octfit_span0.4_degree2
 seasons <- c(3:9)
 
 ## seasLs for historical season sequence
@@ -34,10 +34,10 @@ seasons <- c(3:9)
 # modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 # modCodeStrLs <- paste0("8f_wksToEpi_v", 1:2, "-2")
-modCodeStrLs <- c("8g_iliRate_v2-1")
+modCodeStrLs <- c("8f_wksToEpi_v2-4")
 
-likString <- "normal"; likStrings <- c(likString)
-source("source_calculate_residuals_shift1.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur, wksToEpi)
+likString <- "poisson"; likStrings <- c(likString)
+source("source_calculate_residuals.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur, wksToEpi)
 
 #### IMPORT FILEPATHS #################################
 setwd('../reference_data')
