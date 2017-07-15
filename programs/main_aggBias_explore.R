@@ -57,4 +57,3 @@ choro_fit_aggBias_stCty_wksToEpi_oneSeason(modCodeStr_cty, modCodeStr_st, plotFo
 
 
 
-#### compare peak timing and epi onset timing ############################
