@@ -82,8 +82,8 @@ import_obsFit_wksToEpi_ctySt <- function(modCodeStr_cty, modCodeStr_st, offset_l
       select(season, fips_st, fit_rr_st, fit_y_st, st_LB, st_UB)
 
     fullFitDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
-      mutate(fit_rrDiff_stCty = fit_rr_st-fit_rr_cty) %>%
-      select(season, fips, fips_st, fit_rr_cty, fit_rr_st, fit_rrDiff_stCty, cty_LB, cty_UB, st_LB, st_UB)
+      mutate(fit_diff_stCty = fit_rr_st-fit_rr_cty) %>%
+      select(season, fips, fips_st, fit_rr_cty, fit_rr_st, fit_diff_stCty, cty_LB, cty_UB, st_LB, st_UB)
 
   } else{ # data without offset adjustment
     ctyDat <- import_obsFit_wksToEpi(modCodeStr_cty, filepathList) %>%
@@ -98,7 +98,8 @@ import_obsFit_wksToEpi_ctySt <- function(modCodeStr_cty, modCodeStr_st, offset_l
       select(season, fips_st, fit_y_st, st_LB, st_UB)
 
     fullFitDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
-      select(season, fips, fips_st, fit_y_cty, fit_y_st, cty_LB, cty_UB, st_LB, st_UB)
+      mutate(fit_diff_stCty = fit_y_st-fit_y_cty) %>%
+      select(season, fips, fips_st, fit_y_cty, fit_y_st, fit_diff_stCty, cty_LB, cty_UB, st_LB, st_UB)
 
   }
   
@@ -113,10 +114,6 @@ import_obsFit_wksToEpi_ctySt <- function(modCodeStr_cty, modCodeStr_st, offset_l
 string_fit_fname <- function(modCodeStr){
   searchDir <-  paste0(dirname(sys.frame(1)$ofile), "/../R_export/inlaModelData_export/", modCodeStr, "/")
   return(grep("summaryStatsFitted_", list.files(path = searchDir, full.names = TRUE), value = TRUE))
-}
-################################
-string_exportFig_subsampleAggBias_folder <- function(){
-  return(paste0(dirname(sys.frame(1)$ofile), "/../graph_outputs/subsampleAggBias_explore/"))
 }
 ################################
 string_exportFig_aggBias_folder <- function(){
@@ -146,6 +143,10 @@ import_county_geomMap <- function(){
 
 #### obsolete functions? ################################
 ################################
+string_exportFig_subsampleAggBias_folder <- function(){
+  return(paste0(dirname(sys.frame(1)$ofile), "/../graph_outputs/subsampleAggBias_explore/"))
+}
+################################
 import_obsFit_seasIntensityRR <- function(modCodeStr, filepathList){
   print(match.call())
   
@@ -173,7 +174,6 @@ import_obsFit_seasIntensityRR <- function(modCodeStr, filepathList){
   
   return(obsFitDat)
 }
-
 ################################
 import_obsFit_seasIntensityRR_st <- function(modCodeStr, filepathList){
   print(match.call())
@@ -195,4 +195,27 @@ import_obsFit_seasIntensityRR_st <- function(modCodeStr, filepathList){
     mutate(resid = (obs_logy - fit_logy)/fit_sd)
   
   return(obsFitDat)
+}
+################################
+import_fit_aggBias_seasIntensityRR <- function(modCodeStr_cty, modCodeStr_st, filepathList){
+  print(match.call())
+  # import fitted values for county and state seasonal intensity models
+
+  # import county data
+  ctyDat <- import_obsFit_seasIntensityRR(modCodeStr_cty, filepathList) %>%
+    rename(fit_rr_cty = fit_rr, fit_logy_cty = fit_logy) %>%
+    select(season, fips, fit_rr_cty, fit_logy_cty) %>%
+    mutate(fips_st = substring(fips, 1, 2))
+  
+  # import state data
+  stDat <- import_obsFit_seasIntensityRR_st(modCodeStr_st, filepathList) %>%
+    rename(fit_rr_st = fit_rr, fit_logy_st = fit_logy) %>%
+    select(season, fips_st, fit_rr_st, fit_logy_st)
+  
+  fullFitDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
+    mutate(fit_rrDiff_stCty = fit_rr_st-fit_rr_cty) %>%
+    mutate(fit_logyRatio_stCty = fit_logy_st-fit_logy_cty) %>%
+    select(season, fips, fips_st, fit_rr_cty, fit_logy_cty, fit_rr_st, fit_logy_st, fit_rrDiff_stCty, fit_logyRatio_stCty)
+  
+  return(fullFitDat) 
 }
