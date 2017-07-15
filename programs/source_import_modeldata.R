@@ -211,6 +211,10 @@ string_fit_fname <- function(modCodeStr){
 string_exportFig_aggBias_folder <- function(){
   return(paste0(dirname(sys.frame(1)$ofile), "/../graph_outputs/aggBias_explore/"))
 }
+################################
+string_exportFig_wksToEpiAndPeak_folder <- function(){
+  return(paste0(dirname(sys.frame(1)$ofile), "/../graph_outputs/wksToEpiAndPeak_explore/"))
+}
 
 #### plotting dependencies ################################
 ################################
