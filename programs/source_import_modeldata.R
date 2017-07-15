@@ -106,6 +106,98 @@ import_obsFit_wksToEpi_ctySt <- function(modCodeStr_cty, modCodeStr_st, offset_l
   return(fullFitDat) 
 }
 ################################
+import_obsFit_wksToPeak <- function(modCodeStr, filepathList){
+  print(match.call())
+  # import observed and fitted data for weeks to epidemic peak at county level
+  
+  # import fitted data (on the scale of y)
+  outDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_ddd_d___") %>%
+    rename(fit_y = mean, fit_sd = sd) %>%
+    select(modCodeStr, season, fips, fit_y, fit_sd, q_025, q_975)
+  
+  # import observed and expected wks to epi
+  inDat <- cleanR_wksToPeak_cty(filepathList) %>%
+        mutate(obs_y = y1, E = E) %>%
+        select(season, fips, obs_y, E)
+  
+  # prepare data for plotting breaks
+  obsFitDat <- left_join(outDat, inDat, by = c("season", "fips")) %>%
+    # mutate(obs_rr = obs_y/E, fit_rr = fit_y/E) %>%
+    # mutate(cty_rr_q025 = q_025/E, cty_rr_q975 = q_975/E) %>%
+    mutate(resid = (obs_y - fit_y)/fit_sd)
+  
+  return(obsFitDat)
+}
+
+################################
+import_obsFit_wksToPeak_st <- function(modCodeStr, filepathList){
+  print(match.call())
+  # import observed and fitted data for weeks to epidemic peak at state level
+  
+  # import fitted data
+  outDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_ddd_d___") %>%
+    rename(fit_y = mean, fit_sd = sd) %>%
+    select(modCodeStr, season, fips_st, fit_y, fit_sd, q_025, q_975)
+  
+  # import observed and expected wks to epi
+  inDat <- cleanR_wksToPeak_st(filepathList) %>%
+    mutate(obs_y = y1, E = E) %>%
+    select(season, fips_st, obs_y, E)
+  
+  # prepare data for plotting breaks
+  obsFitDat <- left_join(outDat, inDat, by = c("season", "fips_st")) %>%
+    # mutate(obs_rr = obs_y/E, fit_rr = fit_y/E) %>% 
+    # mutate(st_rr_q025 = q_025/E, st_rr_q975 = q_975/E) %>%
+    mutate(resid = (obs_y - fit_y)/fit_sd)
+  
+  return(obsFitDat)
+}
+################################
+
+import_obsFit_wksToPeak_ctySt <- function(modCodeStr_cty, modCodeStr_st, offset_l, filepathList){
+  print(match.call())
+  # import fitted values for county and state models: weeks to epidemic peak
+
+  # import county and state data for models with offset
+  if (offset_l){
+    ctyDat <- import_obsFit_wksToPeak(modCodeStr_cty, filepathList) %>%
+      mutate(fit_rr_cty = fit_y/E) %>%
+      rename(fit_y_cty = fit_y) %>%
+      rename(cty_LB = q_025/E, cty_UB = q_975/E) %>%
+      select(season, fips, fit_rr_cty, fit_y_cty, cty_LB, cty_UB) %>%
+      mutate(fips_st = substring(fips, 1, 2))
+  
+    stDat <- import_obsFit_wksToPeak_st(modCodeStr_st, filepathList) %>%
+      mutate(fit_rr_st = fit_y/E) %>%
+      rename(fit_y_st = fit_y) %>%
+      rename(st_LB = q_025/E, st_UB = q_975/E) %>%
+      select(season, fips_st, fit_rr_st, fit_y_st, st_LB, st_UB)
+
+    fullFitDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
+      mutate(fit_diff_stCty = fit_rr_st-fit_rr_cty) %>%
+      select(season, fips, fips_st, fit_rr_cty, fit_rr_st, fit_diff_stCty, cty_LB, cty_UB, st_LB, st_UB)
+
+  } else{ # data without offset adjustment
+    ctyDat <- import_obsFit_wksToPeak(modCodeStr_cty, filepathList) %>%
+      rename(fit_y_cty = fit_y) %>%
+      rename(cty_LB = q_025, cty_UB = q_975) %>%
+      select(season, fips, fit_y_cty, cty_LB, cty_UB) %>%
+      mutate(fips_st = substring(fips, 1, 2))
+  
+    stDat <- import_obsFit_wksToPeak_st(modCodeStr_st, filepathList) %>%
+      rename(fit_y_st = fit_y) %>%
+      rename(st_LB = q_025, st_UB = q_975) %>%
+      select(season, fips_st, fit_y_st, st_LB, st_UB)
+
+    fullFitDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
+      mutate(fit_diff_stCty = fit_y_st-fit_y_cty) %>%
+      select(season, fips, fips_st, fit_y_cty, fit_y_st, fit_diff_stCty, cty_LB, cty_UB, st_LB, st_UB)
+
+  }
+  
+  return(fullFitDat) 
+}
+################################
 
 
 
