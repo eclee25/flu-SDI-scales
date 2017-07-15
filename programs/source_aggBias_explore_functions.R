@@ -19,6 +19,61 @@ source("source_import_modeldata.R")
 #### plotting functions ################################
 ################################
 
+choro_fit_aggBias_stCty_wksToEpi_oneSeason <- function(modCodeStr_cty, modCodeStr_st, pltFormats, datFormats, filepathList){
+  print(match.call())
+  # choropleth of error between county and state-level seasonal intensity
+
+  # plot formatting
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  if (is.null(pltFormats$legendStep)){
+    legendStep <- 1
+  } else{
+    legendStep <- pltFormats$legendStep
+  }
+
+  # data formatting
+  offset_l <- datFormats$offset_l
+
+  # import difference between county and state weeks to epi
+  prepDat <- import_obsFit_wksToEpi_ctySt(modCodeStr_cty, modCodeStr_st, offset_l, filepathList)
+
+  # # check breaks for aggBias
+  # print(hist(prepDat$fit_diff_stCty))
+  # print(summary(prepDat))
+
+  breaks <- c(-13, -6.5, -3, -1, 1, 3, 6.5)
+  manualPalette <- c("#10456a", "#1c73b1", "#67add4", "#cacaca", "#69a761", "#2f8e41") # 3 blue - grey - 2 green
+  # c("#1c73b1", "#67add4", "#cacaca", "#69a761", "#2f8e41", "#09622a") # 2 blue - grey - 3 green
+
+  plotDat <- prepDat %>%
+    mutate(fit_diff = cut(fit_diff_stCty, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) 
+  factorlvls <- levels(plotDat$fit_diff_stCty)
+
+  seasLs <- plotDat %>% distinct(season) %>% unlist
+  for (s in seasLs){
+   
+    exportFname <- paste0(string_exportFig_aggBias_folder(), "choro_fit_aggBias_wksToEpi_S", s, ".png")
+    pltDat <- plotDat %>% filter(season == s)
+
+    # import county mapping info
+    ctyMap <- import_county_geomMap()
+    
+    # plot
+    choro <- ggplot() +
+      geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
+      geom_map(data = pltDat, map = ctyMap, aes(fill = fit_diff, map_id = fips), color = "grey25", size = 0.025) +
+      scale_fill_manual(name = "Error", values = manualPalette, na.value = "grey60", drop = FALSE) +
+      expand_limits(x = ctyMap$long, y = ctyMap$lat) +
+      theme_minimal() +
+      theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
+    
+    ggsave(exportFname, choro, height = h, width = w, dpi = dp)
+     
+  }
+
+}
+################################
+
 choro_fitOverlap_stCty_wksToEpi_oneSeason <- function(modCodeStr_cty, modCodeStr_st, pltFormats, datFormats, path_list){
   print(match.call())
     
@@ -109,29 +164,6 @@ overlapping_intervals <- function(df, intervalA_LB, intervalA_UB, intervalB_LB, 
 
 
 #### obsolete functions? ################################
-################################
-import_fit_aggBias_seasIntensityRR <- function(modCodeStr_cty, modCodeStr_st, filepathList){
-  print(match.call())
-  # import fitted values for county and state seasonal intensity models
-
-  # import county data
-  ctyDat <- import_obsFit_seasIntensityRR(modCodeStr_cty, filepathList) %>%
-    rename(fit_rr_cty = fit_rr, fit_logy_cty = fit_logy) %>%
-    select(season, fips, fit_rr_cty, fit_logy_cty) %>%
-    mutate(fips_st = substring(fips, 1, 2))
-  
-  # import state data
-  stDat <- import_obsFit_seasIntensityRR_st(modCodeStr_st, filepathList) %>%
-    rename(fit_rr_st = fit_rr, fit_logy_st = fit_logy) %>%
-    select(season, fips_st, fit_rr_st, fit_logy_st)
-  
-  fullFitDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
-    mutate(fit_rrDiff_stCty = fit_rr_st-fit_rr_cty) %>%
-    mutate(fit_logyRatio_stCty = fit_logy_st-fit_logy_cty) %>%
-    select(season, fips, fips_st, fit_rr_cty, fit_logy_cty, fit_rr_st, fit_logy_st, fit_rrDiff_stCty, fit_logyRatio_stCty)
-  
-  return(fullFitDat) 
-}
 ################################
 
 choro_fit_aggBias_seasIntensityRR_oneSeason <- function(modCodeStr_cty, modCodeStr_st, pltFormats, filepathList){
