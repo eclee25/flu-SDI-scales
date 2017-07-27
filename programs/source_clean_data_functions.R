@@ -986,6 +986,48 @@ cleanX_noaanarrSpecHum_wksToEpi_cty <- function(filepathList){
 }
 ################################
 
+cleanX_noaanarrAnomSpecHum_wksToEpi_cty <- function(filepathList){
+  # clean local daily deviation (avg of differences between daily AH and daily average value over study period) in specific humidity near population-weighted centroid of the county over the four weeks prior to the epidemic start
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "env_NOAANARR_specHum_county")
+  # sel.statement <- "SELECT * from env_NOAANARR_specHum_county limit 5"
+  sel.statement <- "SELECT fips, year, date as dayDate, humidity from env_NOAANARR_specHum_county where (MONTH(date) <= 4 or MONTH(date) >= 10)"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+
+  # identify weekdate of epidemic start 
+  epiWeekDat <- identify_firstEpiWeekdate(filepathList)
+
+  cleanDat <- tbl_df(dummy) %>%
+    mutate(season = as.numeric(substr.Right(as.character(year), 2))) %>%
+    mutate(season = ifelse(as.numeric(substring(as.character(dayDate), 6, 7)) >= 11, season + 1, season)) %>%
+    left_join(epiWeekDat, by = c("fips", "season")) %>%
+    mutate(dayDate = as.Date(dayDate), t.firstepiweek = as.Date(t.firstepiweek)) %>%
+    mutate(epiMin28 = t.firstepiweek-28) %>%    
+    filter(season >= 3 & season <= 10)
+
+  avgDat <- cleanDat %>% 
+    group_by(fips) %>%
+    summarise(avgHumidity = mean(humidity, na.rm = TRUE))
+  
+  # calculate deviation in local daily absolute humidity
+  output <- left_join(cleanDat, avgDat, by = c("fips")) %>%
+    filter(dayDate >= epiMin28 & dayDate <= t.firstepiweek) %>%
+    mutate(anomHumidity = humidity - avgHumidity) %>%
+    group_by(fips, season) %>%
+    summarise(anomHumidity = mean(anomHumidity, na.rm = TRUE)) %>%
+    ungroup
+  
+  return(output)
+  
+}
+################################
+
 cleanX_noaanarrSfcTemp_cty <- function(){
   # clean average surface temperature near population-weighted centroid of the county during flu months (daily, Kelvin)
   print(match.call())
@@ -1287,18 +1329,21 @@ identify_firstEpiWeekdate <- function(filepathList){
 
 
 #### testing area ################################
-# setwd(dirname(sys.frame(1)$ofile))
-# setwd('../reference_data')
-# path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
-# path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
-# setwd("../R_export")
-# path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
-# 
-# # put all paths in a list to pass them around in functions
-# path_list <- list(path_abbr_st = path_abbr_st,
-#                   path_latlon_cty = path_latlon_cty,
-#                   path_response_cty = path_response_cty)
-# setwd(dirname(sys.frame(1)$ofile))
+setwd(dirname(sys.frame(1)$ofile))
+setwd('../reference_data')
+path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
+path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
+setwd("../R_export")
+dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
+path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
+path_fullIndic_cty <- paste0(getwd(), sprintf("/fullIndicAll_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
+
+# put all paths in a list to pass them around in functions
+path_list <- list(path_abbr_st = path_abbr_st,
+                  path_latlon_cty = path_latlon_cty,
+                  path_fullIndic_cty = path_fullIndic_cty,
+                  path_response_cty = path_response_cty)
+setwd(dirname(sys.frame(1)$ofile))
 
 # # all county tables
 # sahieIns_cty_df <- cleanO_sahieInsured_cty()
@@ -1318,6 +1363,7 @@ identify_firstEpiWeekdate <- function(filepathList){
 # acsCommutInflows_cty_prep <- cleanX_acsCommutInflows_cty()
 # btsPass_cty_df <- cleanX_btsPassInflows_cty()
 # narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
+narrAnomSpecHum_cty_df <- cleanX_noaanarrAnomSpecHum_wksToEpi_cty(path_list)
 # narrSfcTemp_cty_df <- cleanX_noaanarrSfcTemp_cty()
 # wonderPollution_cty_df <- cleanX_wonderAirParticulateMatter_cty()
 # cbpSocialAssoc_cty_df <- cleanX_cbpSocialAssoc_cty()
