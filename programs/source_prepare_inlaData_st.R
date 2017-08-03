@@ -125,6 +125,7 @@ model10f_wksToEpi_v2 <- function(filepathList){
   popDens_st_df <- cleanX_popDensity_st()
   housDens_st_df <- cleanX_housDensity_st()
   narrSpecHum_st_df <- cleanX_noaanarrSpecHum_wksToEpi_st(filepathList)
+  narrAnomSpecHum_st_df <- cleanX_noaanarrAnomSpecHum_wksToEpi_st(filepathList)
   wonderPollution_st_df <- cleanX_wonderAirParticulateMatter_wksToEpi_st(filepathList)
   acsOnePersonHH_st_df <- cleanX_acsOnePersonHH_st()
   infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st()
@@ -153,6 +154,7 @@ model10f_wksToEpi_v2 <- function(filepathList){
     rename(regionID = region) %>%
     full_join(protectedPriorSeas_df, by = c("season", "fips_st")) %>%
     full_join(narrSpecHum_st_df, by = c("season", "fips_st")) %>%
+    full_join(narrAnomSpecHum_st_df, by = c("season", "fips_st")) %>%
     full_join(wonderPollution_st_df, by = c("season", "fips_st")) %>%
     full_join(acsOnePersonHH_st_df, by = c("fips_st", "year")) %>%
     full_join(graphIdx_st_df, by = "fips_st") %>%

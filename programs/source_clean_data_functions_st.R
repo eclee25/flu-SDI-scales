@@ -555,6 +555,47 @@ cleanX_noaanarrSpecHum_wksToEpi_st <- function(filepathList){
 }
 ################################
 
+cleanX_noaanarrAnomSpecHum_wksToEpi_st <- function(filepathList){
+  # clean local daily deviation (avg of differences between daily AH and daily average value over study period) in specific humidity near population-weighted centroid of the state over the four weeks prior to the epidemic start 
+  print(match.call())
+  
+  con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
+  dbListTables(con)
+  
+  dbListFields(con, "env_NOAANARR_specHum_state")
+  # sel.statement <- "SELECT * from env_NOAANARR_specHum_state limit 5"
+  sel.statement <- "SELECT fips as fips_st, year, date as dayDate, humidity from env_NOAANARR_specHum_state where (MONTH(date) <= 4 or MONTH(date) >= 10)"
+  dummy <- dbGetQuery(con, sel.statement)
+  
+  dbDisconnect(con)
+
+  # identify weekdate of epidemic start 
+  epiWeekDat <- identify_firstEpiWeekdate_st(filepathList)
+  
+  cleanDat <- tbl_df(dummy) %>%
+    mutate(season = as.numeric(substr.Right(as.character(year), 2))) %>%
+    mutate(season = ifelse(as.numeric(substring(dayDate, 6, 7)) >= 11, season + 1, season)) %>%
+    left_join(epiWeekDat, by = c("fips_st", "season")) %>%
+    mutate(dayDate = as.Date(dayDate), t.firstepiweek = as.Date(t.firstepiweek)) %>%
+    mutate(epiMin28 = t.firstepiweek-28) %>%
+    filter(season >= 3 & season <= 10)
+
+  avgDat <- cleanDat %>%
+    group_by(fips_st) %>%
+    summarise(avgHumidity = mean(humidity, na.rm = TRUE))
+
+  output <- left_join(cleanDat, avgDat, by = c("fips_st"))
+    filter(dayDate >= epiMin28 & dayDate <= t.firstepiweek) %>%
+    mutate(anomHumidity = humidity - avgHumidity) %>%
+    group_by(fips_st, season) %>%
+    summarise(anomHumidity = mean(anomHumidity, na.rm = TRUE)) %>%
+    ungroup
+  
+  return(output)
+  
+}
+################################
+
 cleanX_noaanarrSfcTemp_st <- function(){
   # clean average surface temperature near population-weighted centroid of the state during flu months (daily, Kelvin)
   print(match.call())
