@@ -173,6 +173,7 @@ model10f_wksToEpi_v2 <- function(filepathList){
     mutate(X_humidity = centerStandardize(humidity)) %>%
     mutate(X_pollution = centerStandardize(avg_pm)) %>%
     mutate(X_singlePersonHH = centerStandardize(perc_hh_1p)) %>%
+    mutate(X_latitude = centerStandardize(lat)) %>%
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
     mutate(logE = log(E), y1 = y1) %>% # model response y1 = log(y+1)

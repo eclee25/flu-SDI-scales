@@ -67,9 +67,8 @@ path_list <- list(path_abbr_st = path_abbr_st,
 
 #### MAIN #################################
 #### Import and process data ####
-modData_full <- model8f_wksToEpi_v7(path_list) # with driver & sampling effort variables
-#%>%
-# remove_randomObs_stratifySeas(0.4)
+modData_full <- model8f_wksToEpi_v7(path_list) %>% # with driver & sampling effort variables
+remove_randomObs_stratifySeas(0.4)
 
 formula <- Y ~ -1 +
   f(ID_nonzero, model = "iid") +

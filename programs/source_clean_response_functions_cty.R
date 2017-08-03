@@ -101,7 +101,7 @@ cleanR_wksToEpi_cty <- function(filepathList){
   # clean response variable: wks.to.epi; 3/31/17
   print(match.call())
 
-  # pop data: fips, county, st, season, year, pop, lat lon
+  # pop data: fips, county, st, season, year, pop, lat, lon
   pop_data <- clean_pop_cty(filepathList)
   
   # 7/18/16: add incl.analysis indicator
