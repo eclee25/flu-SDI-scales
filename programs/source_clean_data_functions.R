@@ -1366,12 +1366,17 @@ setwd("../R_export")
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
 path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
 path_fullIndic_cty <- paste0(getwd(), sprintf("/fullIndicAll_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
+setwd("./origin_locations")
+origin_locations_file <- "Lee"
+path_srcLoc_cty <- paste0(getwd(), sprintf("/fluseason_source_locations_%s.csv", origin_locations_file))
+
 
 # put all paths in a list to pass them around in functions
 path_list <- list(path_abbr_st = path_abbr_st,
                   path_latlon_cty = path_latlon_cty,
                   path_fullIndic_cty = path_fullIndic_cty,
-                  path_response_cty = path_response_cty)
+                  path_response_cty = path_response_cty,
+                  path_srcLoc_cty = path_srcLoc_cty)
 setwd(dirname(sys.frame(1)$ofile))
 
 # # all county tables
@@ -1392,7 +1397,7 @@ setwd(dirname(sys.frame(1)$ofile))
 # acsCommutInflows_cty_prep <- cleanX_acsCommutInflows_cty()
 # btsPass_cty_df <- cleanX_btsPassInflows_cty()
 # narrSpecHum_cty_df <- cleanX_noaanarrSpecHum_cty()
-narrAnomSpecHum_cty_df <- cleanX_noaanarrAnomSpecHum_wksToEpi_cty(path_list)
+# narrAnomSpecHum_cty_df <- cleanX_noaanarrAnomSpecHum_wksToEpi_cty(path_list)
 # narrSfcTemp_cty_df <- cleanX_noaanarrSfcTemp_cty()
 # wonderPollution_cty_df <- cleanX_wonderAirParticulateMatter_cty()
 # cbpSocialAssoc_cty_df <- cleanX_cbpSocialAssoc_cty()
@@ -1401,6 +1406,7 @@ narrAnomSpecHum_cty_df <- cleanX_noaanarrAnomSpecHum_wksToEpi_cty(path_list)
 # acsAvgHHSize_cty_df <- cleanX_acsAvgHHSize_cty()
 # brfssPoorHealth_cty_df <- cleanX_brfssPoorHealth_cty()
 # brfssUnhealthyDays_cty_df <- cleanX_brfssUnhealthyDays_cty()
+sourceLocDist_cty_df <- cleanX_distanceFromSourceLocations_cty(path_list)
  
 # # all region tables
 # cdcFluPos_df <- cleanX_cdcFluview_fluPos_region()
