@@ -364,6 +364,7 @@ model8f_wksToEpi_v7 <- function(filepathList){
   narrAnomSpecHum_cty_df <- cleanX_noaanarrAnomSpecHum_wksToEpi_cty(filepathList)
   wonderPollution_cty_df <- cleanX_wonderAirParticulateMatter_wksToEpi_cty(filepathList)
   acsOnePersonHH_cty_df <- cleanX_acsOnePersonHH_cty()
+  sourceLocDist_cty_df <- cleanX_distanceFromSourceLocations_cty(filepathList)
   # all state tables 
   infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st()
   elderlyAnyVax_st_df <- cleanX_brfssElderlyAnyVaxCov_st() 
@@ -397,6 +398,7 @@ model8f_wksToEpi_v7 <- function(filepathList){
     full_join(narrAnomSpecHum_cty_df, by = c("season", "fips")) %>%
     full_join(wonderPollution_cty_df, by = c("season", "fips")) %>%
     full_join(acsOnePersonHH_cty_df, by = c("fips", "year")) %>%
+    full_join(sourceLocDist_cty_df, by = c("fips", "season")) %>%
     full_join(graphIdx_df, by = "fips") %>%
     full_join(graphIdx_st_df, by = "fips_st") %>%
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
@@ -418,10 +420,11 @@ model8f_wksToEpi_v7 <- function(filepathList){
     mutate(X_pollution = centerStandardize(avg_pm)) %>%
     mutate(X_singlePersonHH = centerStandardize(perc_hh_1p)) %>%
     mutate(X_latitude = centerStandardize(lat)) %>%
+    mutate(X_sourceLocDist = centerStandardize(sourceLocDist)) %>%
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
     mutate(logE = log(E), y1 = y1) %>% # model response y1 = nonzero y values
-    select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -anomHumidity, -avg_pm, -perc_hh_1p) %>%
+    select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -anomHumidity, -avg_pm, -perc_hh_1p, -sourceLocDist) %>%
     filter(season %in% 3:9) %>%
     mutate(ID = seq_along(fips))
   

@@ -20,9 +20,10 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "8f_wksToEpi_v2-4"
+modCodeStr <- "8f_wksToEpi_v2-5"
 rdmFx_RV <- "phi"
 likString <- "poisson"
+origin_locations_file <- "Lee"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 s <- 999 # all seasons code for spatiotemporal analysis = 999
 
@@ -54,6 +55,9 @@ setwd("../../R_export")
 path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
 path_fullIndic_cty <- paste0(getwd(), sprintf("/fullIndicAll_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
 
+setwd("./origin_locations")
+path_srcLoc_cty <- paste0(getwd(), sprintf("/fluseason_source_locations_%s.csv", origin_locations_file))
+
 # put all paths in a list to pass them around in functions
 path_list <- list(path_abbr_st = path_abbr_st,
                   path_latlon_cty = path_latlon_cty,
@@ -63,12 +67,13 @@ path_list <- list(path_abbr_st = path_abbr_st,
                   path_graphIdx_cty = path_graphIdx_cty,
                   path_graphExport_st = path_graphExport_st,
                   path_graphIdx_st = path_graphIdx_st, 
-                  path_fullIndic_cty = path_fullIndic_cty)
+                  path_fullIndic_cty = path_fullIndic_cty,
+                  path_srcLoc_cty = path_srcLoc_cty)
 
 #### MAIN #################################
 #### Import and process data ####
-modData_full <- model8f_wksToEpi_v7(path_list) %>% # with driver & sampling effort variables
-remove_randomObs_stratifySeas(0.4)
+modData_full <- model8f_wksToEpi_v7(path_list) #%>% with driver & sampling effort variables
+# remove_randomObs_stratifySeas(0.4)
 
 formula <- Y ~ -1 +
   f(ID_nonzero, model = "iid") +
@@ -78,11 +83,11 @@ formula <- Y ~ -1 +
   f(regionID_nonzero, model = "iid") +
   f(season_nonzero, model = "iid") +
   intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + 
-  # X_hospaccess_nonzero + 
+  X_hospaccess_nonzero + 
   X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + 
-  # X_H3A_nonzero + X_B_nonzero + 
-  X_priorImmunity_nonzero + X_humidity_nonzero + X_pollution_nonzero #+ 
-  # X_singlePersonHH_nonzero + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + 
+  X_H3A_nonzero + X_B_nonzero + 
+  X_priorImmunity_nonzero + X_humidity_nonzero + X_anomHumidity_nonzero + X_pollution_nonzero + X_latitude_nonzero + X_sourceLocDist + X_singlePersonHH_nonzero 
+  # + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + 
   # offset(logE_nonzero)
 
 #### export formatting ####

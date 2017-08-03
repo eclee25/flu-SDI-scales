@@ -1281,6 +1281,30 @@ cleanX_brfssUnhealthyDays_cty <- function(){
   
 }
 ################################
+##### distance from probable source location ##########
+
+cleanX_distanceFromSourceLocations_cty <- function(filepathList){
+  # calculate data on Euclidean distance of fips from source location for a given flu season; adapted from source_identify_origin_location.R/calculate_distance_from_sources
+  print(match.call())
+
+  srcLocDat <- read_csv(filepathList$path_srcLoc_cty, col_types = "dcddd")
+  latLonDat <- read_csv(filepathList$path_latlon_cty, col_types = "cccddd")
+
+  outputDf <- data.frame()
+  for (i in 1:nrow(srcLocDat)){
+    srcLatPts <- rep(srcLocDat[i,]$srcLat, nrow(latLonDat))
+    srcLonPts <- rep(srcLocDat[i,]$srcLon, nrow(latLonDat))
+
+    distPts <- distance_function(srcLatPts, srcLonPts, latLonDat$latitude, latLonDat$longitude)
+    dummyDf <- data.frame(season = srcLocDat[i,]$season, fips = latLonDat$fips, sourceLocDist = distPts)
+
+    outputDf <- bind_rows(outputDf, dummyDf)
+  }
+
+  return(outputDf)
+}
+
+################################
 
 #### broad data cleaning functions ################################
 fillValues_years <- function(.data, varname){
@@ -1325,6 +1349,11 @@ identify_firstEpiWeekdate <- function(filepathList){
     select(fips, season, t.firstepiweek)
 
   return(fullIndicDat)
+}
+################################
+distance_function <- function(srcPt1, srcPt2, pt1, pt2){
+  # calculate Euclidean distance between two sets of lat/lon coordinates
+  return(sqrt(((srcPt1-pt1)^2) + ((srcPt2-pt2)^2)))
 }
 
 
