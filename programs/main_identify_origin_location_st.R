@@ -1,6 +1,6 @@
 ## Name: Elizabeth Lee
-## Date: 8/3/17
-## Function: main code to identify most probable flu season source (origin) location at the county level; export dataframes for our version and Charu2017 supplementary table
+## Date: 8/4/17
+## Function: main code to identify most probable flu season source (origin) location at the state level; export dataframes for our version 
 ## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
 ## Data Source: IMS Health
 ## Notes: 
@@ -26,21 +26,21 @@ source("source_identify_origin_location.R")
 #### FILEPATHS #################################
 setwd('../reference_data')
 path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
-path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
+path_latlon_st <- paste0(getwd(), "/state_latlon.csv")
 
 setwd("../R_export")
-path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
+path_response_st <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_st.csv", dbCodeStr))
 
 # put all paths in a list to pass them around in functions
 path_list <- list(path_abbr_st = path_abbr_st,
-                  path_latlon_cty = path_latlon_cty,
-                  path_response_cty = path_response_cty)
+                  path_latlon_st = path_latlon_st,
+                  path_response_st = path_response_st)
 
 #### MAIN - Elizabeth's version ############################
 
-wksToEpiDat <- cleanR_wksToEpi_cty(path_list)
+wksToEpiDat <- cleanR_wksToEpi_st(path_list)
 earlyLocDat <- subset_earliest_onset_locations_decile(wksToEpiDat) %>%
-  rename(srcFips = fips)
+    rename(srcFips = fips_st)
 
 seasons <- wksToEpiDat %>% distinct(season) %>% arrange(season) %>% unlist 
 corrDat <- data.frame()
@@ -65,23 +65,6 @@ srcLocDat <- earlyLocDat %>%
   left_join(srcLocDat_corr, by = c("srcID")) %>%
   select(season, srcFips, srcLat, srcLon, corrCoef)
 
-write_csv(srcLocDat, "origin_locations/fluseason_source_locations_Lee.csv")
-
-#### MAIN - Vivek's version ############################
-
-v2 <- data.frame(season = 3:9, srcFips = c("48439", "48215", "25009", "04019", "12017", "06073", "48201"), corrCoef = c(0.41, 0.57, 0.12, 0.68, 0.33, 0.29, 0.21))
-v2_IDs <- v2 %>%
-  mutate(uqID = paste(season, srcFips, sep = "_")) %>%
-  select(uqID) %>%
-  unlist
-srcLocDat_v2 <- wksToEpiDat %>%
-  rename(srcFips = fips, srcLat = lat, srcLon = lon) %>%
-  distinct(season, srcFips, srcLat, srcLon) %>%
-  mutate(uqID = paste(season, srcFips, sep = "_")) %>%
-  filter(uqID %in% v2_IDs) %>%
-  left_join(v2 %>% select(-season), by = c("srcFips")) %>%
-  select(season, srcFips, srcLat, srcLon, corrCoef)
-
-write_csv(srcLocDat_v2, "origin_locations/fluseason_source_locations_Charu.csv")
+write_csv(srcLocDat, "origin_locations/fluseason_source_locations_st.csv")
 
 
