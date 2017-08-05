@@ -709,6 +709,30 @@ cleanX_acsOnePersonHH_st <- function(){
   
 }
 ################################
+##### distance from probable source location ##########
+
+cleanX_distanceFromSourceLocations_st <- function(filepathList){
+  # calculate data on Euclidean distance of fips_st from source location for a given flu season; adapted from source_identify_origin_location.R/calculate_distance_from_sources
+  print(match.call())
+
+  srcLocDat <- read_csv(filepathList$path_srcLoc_st, col_types = "dcddd")
+  latLonDat <- read_csv(filepathList$path_latlon_st, col_types = "cdd")
+
+  outputDf <- data.frame()
+  for (i in 1:nrow(srcLocDat)){
+    srcLatPts <- rep(srcLocDat[i,]$srcLat, nrow(latLonDat))
+    srcLonPts <- rep(srcLocDat[i,]$srcLon, nrow(latLonDat))
+
+    distPts <- distance_function(srcLatPts, srcLonPts, latLonDat$latitude, latLonDat$longitude)
+    dummyDf <- data.frame(season = srcLocDat[i,]$season, abbr_st = latLonDat$state, sourceLocDist = distPts)
+
+    outputDf <- bind_rows(outputDf, dummyDf)
+  }
+
+  return(outputDf)
+}
+
+################################
 #### broad data cleaning functions 
 ################################
 
@@ -732,18 +756,22 @@ identify_firstEpiWeekdate_st <- function(filepathList){
 
 # #### testing area ################################
 # dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-# 
+
 # setwd(dirname(sys.frame(1)$ofile))
 # setwd('../reference_data')
-# path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
+# path_latlon_st <- paste0(getwd(), "/state_latlon.csv")
 # path_abbr_st <- paste0(getwd(), "/state_abbreviations_FIPS.csv")
 # setwd("../R_export")
 # path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
-# 
+# setwd("./origin_locations")
+# origin_locations_file <- "st"
+# path_srcLoc_st <- paste0(getwd(), sprintf("/fluseason_source_locations_%s.csv", origin_locations_file))
+
 # # put all paths in a list to pass them around in functions
 # path_list <- list(path_abbr_st = path_abbr_st,
-#                   path_latlon_cty = path_latlon_cty,
-#                   path_response_cty = path_response_cty)
+#                   path_latlon_st = path_latlon_st,
+#                   path_response_cty = path_response_cty,
+#                   path_srcLoc_st = path_srcLoc_st)
 # setwd(dirname(sys.frame(1)$ofile))
 # source("source_clean_data_functions.R")
 # 
@@ -770,3 +798,4 @@ identify_firstEpiWeekdate_st <- function(filepathList){
 # narrSfc_df <- cleanX_noaanarrSfcTemp_st()
 # pollution_df <- cleanX_wonderAirParticulateMatter_st()
 # onePersonHH_df <- cleanX_acsOnePersonHH_st()
+# sourceLocDist_st_df <- cleanX_distanceFromSourceLocations_st(path_list)
