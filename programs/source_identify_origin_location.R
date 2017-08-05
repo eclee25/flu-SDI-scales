@@ -30,7 +30,6 @@ subset_earliest_onset_locations_decile <- function(wksToEpi_data){
 		mutate(srcID = paste0("srcID", seq_along(y1))) %>%
 		select(srcID, season, contains("fips"), lat, lon) %>%
 		rename(srcLat = lat, srcLon = lon) 
-	View(earlyLocData)
 
 	return(earlyLocData)
 }
