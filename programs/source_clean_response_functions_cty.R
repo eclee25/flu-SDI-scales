@@ -293,7 +293,7 @@ clean_pop_cty <- function(filepathList){
   coord_data <- read_csv(filepathList$path_latlon_cty , col_types = "cc__dd", col_names = c("st", "fips", "lat", "lon"), skip = 1) 
   # read state name data: reference_data/state_abbreviations_FIPS.csv
   abbr_data <- read_csv(filepathList$path_abbr_st, col_types = "cci", col_names = c("state", "st", "stateID"), skip = 1) 
-  
+
   # import population data from mysql
   con <- dbConnect(RMySQL::MySQL(), group = "rmysql-fludrivers")
   dbListTables(con)
