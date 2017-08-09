@@ -122,17 +122,17 @@ if("singleVarWrite" %in% analysesOn){
   
   modDat <- convert_hurdleModel_nz_spatiotemporal(allDat)
   
-  num <- 1
+  num <- 5
   varlist <- grep("[OX]{1}[_]{1}", names(modDat), value = TRUE)  # grab all varnames
   indexes <- seq(1, length(varlist), by=num)
 
-  # for(i in indexes){
-  #   # 6/2/16: grab list of variables to export model data in pieces -- kept crashing before
-  #   if((i+num-1) > length(varlist)){
-  #     varsublist <- varlist[i:length(varlist)]
-  #   } else{
-  #     varsublist <- varlist[i:(i+num-1)]
-  #   }
+  for(i in indexes){
+    # 6/2/16: grab list of variables to export model data in pieces -- kept crashing before
+    if((i+num-1) > length(varlist)){
+      varsublist <- varlist[i:length(varlist)]
+    } else{
+      varsublist <- varlist[i:(i+num-1)]
+    }
     # generate empty data frame to store coefficient data
     coefDat <- tbl_df(data.frame(respCode = c(), RV = c(), exportDate = c(), mean = c(), sd = c(), LB = c(), UB = c(), DIC = c()))
     # loop through all variables and seasons
@@ -144,8 +144,8 @@ if("singleVarWrite" %in% analysesOn){
     } # end for varlist
     
     # write to file in parts
-    write_csv(coefDat, sprintf("%s%s_pt%s.csv", path_coefDat, agecode, 1)) 
-  # }
+    write_csv(coefDat, sprintf("%s%s_pt%s.csv", path_coefDat, agecode, i)) 
+  }
 
 } # end singleVarWrite
 

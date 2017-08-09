@@ -19,7 +19,6 @@ pairs_scatterplotMatrix <- function(full_df){
   print(match.call())
   
   datOnly <- full_df %>%
-    mutate(logy = log(y)) %>%
     select(y, logy, logE, contains("_")) %>%
     filter(y > 0)
   
@@ -38,7 +37,7 @@ pairs_corrMatrix <- function(full_df){
   
   datOnly <- full_df %>%
     mutate(fipsSeas = paste(fips, season, sep="-")) %>%
-    select(fipsSeas, contains("_")) %>%
+    select(fipsSeas, y1, contains("_")) %>%
     select(-fips_st, -graphIdx_st) %>%
     gather(RV, value, contains("_")) %>%
     clean_RVnames(.) %>%
