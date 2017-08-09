@@ -51,7 +51,7 @@ setwd(dirname(sys.frame(1)$ofile))
 
 
 #### explore late onset time series ########################
-plotFormats <- list(w = 6, h = 4, sampleSize = 24, numPerPlot = 6, seed = 2315)
+plotFormats <- list(w = 6, h = 4, sampleSize = 36, numPerPlot = 6, seed = 23150)
 tsExplore_obs_wksToEpi_cty(path_list, plotFormats)
 
 # 7/14/17 checks 
