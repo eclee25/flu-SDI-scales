@@ -584,7 +584,7 @@ cleanX_noaanarrAnomSpecHum_wksToEpi_st <- function(filepathList){
     group_by(fips_st) %>%
     summarise(avgHumidity = mean(humidity, na.rm = TRUE))
 
-  output <- left_join(cleanDat, avgDat, by = c("fips_st"))
+  output <- left_join(cleanDat, avgDat, by = c("fips_st")) %>%
     filter(dayDate >= epiMin28 & dayDate <= t.firstepiweek) %>%
     mutate(anomHumidity = humidity - avgHumidity) %>%
     group_by(fips_st, season) %>%

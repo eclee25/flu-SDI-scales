@@ -158,7 +158,7 @@ model10f_wksToEpi_v2 <- function(filepathList){
     full_join(narrAnomSpecHum_st_df, by = c("season", "fips_st")) %>%
     full_join(wonderPollution_st_df, by = c("season", "fips_st")) %>%
     full_join(acsOnePersonHH_st_df, by = c("fips_st", "year")) %>%
-    full_join(sourceLocDist_cty_df, by = c("abbr_st", "season")) %>%
+    full_join(sourceLocDist_st_df, by = c("abbr_st", "season")) %>%
     full_join(graphIdx_st_df, by = "fips_st") %>%
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
     mutate(O_careseek = centerStandardize(visitsPerPopT)) %>%
@@ -175,6 +175,7 @@ model10f_wksToEpi_v2 <- function(filepathList){
     mutate(X_B = centerStandardize(prop_b_all)) %>%
     mutate(X_priorImmunity = centerStandardize(protectionPrevSeason)) %>%
     mutate(X_humidity = centerStandardize(humidity)) %>%
+    mutate(X_anomHumidity = centerStandardize(anomHumidity)) %>%
     mutate(X_pollution = centerStandardize(avg_pm)) %>%
     mutate(X_singlePersonHH = centerStandardize(perc_hh_1p)) %>%
     mutate(X_latitude = centerStandardize(lat)) %>%
@@ -182,7 +183,7 @@ model10f_wksToEpi_v2 <- function(filepathList){
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
     mutate(logE = log(E), y1 = y1) %>% # model response y1 = log(y+1)
-    select(-adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -avg_pm, -perc_hh_1p, -sourceLocDist) %>%
+    select(-adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -anomHumidity, -avg_pm, -perc_hh_1p, -sourceLocDist) %>%
     filter(season %in% 3:9) %>%
     mutate(ID = seq_along(fips_st))
   
