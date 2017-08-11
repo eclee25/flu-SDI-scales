@@ -20,7 +20,7 @@ agecode <- ""
 dbCodeStr <- sprintf("_ilinDt_Octfit%s_span0.4_degree2", agecode)
 rCode <- "wksToEpi " 
 seasons <- 3:9
-analysesOn <- c('pairwise') 
+analysesOn <- c('loadData', 'singleVarWrite') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 origin_locations_file <- "Lee"
 
