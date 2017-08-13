@@ -73,7 +73,6 @@ path_list <- list(path_abbr_st = path_abbr_st,
 #### MAIN #################################
 #### Import and process data ####
 modData_full <- model8f_wksToEpi_v7(path_list) #%>% with driver & sampling effort variables
-# remove_randomObs_stratifySeas(0.4)
 
 formula <- Y ~ -1 +
   f(ID_nonzero, model = "iid") +
@@ -86,7 +85,7 @@ formula <- Y ~ -1 +
   X_hospaccess_nonzero + 
   X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + 
   X_H3A_nonzero + X_B_nonzero + 
-  X_priorImmunity_nonzero + X_humidity_nonzero + X_anomHumidity_nonzero + X_pollution_nonzero + X_latitude_nonzero + X_sourceLocDist + X_singlePersonHH_nonzero 
+  X_priorImmunity_nonzero + X_humidity_nonzero + X_anomHumidity_nonzero + X_pollution_nonzero + X_latitude_nonzero + X_sourceLocDist_nonzero + X_singlePersonHH_nonzero 
   # + X_H3A_nonzero*X_adult_nonzero + X_B_nonzero*X_child_nonzero + 
   # offset(logE_nonzero)
 
@@ -112,7 +111,7 @@ mod <- inla(formula,
             data = modData_hurdle,
             control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
             control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
-            control.compute = list(dic = TRUE, cpo = TRUE),
+            control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE),
             control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
             verbose = TRUE,
             keep = TRUE, debug = TRUE)
@@ -151,11 +150,15 @@ path_csvExport_summaryStats <- paste0(path_csvExport, sprintf("/summaryStats_%s.
 export_summaryStats_hurdle_likString(path_csvExport_summaryStats, mod, rdmFx_RV, modCodeStr, dbCodeStr, s, likString) # assuming hyperpar, fixed always exist
 
 
-# #### process fitted values for each model ################################
+#### process fitted values for each model ################################
 # normal model processing
 path_csvExport_fittedNonzero <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s.csv", likString, modCodeStr))
 dummy_nz <- mod$summary.fitted.values[1:nrow(modData_full),]
 mod_nz_fitted <- export_summaryStats_fitted_hurdle(path_csvExport_fittedNonzero, dummy_nz, modData_full, modCodeStr, dbCodeStr, s)
+
+#### draw sample posteriors ################################
+path_csvExport_posteriorSamples <- paste0(path_csvExport, sprintf("/posteriorSamples_%s_%s.csv", likString, modCodeStr))
+export_posterior_samples(path_csvExport_posteriorSamples, mod)
 
 
 #### Diagnostic plots ################################
