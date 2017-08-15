@@ -77,7 +77,7 @@ stDat <- model10f_wksToEpi_v2(path_list)
 
 # UPDATE FORMULA ONCE VARIABLE SELECTION IS COMPLETE
 formula <- y1 ~ 1 + O_imscoverage + O_careseek + O_insured + X_poverty + X_child + X_adult + X_hospaccess + X_popdensity + X_housdensity + X_vaxcovI + X_vaxcovE + X_H3A + X_B + X_priorImmunity + 
-  # X_humidity + 
+  X_humidity + 
   X_anomHumidity + X_pollution + X_latitude + X_sourceLocDist + X_singlePersonHH
 
 ctyVif <- vif(glm(formula, family = "poisson", data = ctyDat))
