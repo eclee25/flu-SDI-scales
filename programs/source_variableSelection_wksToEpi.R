@@ -266,3 +266,21 @@ label_tot_predictors <- function(){
     dfLabels <- tbl_df(data.frame(RV = cleanRV, pltLabs = pltLabels, stringsAsFactors = FALSE))
     return(dfLabels)
 }
+################################
+label_8fV7_predictors <- function(){
+    cleanRV <- c("humidity", "anomHumidity", "latitude", "sourceLocDist", "pollution", "popdensity", "housdensity", "child", "adult", "vaxcovI", "vaxcovE", "priorImmunity", "H3A", "B", "hospaccess", "singlePersonHH", "poverty", "insured", "imscoverage", "careseek")
+    pltLabels <- c("humidity", "anomHumidity", "lat", "srcDist", "pollution", "popDensity", "householdSize", "child", "adult", "toddlerVacc", "elderlyVacc", "priorImmunity", "fluH3A", "fluB", "hospAccess", "1PersonHH", "poverty", "insured", "claimsCoverage", "careseek")
+
+    dfLabels <- tbl_df(data.frame(RV = cleanRV, pltLabs = pltLabels, stringsAsFactors = FALSE))
+    return(dfLabels)
+
+}
+################################
+calculate_signif <- function(summDat){
+  # primarily for forest plots
+  print(match.call())
+  
+  returnDat <- summDat %>%
+    mutate(signif = ifelse(UB < 0 | LB > 0, TRUE, FALSE))
+  return(returnDat)
+}

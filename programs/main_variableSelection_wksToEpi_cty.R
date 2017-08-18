@@ -1,6 +1,6 @@
 
 ## Name: Elizabeth Lee
-## Date: 6/2/16
+## Date: 8/2017
 ## Function: EDA suite of variable selection analyses for iliSum at county level
 ## Filenames: dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB.csv, source_clean_data_function.R
 ## Data Source: 
@@ -20,7 +20,7 @@ agecode <- ""
 dbCodeStr <- sprintf("_ilinDt_Octfit%s_span0.4_degree2", agecode)
 rCode <- "wksToEpi " 
 seasons <- 3:9
-analysesOn <- c('loadData', 'singleVarWrite') 
+analysesOn <- c('singleVarPlot') 
 # 'loadData', 'dataQuality', 'pairwise', 'singleVarWrite', 'singleVarPlot'
 origin_locations_file <- "Lee"
 
@@ -84,8 +84,8 @@ setwd(path_pltExport)
 if("loadData" %in% analysesOn){
   
   # load data frame with all available cleaned variables
-  allDat <- prepare_allCov_wksToEpi_cty(path_list)
-  # allDat <- model8f_wksToEpi_v7(path_list) # total pop data
+  # allDat <- prepare_allCov_wksToEpi_cty(path_list)
+  allDat <- model8f_wksToEpi_v7(path_list) # total pop data
   summary(allDat)
   
 } # end loadData
@@ -122,17 +122,17 @@ if("singleVarWrite" %in% analysesOn){
   
   modDat <- convert_hurdleModel_nz_spatiotemporal(allDat)
   
-  num <- 5
+  num <- 1
   varlist <- grep("[OX]{1}[_]{1}", names(modDat), value = TRUE)  # grab all varnames
   indexes <- seq(1, length(varlist), by=num)
 
-  for(i in indexes){
-    # 6/2/16: grab list of variables to export model data in pieces -- kept crashing before
-    if((i+num-1) > length(varlist)){
-      varsublist <- varlist[i:length(varlist)]
-    } else{
-      varsublist <- varlist[i:(i+num-1)]
-    }
+  # for(i in indexes){
+  #   # 6/2/16: grab list of variables to export model data in pieces -- kept crashing before
+  #   if((i+num-1) > length(varlist)){
+  #     varsublist <- varlist[i:length(varlist)]
+  #   } else{
+  #     varsublist <- varlist[i:(i+num-1)]
+  #   }
     # generate empty data frame to store coefficient data
     coefDat <- tbl_df(data.frame(respCode = c(), RV = c(), exportDate = c(), mean = c(), sd = c(), LB = c(), UB = c(), DIC = c()))
     # loop through all variables and seasons
@@ -144,8 +144,9 @@ if("singleVarWrite" %in% analysesOn){
     } # end for varlist
     
     # write to file in parts
-    write_csv(coefDat, sprintf("%s%s_pt%s.csv", path_coefDat, agecode, i)) 
-  }
+    write_csv(coefDat, sprintf("%s%s_pt1.csv", path_coefDat, agecode)) 
+    
+  # } # end for indexes
 
 } # end singleVarWrite
 
@@ -166,11 +167,11 @@ if("singleVarPlot" %in% analysesOn){
     coefDat <- bind_rows(coefDat, newDat)
   }
   
-  tot_labels <- label_tot_predictors()
+  tot_labels <- label_8fV7_predictors()
   coefDat2 <- coefDat %>% 
-    calculate_95CI(.) %>%
+    calculate_signif(.) %>%
     clean_RVnames(.) %>%
-    mutate(RV = factor(RV, levels = tot_labels$RV, labels = tot_labels$pltLabels))
+    mutate(RV = factor(RV, levels = tot_labels$RV, labels = tot_labels$pltLabs))
   
   setwd(path_pltExport)
   plt_coefTime <- plot_singleVarCoef(coefDat2)
