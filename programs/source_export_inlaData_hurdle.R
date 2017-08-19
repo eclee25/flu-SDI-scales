@@ -21,27 +21,32 @@ export_summaryStats_hurdle_likString <- function(exportPath, modelOutput, rdmFxT
   # 12/15/16 export summary statistics of INLA model output for hurdle model variables (flex non-zero likelihood string) -- fixed and random effects in the same file
   print(match.call())
   
-  ## change variable names output from INLA ##
-  names(modelOutput$summary.fixed) <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
-  names(modelOutput$summary.hyperpar) <- names(modelOutput$summary.fixed)[1:6] # 8/17/16 add hyperpar export
-  
+  columnNames <- c("mean", "sd", "q_025", "q_5", "q_975", "mode", "kld")
+  summaryComplete <- data.frame()
+
   # clean fixed effects summary statistics output from INLA
-  summaryFixed <- tbl_df(modelOutput$summary.fixed) %>%
-    mutate(RV = rownames(modelOutput$summary.fixed)) %>%
-    mutate(effectType = "fixed") %>%
-    mutate(likelihood = ifelse(grepl("_bin", RV, fixed=TRUE), "binomial", ifelse(grepl("_nonzero", RV, fixed=TRUE), likString, NA))) %>%
-    select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+  if (nrow(modelOutput$summary.fixed)>0){
+    names(modelOutput$summary.fixed) <- columnNames
+    summaryFixed <- tbl_df(modelOutput$summary.fixed) %>%
+      mutate(RV = rownames(modelOutput$summary.fixed)) %>%
+      mutate(effectType = "fixed") %>%
+      mutate(likelihood = ifelse(grepl("_bin", RV, fixed=TRUE), "binomial", ifelse(grepl("_nonzero", RV, fixed=TRUE), likString, NA))) %>%
+      select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+    summaryComplete <- bind_rows(summaryComplete, summaryFixed)
+  }
   # clean hyperpar summary statistics output from INLA
-  summaryHyperpar <- tbl_df(modelOutput$summary.hyperpar) %>%
-    mutate(RV = rownames(modelOutput$summary.hyperpar)) %>%
-    mutate(effectType = "hyperpar", kld = NA) %>%
-    mutate(likelihood = ifelse(grepl("_bin", RV, fixed=TRUE), "binomial", ifelse(grepl("_nonzero", RV, fixed=TRUE), likString, NA))) %>%
-    select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
-  
-  summaryComplete <- bind_rows(summaryFixed, summaryHyperpar)
+  if (!is.null(modelOutput$summary.hyperpar)){
+    names(modelOutput$summary.hyperpar) <- columnNames[1:6] # 8/17/16 add hyperpar export
+    summaryHyperpar <- tbl_df(modelOutput$summary.hyperpar) %>%
+      mutate(RV = rownames(modelOutput$summary.hyperpar)) %>%
+      mutate(effectType = "hyperpar", kld = NA) %>%
+      mutate(likelihood = ifelse(grepl("_bin", RV, fixed=TRUE), "binomial", ifelse(grepl("_nonzero", RV, fixed=TRUE), likString, NA))) %>%
+      select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
+    summaryComplete <- bind_rows(summaryComplete, summaryHyperpar)
+  }
   # clean random effects summary statistics output from INLA
   if (!is.null(modelOutput$summary.random$fips_nonzero)){
-    names(modelOutput$summary.random$fips_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    names(modelOutput$summary.random$fips_nonzero) <- c("RV", columnNames)
     summaryRandomFips <- modelOutput$summary.random$fips_nonzero %>% mutate(likelihood = likString) %>%
       mutate(effectType = "spatial") %>%
       select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
@@ -49,7 +54,7 @@ export_summaryStats_hurdle_likString <- function(exportPath, modelOutput, rdmFxT
   }
   # clean structure spatial effects  summary statistics output from INLA
   if (!is.null(modelOutput$summary.random$graphIdx_nonzero)){
-    names(modelOutput$summary.random$graphIdx_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    names(modelOutput$summary.random$graphIdx_nonzero) <- c("RV", columnNames)
     summaryRandomGraphid <- modelOutput$summary.random$graphIdx_nonzero %>% mutate(likelihood = likString) %>%
       mutate(RV = as.character(paste0("phi", RV))) %>%
       mutate(effectType = "structured") %>%
@@ -57,7 +62,7 @@ export_summaryStats_hurdle_likString <- function(exportPath, modelOutput, rdmFxT
     summaryComplete <- bind_rows(summaryComplete, summaryRandomGraphid)
   }
   if (!is.null(modelOutput$summary.random$graphIdx_st_nonzero)){
-    names(modelOutput$summary.random$graphIdx_st_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    names(modelOutput$summary.random$graphIdx_st_nonzero) <- c("RV", columnNames)
     summaryRandomGraphid2 <- modelOutput$summary.random$graphIdx_st_nonzero %>% mutate(likelihood = likString) %>%
       mutate(RV = as.character(paste0("phi", RV))) %>%
       mutate(effectType = "structured_st") %>%
@@ -65,14 +70,14 @@ export_summaryStats_hurdle_likString <- function(exportPath, modelOutput, rdmFxT
     summaryComplete <- bind_rows(summaryComplete, summaryRandomGraphid2)
   }
   if (!is.null(modelOutput$summary.random$fips_st_nonzero)){
-    names(modelOutput$summary.random$fips_st_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    names(modelOutput$summary.random$fips_st_nonzero) <- c("RV", columnNames)
     summaryRandomSt <- modelOutput$summary.random$fips_st_nonzero %>% mutate(likelihood = likString) %>%
       mutate(effectType = "stID") %>%
       select(RV, effectType, likelihood, mean, sd, q_025, q_5, q_975, mode, kld)
     summaryComplete <- bind_rows(summaryComplete, summaryRandomSt)
   }
   if (!is.null(modelOutput$summary.random$regionID_nonzero)){
-    names(modelOutput$summary.random$regionID_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    names(modelOutput$summary.random$regionID_nonzero) <- c("RV", columnNames)
     summaryRandomReg <- modelOutput$summary.random$regionID_nonzero %>% mutate(likelihood = likString) %>%
       mutate(RV = as.character(paste0("R", RV))) %>% ## 10/26/16: paste "R"
       mutate(effectType = "regID") %>%
@@ -80,7 +85,7 @@ export_summaryStats_hurdle_likString <- function(exportPath, modelOutput, rdmFxT
     summaryComplete <- bind_rows(summaryComplete, summaryRandomReg)
   }
   if (!is.null(modelOutput$summary.random$season_nonzero)){
-    names(modelOutput$summary.random$season_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    names(modelOutput$summary.random$season_nonzero) <- c("RV", columnNames)
     summaryRandomSeas <- modelOutput$summary.random$season_nonzero %>% mutate(likelihood = likString) %>%
       mutate(RV = paste0("S", RV)) %>%
       mutate(effectType = "season") %>%
@@ -89,7 +94,7 @@ export_summaryStats_hurdle_likString <- function(exportPath, modelOutput, rdmFxT
   }
   # 10/26/16: added error term for each observation
   if (!is.null(modelOutput$summary.random$ID_nonzero)){
-    names(modelOutput$summary.random$ID_nonzero) <- c("RV", names(modelOutput$summary.fixed))
+    names(modelOutput$summary.random$ID_nonzero) <- c("RV", columnNames)
     summaryRandomErr <- modelOutput$summary.random$ID_nonzero %>% mutate(likelihood = likString) %>%
       mutate(RV = as.character(RV)) %>%
       mutate(effectType = "error") %>%
