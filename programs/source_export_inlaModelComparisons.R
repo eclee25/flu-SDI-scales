@@ -124,7 +124,7 @@ choro_obsFitCompare_overlap <- function(modCodeLs, pltFormats, datFormats){
     }
 
     modDat <- importDat %>%
-      mutate(LB = mean-(1*sd), UB = mean+(1*sd)) %>%
+      mutate(LB = q_025, UB = q_975) %>%
       select(modCodeStr, season, fips, LB, UB, y1) %>%
       rename(Observed = y1)
     fullDf <- bind_rows(fullDf, modDat)
@@ -142,7 +142,7 @@ choro_obsFitCompare_overlap <- function(modCodeLs, pltFormats, datFormats){
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = overlap, map_id = fips), color = "grey50", size = 0.05) +
-      scale_fill_manual(name = "", values = c("1" = "grey75", "0" = "#7b3294"), breaks = c("1", "0"), labels = c("match", "no match"), na.value = "grey75") +
+      scale_fill_manual(name = "", values = c("1" = "grey75", "0" = "#7b3294"), breaks = c("1", "0"), labels = c("match", "no match"), na.value = "white") +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 18), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = c(.9,.3)) +
@@ -192,8 +192,7 @@ overlapping_point_and_intervals <- function(df, interval_LB, interval_UB, point)
   # logical, does point fall between intervals?
 
   df %>%
-    mutate_(overlap = interp(~ifelse((pt > LB) & (pt < UB), "1", "0"), pt = as.name(point), LB = as.name(interval_LB), UB = as.name(interval_UB)))
-                      
+    mutate_(overlap = interp(~ifelse(is.na(pt), NA, ifelse((pt > LB) & (pt < UB), "1", "0")), pt = as.name(point), LB = as.name(interval_LB), UB = as.name(interval_UB)))
 }
 ################################
 import_county_geomMap <- function(){
@@ -217,6 +216,7 @@ import_county_geomMap <- function(){
 ################################
 import_fit_posteriorSamples <- function(modCode){
   print(match.call())
+  # import posterior samples, N.B. that everything is on the log scale (posterior predictive and model coefficients). That is, centered values are 1 and everything needs to be exponentiated.
 
   allSamplesDat <- read_csv(string_fitSamples_fname(modCode))
   fitSamplesDat <- allSamplesDat %>%
@@ -227,7 +227,8 @@ import_fit_posteriorSamples <- function(modCode){
     select(season, contains("fips"))
 
   gatherDat <- fitSamplesDat %>%
-    gather(predictor, sample, contains("Predictor")) %>%
+    gather(predictor, logsample, contains("Predictor")) %>%
+    mutate(sample = exp(logsample)) %>% # samples are on log scale due to poiss lik
     group_by(predictor) %>%
     summarise(mean = mean(sample), sd = sd(sample), q_025 = quantile(sample, .025), q_5 = median(sample), q_975 = quantile(sample, .975))
 

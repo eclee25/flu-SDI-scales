@@ -42,16 +42,16 @@ setwd(dirname(sys.frame(1)$ofile))
 ## PLOTS ##
 ##############################################################################
 ### FIT CHOROS - Compare 2 fitted value distributions ###################
-pairLs <- c("8f_wksToEpi_v2-8", "8f_wksToEpi_rmFixed")
-abbrLs <- gsub("_wksToEpi_v", "V", pairLs)
-pair_plotFormats <- list(w = 10, h = 5, descrip = paste(abbrLs[1], abbrLs[2], sep = "_"), lvls = pairLs, labs = abbrLs)
-pair_datFormats <- list(fit_dataType = "posteriorSamples", refModCode = "8f_wksToEpi_v2-8") # fit_dataType = "summaryStats", "posteriorSamples"
-choro_pairFitCompare_overlap(pairLs, pair_plotFormats, pair_datFormats)
+# pairLs <- c("8f_wksToEpi_v2-8", "8f_wksToEpi_v2-8_rmSeasFx")
+# abbrLs <- gsub("_wksToEpi_v", "V", pairLs)
+# pair_plotFormats <- list(w = 10, h = 5, descrip = paste(abbrLs[1], abbrLs[2], sep = "_"), lvls = pairLs, labs = abbrLs)
+# pair_datFormats <- list(fit_dataType = "posteriorSamples", refModCode = "8f_wksToEpi_v2-8") # fit_dataType = "summaryStats", "posteriorSamples"
+# choro_pairFitCompare_overlap(pairLs, pair_plotFormats, pair_datFormats)
 
-# 
+
 # ### OBSFIT CHOROS - Compare point and fitted value distribution for single modCode ###################
-# modCodeLs <- c("8f_wksToEpi_v2-8", "10f_wksToEpi_v1-6")
-# abbrLs <- gsub("_wksToEpi_v", "V", modCodeLs)
-# obsfit_plotFormats <- list(w = 10, h = 5, descrip = abbrLs)
-# obsfit_datFormats <- list(fit_dataType = "posteriorSamples", refModCode = "8f_wksToEpi_v2-8") # fit_dataType = "summaryStats", "posteriorSamples"
-# choro_obsFitCompare_overlap(modCodeLs, obsfit_plotFormats, obsfit_datFormats)
+modCodeLs <- c("8f_wksToEpi_v2-8", "10f_wksToEpi_v1-6")
+abbrLs <- gsub("_wksToEpi_v", "V", modCodeLs)
+obsfit_plotFormats <- list(w = 10, h = 5, descrip = abbrLs)
+obsfit_datFormats <- list(fit_dataType = "posteriorSamples", refModCode = "8f_wksToEpi_v2-8") # fit_dataType = "summaryStats", "posteriorSamples"
+choro_obsFitCompare_overlap(modCodeLs, obsfit_plotFormats, obsfit_datFormats)
