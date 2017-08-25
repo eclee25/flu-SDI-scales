@@ -151,6 +151,7 @@ export_ids_st <- function(exportPath, modDataFullOutput){
 
 export_posterior_samples <- function(exportPath, inlaModelOutput){
   # export posterior predictive samples from the model
+  # N.B. the samples remain log-transformed relative to the scale of the original data
   print(match.call())
 
   # random sample settings
