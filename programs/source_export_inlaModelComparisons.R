@@ -67,6 +67,8 @@ choro_pairFitCompare_overlap <- function(modCodeLs, pltFormats, datFormats){
     overlapping_intervals(args$intervalA_LB, args$intervalA_UB, args$intervalB_LB, args$intervalB_UB) %>%
     mutate(season = factor(paste0("S", season), levels = seasLabels$RV, labels = seasLabels$pltLabs))
 
+  print(summarise_overlap(pltDat))
+
   # import county mapping info
   ctyMap <- import_county_geomMap()
   
@@ -135,6 +137,8 @@ choro_obsFitCompare_overlap <- function(modCodeLs, pltFormats, datFormats){
       overlapping_point_and_intervals("LB", "UB", "Observed") %>%
       mutate(season = factor(paste0("S", season), levels = seasLabels$RV, labels = seasLabels$pltLabs))
 
+    print(summarise_overlap(pltDat))
+
     # import county mapping info
     ctyMap <- import_county_geomMap()
     
@@ -193,6 +197,34 @@ overlapping_point_and_intervals <- function(df, interval_LB, interval_UB, point)
 
   df %>%
     mutate_(overlap = interp(~ifelse(is.na(pt), NA, ifelse((pt > LB) & (pt < UB), "1", "0")), pt = as.name(point), LB = as.name(interval_LB), UB = as.name(interval_UB)))
+}
+################################
+summarise_overlap <- function(df){
+    # group dataframe by season and count number of locations with matching model fits
+    # works for overlapping_point_and_intervals and overlapping_intervals
+
+    dummy1 <- df %>%
+        filter(overlap == "1") %>%
+        group_by(season) %>%
+        summarise(match = n())
+    dummy2 <- df %>% 
+        filter(overlap == "0") %>%
+        group_by(season) %>%
+        summarise(nomatch = n())
+    dummy3 <- df %>% 
+        filter(is.na(overlap)) %>%
+        group_by(season) %>%
+        summarise(navalue = n())
+    dummy4 <- df %>%
+        group_by(season) %>%
+        summarise(total = n())
+
+    returnDf <- full_join(dummy1, dummy2, by = c("season")) %>%
+        full_join(dummy3, by = c("season")) %>%
+        full_join(dummy4, by = c("season"))
+
+    return(returnDf)
+
 }
 ################################
 import_county_geomMap <- function(){

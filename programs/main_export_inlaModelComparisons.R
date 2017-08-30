@@ -50,7 +50,7 @@ setwd(dirname(sys.frame(1)$ofile))
 
 
 # ### OBSFIT CHOROS - Compare point and fitted value distribution for single modCode ###################
-modCodeLs <- c("8f_wksToEpi_v2-8", "10f_wksToEpi_v1-6")
+modCodeLs <- c("8f_wksToEpi_v1-8", "10f_wksToEpi_v2-6")
 abbrLs <- gsub("_wksToEpi_v", "V", modCodeLs)
 obsfit_plotFormats <- list(w = 10, h = 5, descrip = abbrLs)
 obsfit_datFormats <- list(fit_dataType = "posteriorSamples", refModCode = "8f_wksToEpi_v2-8") # fit_dataType = "summaryStats", "posteriorSamples"
