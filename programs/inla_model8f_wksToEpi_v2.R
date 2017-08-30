@@ -105,7 +105,7 @@ modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
 mod <- inla(formula,
             family = "nbinomial",
             data = modData_hurdle,
-            control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
+            control.fixed = list(mean = 0, prec = 1), # set prior parameters for regression coefficients
             control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
             control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE),
             control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
