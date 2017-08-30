@@ -35,7 +35,7 @@ choro_pairFitCompare_overlap <- function(modCodeLs, pltFormats, datFormats){
   
   for (modCode in modCodeLs){
     if (fit_dataType == "posteriorSamples"){
-      importDat <- import_fit_posteriorSamples(modCode)
+      importDat <- import_fit_posteriorSamples_summaryStats(modCode)
 
     } else if (fit_dataType == "summaryStats"){
       importDat <- import_fit_summaryStats(modCode)
@@ -108,7 +108,7 @@ choro_obsFitCompare_overlap <- function(modCodeLs, pltFormats, datFormats){
     
     # import fitted value distributions from posterior samples or summary statistics
     if (fit_dataType == "posteriorSamples"){
-      postDat <- import_fit_posteriorSamples(modCode)
+      postDat <- import_fit_posteriorSamples_summaryStats(modCode)
       obsDat <- import_fit_summaryStats(modCode) %>%
         select(season, contains("fips"), y1)
       importDat <- full_join(postDat, obsDat) # if 'by' is not specified, the dfs should join by all common names across the two tables (season, contains("fips"))
@@ -246,7 +246,7 @@ import_county_geomMap <- function(){
   return(county_geomMap)
 }
 ################################
-import_fit_posteriorSamples <- function(modCode){
+import_fit_posteriorSamples_summaryStats <- function(modCode){
   print(match.call())
   # import posterior samples, N.B. that everything is on the log scale (posterior predictive and model coefficients). That is, centered values are 1 and everything needs to be exponentiated.
 
