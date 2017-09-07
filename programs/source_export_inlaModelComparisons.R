@@ -248,7 +248,7 @@ import_county_geomMap <- function(){
 ################################
 import_fit_posteriorSamples_summaryStats <- function(modCode){
   print(match.call())
-  # import posterior samples, N.B. that everything is on the log scale (posterior predictive and model coefficients). That is, centered values are 1 and everything needs to be exponentiated.
+  # import summary statistics for posterior samples, N.B. that everything is on the log scale (posterior predictive and model coefficients). That is, centered values are 1 and everything needs to be exponentiated.
 
   allSamplesDat <- read_csv(string_fitSamples_fname(modCode))
   fitSamplesDat <- allSamplesDat %>%
