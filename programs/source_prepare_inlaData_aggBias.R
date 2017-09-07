@@ -14,7 +14,6 @@ require(dplyr); require(tidyr); require(maptools); require(spdep)
 setwd(dirname(sys.frame(1)$ofile))
 
 #### functions for model data aggregation  ################################
-
 ################################
 
 model11a_iliSum_v7 <- function(filepathList, modCodeStrList){
