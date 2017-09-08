@@ -82,12 +82,22 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
     filter(has.epi & incl.analysis) %>% 
     group_by(season, scale) %>% 
     filter(in.season) %>% 
-    summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), ilinDt.sum = sum(ilin.dt, na.rm=T), ilinDt.excess.BL = sum(ilin.dt-.fitted, na.rm=T), ilinDt.excess.thresh = sum(ilin.dt-epi.thresh, na.rm=T), ilinDt.peak = max(ilin.dt, na.rm=T), epi.dur = sum(in.season))
+    summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), 
+      ilinDt.sum = sum(ilin.dt, na.rm=T), 
+      ilinDt.excess.BL = sum(ilin.dt-.fitted, na.rm=T), 
+      ilinDt.excess.thresh = sum(ilin.dt-epi.thresh, na.rm=T), 
+      ilinDt.peak = max(ilin.dt, na.rm=T), 
+      epi.dur = sum(in.season))
   dbMetrics.noepi <- data5 %>% 
     filter(!has.epi & incl.analysis) %>% 
     mutate(ilinDt.modified = 0) %>% 
     group_by(season, scale) %>% 
-    summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), ilinDt.sum = sum(ilinDt.modified, na.rm=T), ilinDt.excess.BL = sum(ilinDt.modified, na.rm=T), ilinDt.excess.thresh = sum(ilinDt.modified, na.rm=T), ilinDt.peak = max(ilinDt.modified, na.rm=T), epi.dur = sum(ilinDt.modified, na.rm=T))
+    summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), 
+      ilinDt.sum = sum(ilinDt.modified, na.rm=T), 
+      ilinDt.excess.BL = sum(ilinDt.modified, na.rm=T), 
+      ilinDt.excess.thresh = sum(ilinDt.modified, na.rm=T), 
+      ilinDt.peak = max(ilinDt.modified, na.rm=T), 
+      epi.dur = sum(ilinDt.modified, na.rm=T))
   dbMetrics.noisy <- data5 %>% 
     filter(!incl.analysis) %>% 
     mutate(ilinDt.modified = NA) %>% 
