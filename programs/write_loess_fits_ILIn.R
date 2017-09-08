@@ -41,7 +41,10 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   } else if (spatial$scale == 'state'){
     ilic_df <- read_csv(sprintf('ilicByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), cov_z.y = col_double(), alpha_z.y = col_double(), ILIc = col_double(), cov_below5 = col_logical())) %>%
       rename(scale = state)
-  } 
+  } else if (spatial$scale == 'region'){
+    ilic_df <- read_csv(sprintf('iliByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(region = col_character(), ili = col_integer(), pop = col_integer())) %>%
+      rename(scale = region)
+  }
  
   #### set these! ################################
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)

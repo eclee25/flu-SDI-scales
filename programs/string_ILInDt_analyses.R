@@ -17,7 +17,6 @@ rm(list = ls())
 setwd(dirname(sys.frame(1)$ofile))
 source("explore_loess_fits_ILIn.R")
 source("write_periodicReg_fits_ilinDt_Octfit.R")
-source("write_periodicReg_fits_ilinDt_Octfit_emergency.R")
 source("write_fullIndic_periodicReg_ilinDt.R")
 source("explore_periodicReg_fits_ilinDt.R")
 source("write_relativeDiseaseBurden_ilinDt.R")
@@ -32,7 +31,7 @@ source("source_clean_response_functions_cty.R")
 # source("explore_fluSeasonDefinition_ilinDt.R") 
 
 #### set these! ####################################
-spatial.scale <- "state"
+spatial.scale <- "region"
 agegroups <- "_totAge" # _totAge, _child, _adult
 span.list <- seq(0.4, 0.42, by=0.1)
 deg <- 2
@@ -51,7 +50,10 @@ if (spatial.scale == "state"){
 } else if (spatial.scale == "county" & (agegroups %in% c("_child", "_adult"))){
   spatial.params <- list(scale = spatial.scale, stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = agegroups, ageToggle = agegroups) 
   source("write_loess_fits_ILIn_age_cty.R")
-}  
+} else if (spatial.scale == "region"){ # added 9/8/17 
+  spatial.params <- list(scale = spatial.scale, stringcode = "Region", stringabbr = "_reg", serv = "_totServ", servToggle = "", age = "_totAge", ageToggle = "")
+  source("write_loess_fits_ILIn.R")
+}
 
 # serv = "_totServ", servToggle = ""
 # serv = "_emergency", servToggle = "_emergency"
@@ -63,13 +65,13 @@ if (spatial.scale == "state"){
 for (span in span.list){
   params <- list(span.var = span, degree.var = deg, spatial = spatial.params)
 
-  # do.call(write_loess_fits_ILIn, c(params))
-  # do.call(explore_loess_fits_ILIn, c(params))
-  # do.call(write_periodicReg_fits_ilinDt_Octfit, c(params))
-  # do.call(write_fullIndic_periodicReg_ilinDt, c(params))
-  # do.call(explore_periodicReg_fits_ilinDt, c(params))
+  do.call(write_loess_fits_ILIn, c(params))
+  do.call(explore_loess_fits_ILIn, c(params))
+  do.call(write_periodicReg_fits_ilinDt_Octfit, c(params))
+  do.call(write_fullIndic_periodicReg_ilinDt, c(params))
+  do.call(explore_periodicReg_fits_ilinDt, c(params))
   # do.call(write_relativeDiseaseBurden_ilinDt, c(params))
-  do.call(explore_dbMetricsDistribution_ilinDt, c(params))
-  do.call(explore_periodicReg_inSeasonFits_ilinDt, c(params))
+  # do.call(explore_dbMetricsDistribution_ilinDt, c(params))
+  # do.call(explore_periodicReg_inSeasonFits_ilinDt, c(params))
 }
 

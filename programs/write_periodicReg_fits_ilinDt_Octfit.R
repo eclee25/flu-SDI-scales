@@ -47,6 +47,9 @@ write_periodicReg_fits_ilinDt_Octfit <- function(span.var, degree.var, spatial){
   } else if (spatial$scale == 'county'){
     ILI_full_df <- read_csv(file=sprintf('loess%s_all%sMods_ILIn%s%s.csv', code.str, spatial$stringcode, spatial$servToggle, spatial$ageToggle), col_types=list(fips = col_character(), ili = col_double(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
       rename(scale = fips, .fittedLoess = .fitted, .se.fitLoess = .se.fit)
+  } else if (spatial$scale == 'region'){
+    ILI_full_df <- read_csv(file=sprintf('loess%s_all%sMods_ILIn%s%s.csv', code.str, spatial$stringcode, spatial$servToggle, spatial$ageToggle), col_types=list(region = col_character(), ili = col_double(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
+      rename(scale = region, .fittedLoess = .fitted, .se.fitLoess = .se.fit)
   }
   
   #### process data for periodic regression ####################################

@@ -1,11 +1,8 @@
 
 ## Name: Elizabeth Lee
 ## Date: 9/8/17
-## Function: write ilic data at region level: ilic_{z, w} = ili_{z, w} / alpha_{z, y} / effPhysCov_{z, y}
+## Function: write ili data at region level
 ## Use this as another counterpoint for cty-level comparison of aggregation bias
-## ilic --> number of ili cases in state s in week w, correcting for constant care-seeking rates across states and scaling up for physician coverage; scaling up assumes that the ili/physician ratio is the same for the reported and unreported cases
-## alpha_{z, y} = (viz_{z, y}/numPhys_{z, y}) / (\bar{viz_y}/\bar{phys_y}) --> correction for general care-seeking behavior
-## alpha calculation uses max universe physician count instead of average universe physician count
 
 ## Filenames: physician_coverage/DX_Coverage_by_Flu_Season_20150620.csv; Py_export/iliByallZip_allWeekly_totServ_totAge.csv
 ## Data Source: IMS Health ili dataset and physician coverage dataset
@@ -100,7 +97,8 @@ ggsave("ilin_region_ts.png", eda.ilirate, width = w, height = h, dpi = dp)
 
 #### data cleaning: create export data ####################################
 iliDat2 <- iliDat %>% mutate(incl.lm = TRUE) %>%
-  arrange(region, Thu.week)
+  arrange(region, Thu.week) %>%
+  mutate(region = paste0("R", region))
 
 #### write Data to file ####################################
 setwd("../../R_export")
