@@ -39,7 +39,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   
   if (spatial$scale == 'zip3'){
     setwd('../R_export')
-    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, code.str, spatial$stringabbr), col_names = T, col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
+    importData <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, code.str, spatial$stringabbr), col_names = T, col_types = list(zip3 = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
       rename(scale = zip3)
     
     # import zip3 lat/long coordinate data
@@ -52,7 +52,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
     
   } else if (spatial$scale == 'state'){
     setwd('../R_export')
-    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_names = T, col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
+    importData <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s_analyzeDB%s.csv', code, code2, code.str, spatial$stringabbr), col_names = T, col_types = list(state = col_character(), ili = col_integer(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
       rename(scale = state)
     
     # import state lat/long coordinate data
@@ -62,15 +62,29 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
     
   } else if (spatial$scale == 'county'){
     setwd('../R_export')
-    data5 <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr), col_names = T, col_types = list(fips = col_character(), ili = col_double(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
+    importData <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr), col_names = T, col_types = list(fips = col_character(), ili = col_double(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
       rename(scale = fips)
     
     # import state lat/long coordinate data
     setwd('../reference_data')
     coordsData <- read_csv(file='cty_pop_latlon.csv') %>%
       rename(scale = fips, lat = latitude, long = longitude)
+
+  } else if (spatial$scale == 'region'){
+    setwd('../R_export')
+    importData <- read_csv(sprintf('fullIndicAll_periodicReg_%silinDt%s%s%s%s_analyzeDB%s.csv', code, code2, spatial$servToggle, spatial$ageToggle, code.str, spatial$stringabbr), col_names = T, col_types = list(region = col_character(), ili = col_double(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ilin.dt = col_double(), ILIn = col_double(), in.season = col_logical(), has.epi = col_logical(), incl.analysis = col_logical())) %>%
+      rename(scale = region)
+    
+    # import state lat/long coordinate data
+    setwd('../reference_data')
+    coordsData <- read_csv(file='region_latlon.csv') %>%
+      rename(scale = region, lat = latitude, long = longitude)
   }
   
+  # 9/8/17 read inEarlySeasonDefinition to create ilinDt.early disease burden metric
+  earlySeasonData <- read_csv("inEarlySeasonDefinition.csv", col_types = "_Dl")
+  data5 <- left_join(importData, earlySeasonData, by = c("Thu.week")) %>%
+    mutate(in.earlyseason = ifelse(in.earlyseason, TRUE, FALSE))
   
   #### create dz burden metrics ##################
   # 7/18/16 change !incl.analysis db outputs from magnitude = 0 to magnitude = NA (data were too noisy to calculate disease burden)
@@ -86,7 +100,8 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
       ilinDt.sum = sum(ilin.dt, na.rm=T), 
       ilinDt.excess.BL = sum(ilin.dt-.fitted, na.rm=T), 
       ilinDt.excess.thresh = sum(ilin.dt-epi.thresh, na.rm=T), 
-      ilinDt.peak = max(ilin.dt, na.rm=T), 
+      ilinDt.peak = max(ilin.dt, na.rm=T),
+      # ilinDt.early = sum(ifelse(in.earlyseason, ilin.dt, 0), na.rm=T), 
       epi.dur = sum(in.season))
   dbMetrics.noepi <- data5 %>% 
     filter(!has.epi & incl.analysis) %>% 
@@ -97,12 +112,19 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
       ilinDt.excess.BL = sum(ilinDt.modified, na.rm=T), 
       ilinDt.excess.thresh = sum(ilinDt.modified, na.rm=T), 
       ilinDt.peak = max(ilinDt.modified, na.rm=T), 
+      # ilinDt.early = sum(ilinDt.modified, na.rm = T),
       epi.dur = sum(ilinDt.modified, na.rm=T))
   dbMetrics.noisy <- data5 %>% 
     filter(!incl.analysis) %>% 
     mutate(ilinDt.modified = NA) %>% 
     group_by(season, scale) %>% 
-    summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), ilinDt.sum = first(ilinDt.modified), ilinDt.excess.BL = first(ilinDt.modified), ilinDt.excess.thresh = first(ilinDt.modified), ilinDt.peak = first(ilinDt.modified), epi.dur = first(ilinDt.modified))
+    summarize(has.epi = first(has.epi), incl.analysis = first(incl.analysis), 
+      ilinDt.sum = first(ilinDt.modified), 
+      ilinDt.excess.BL = first(ilinDt.modified), 
+      ilinDt.excess.thresh = first(ilinDt.modified), 
+      ilinDt.peak = first(ilinDt.modified), 
+      # ilinDt.early = first(ilinDt.modified), 
+      epi.dur = first(ilinDt.modified))
   
   # 7/18/16 merge dbMetrics
   dbMetrics <- bind_rows(dbMetrics.epi, dbMetrics.noepi, dbMetrics.noisy) 

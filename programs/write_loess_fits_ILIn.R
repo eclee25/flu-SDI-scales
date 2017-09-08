@@ -44,6 +44,9 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   } else if (spatial$scale == 'region'){
     ilic_df <- read_csv(sprintf('iliByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(region = col_character(), ili = col_integer(), pop = col_integer())) %>%
       rename(scale = region)
+  } else if (spatial$scale == 'national'){
+    ilic_df <- read_csv(sprintf('iliByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(region = col_character(), ili = col_integer(), pop = col_integer())) %>%
+      rename(scale = national)
   }
  
   #### set these! ################################

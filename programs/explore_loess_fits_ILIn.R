@@ -43,6 +43,9 @@ explore_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   } else if (spatial$scale == 'region'){
     data <- read_csv(file=sprintf('loess%s_all%sMods_ILIn%s%s.csv', code.str, spatial$stringcode, spatial$servToggle, spatial$ageToggle), col_types=list(region = col_character(), ili = col_double(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
       rename(scale = region)
+  } else if (spatial$scale == 'national'){
+    data <- read_csv(file=sprintf('loess%s_all%sMods_ILIn%s%s.csv', code.str, spatial$stringcode, spatial$servToggle, spatial$ageToggle), col_types=list(national = col_character(), ili = col_double(), pop = col_integer(),  ILIn = col_double(), .fitted=col_double(), .se.fit=col_double(), ilin.dt=col_double(), ILIn = col_double())) %>%
+      rename(scale = national)
   }
   
   #### loess fit plots ################################
@@ -72,19 +75,23 @@ explore_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   }
   
   #### ilin.dt plots ################################
-  print('plotting ilin.dt ts')
-  dir.create(sprintf('../ilinDt%s', code.str), showWarnings = FALSE)
-  setwd(sprintf('../ilinDt%s', code.str))
-  View(data_plot)
-  for(i in indexes[1:2]){
-    dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+6), aes(x=Thu.week, y=ilin.dt, group=scale)) +
-      theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
-      geom_line(aes(color = fit.week)) + 
-      facet_wrap(~scale, scales="free_y")
-    # grab zip3s in plot for file name
-    ziplabels <- data_plot %>% select(scale) %>% distinct(scale) %>% slice(c(i, i+5)) 
-    ggsave(sprintf("ilinDt%s_data_%s-%s.png", code.str, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
-  } 
+  if (spatial$scale %in% c("state", "zip3", "county")){
+    # 9/8/17 only needed if there are lots of spatial units
+    print('plotting ilin.dt ts')
+    dir.create(sprintf('../ilinDt%s', code.str), showWarnings = FALSE)
+    setwd(sprintf('../ilinDt%s', code.str))
+  
+    for(i in indexes[1:5]){
+      dummyplots <- ggplot(data_plot %>% filter(for.plot>= i & for.plot < i+6), aes(x=Thu.week, y=ilin.dt, group=scale)) +
+        theme(axis.text=element_text(size=12), axis.title=element_text(size=14,face="bold")) +
+        geom_line(aes(color = fit.week)) + 
+        facet_wrap(~scale, scales="free_y")
+      # grab zip3s in plot for file name
+      ziplabels <- data_plot %>% select(scale) %>% distinct(scale) %>% slice(c(i, i+5)) 
+      ggsave(sprintf("ilinDt%s_data_%s-%s.png", code.str, ziplabels[1,], ziplabels[2,]), dummyplots, width=w, height=h)
+    } 
+  }
+  
 }
 
 
