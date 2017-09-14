@@ -26,7 +26,7 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
   
   #### local functions ####################################
   # return logical column; T if data should be considered as "flu season" (ie. data falls within period with maximum consecutive weeks)
-  consider.flu.season <- function(x){
+  consider.flu.season_maxconsec <- function(x){
     rle.results = rle(x)
     max.consec = max(0, rle.results$lengths[which(rle.results$values)]) # which(rle.results$values) works because values are boolean
     dummy <- rep(F, length(x))
@@ -37,6 +37,21 @@ write_fullIndic_periodicReg_ilinDt <- function(span.var, degree.var, spatial){
     #   print(rle.results)
     #   print(pre.index)
     #   print(which(rle.results$values & rle.results$lengths==max.consec))
+    converted.post.index <- ifelse(post.index, sum(rle.results$lengths[1:post.index]), NA) # vector index of last value in longest consec run of TRUE
+    if(!is.na(converted.pre.index)){
+      dummy[(converted.pre.index+1):converted.post.index] <- T
+    }
+    return(dummy) # full vector of T/F
+  }
+
+  ####################################
+  # return logical column; T if data should be considered as "flu season" (ie. entire period with epidemic activity that meets the minimum consecutive week threshold, even if some weeks dip below the epidemic threshold in between)
+  consider.flu.season <- function(x){
+    rle.results = rle(x)
+    dummy <- rep(F, length(x))
+    pre.index = min(which(rle.results$values & rle.results$lengths >= num.weeks)) # which(rle.results$values) works because values are boolean
+    post.index <- max(which(rle.results$values & rle.results$lengths >= num.weeks)) # rle index of last value meeting epidemic activity definition
+    converted.pre.index <- ifelse(pre.index==1, 0, sum(rle.results$lengths[1:(pre.index-1)])) # vector index - 1 of first value in flu season period
     converted.post.index <- ifelse(post.index, sum(rle.results$lengths[1:post.index]), NA) # vector index of last value in longest consec run of TRUE
     if(!is.na(converted.pre.index)){
       dummy[(converted.pre.index+1):converted.post.index] <- T

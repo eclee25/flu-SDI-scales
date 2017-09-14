@@ -56,6 +56,13 @@ explore_dbMetricsDistribution_ilinDt <- function(span.var, degree.var, spatial){
     coord_cartesian(xlim=c(0, 300)) +
     facet_wrap(~season) + ggtitle("Sum ilinDt during flu season")
   ggsave(sprintf("distr_ILITot_%silinDt%s%s%s.png", code, code2, code.str, spatial$stringabbr), plt.distr.iliSum, width=w, height=h)
+
+  # early ILI plot
+  plt.distr.iliEarly <- ggplot(dbMetrics.g %>% filter(metric=='ilinDt.early'), aes(x=burden, group=season)) +
+    geom_histogram(aes(y=..density..), binwidth=10) + geom_density() + 
+    coord_cartesian(xlim=c(0, 300)) +
+    facet_wrap(~season) + ggtitle("Sum ilinDt during early flu season")
+  ggsave(sprintf("distr_ILIearly_%silinDt%s%s%s.png", code, code2, code.str, spatial$stringabbr), plt.distr.iliEarly, width=w, height=h)
   
   # ILI in excess of modeled seasonal baseline
   plt.distr.ILIexcessBL <- ggplot(dbMetrics.g %>% filter(metric=='ilinDt.excess.BL'), aes(x=burden, group=season)) +

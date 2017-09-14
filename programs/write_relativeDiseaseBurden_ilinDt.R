@@ -82,9 +82,9 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   }
   
   # 9/8/17 read inEarlySeasonDefinition to create ilinDt.early disease burden metric
-  earlySeasonData <- read_csv("inEarlySeasonDefinition.csv", col_types = "_Dl")
+  earlySeasonData <- read_csv("earlySeasonDefinition_expRate.csv", col_types = "_Dl")
   data5 <- left_join(importData, earlySeasonData, by = c("Thu.week")) %>%
-    mutate(in.earlyseason = ifelse(in.earlyseason, TRUE, FALSE))
+    mutate(in.earlyseason = ifelse(is.na(in.earlyseason), FALSE, ifelse(in.earlyseason, TRUE, FALSE)))
   
   #### create dz burden metrics ##################
   # 7/18/16 change !incl.analysis db outputs from magnitude = 0 to magnitude = NA (data were too noisy to calculate disease burden)
@@ -101,7 +101,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
       ilinDt.excess.BL = sum(ilin.dt-.fitted, na.rm=T), 
       ilinDt.excess.thresh = sum(ilin.dt-epi.thresh, na.rm=T), 
       ilinDt.peak = max(ilin.dt, na.rm=T),
-      # ilinDt.early = sum(ifelse(in.earlyseason, ilin.dt, 0), na.rm=T), 
+      ilinDt.early = sum(ifelse(in.earlyseason, ilin.dt, 0), na.rm=T), 
       epi.dur = sum(in.season))
   dbMetrics.noepi <- data5 %>% 
     filter(!has.epi & incl.analysis) %>% 
@@ -112,7 +112,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
       ilinDt.excess.BL = sum(ilinDt.modified, na.rm=T), 
       ilinDt.excess.thresh = sum(ilinDt.modified, na.rm=T), 
       ilinDt.peak = max(ilinDt.modified, na.rm=T), 
-      # ilinDt.early = sum(ilinDt.modified, na.rm = T),
+      ilinDt.early = sum(ilinDt.modified, na.rm = T),
       epi.dur = sum(ilinDt.modified, na.rm=T))
   dbMetrics.noisy <- data5 %>% 
     filter(!incl.analysis) %>% 
@@ -123,7 +123,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
       ilinDt.excess.BL = first(ilinDt.modified), 
       ilinDt.excess.thresh = first(ilinDt.modified), 
       ilinDt.peak = first(ilinDt.modified), 
-      # ilinDt.early = first(ilinDt.modified), 
+      ilinDt.early = first(ilinDt.modified), 
       epi.dur = first(ilinDt.modified))
   
   # 7/18/16 merge dbMetrics
@@ -157,7 +157,7 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   dbMetrics2 <- full_join(dbMetrics, dbMetrics.timing, by=c("season", "scale")) %>% 
     select(-minweek, -firstepiweek, -peakweek)
   
-  dbMetrics.g <- gather(dbMetrics2, metric, burden, 5:11) 
+  dbMetrics.g <- gather(dbMetrics2, metric, burden, 5:12) 
   # mean and sd for each metric by season for viewing
   dbMetrics_summary <- dbMetrics.g %>% group_by(season, metric) %>% 
     summarize(metric.mn = mean(burden), metric.sd = sd(burden))
