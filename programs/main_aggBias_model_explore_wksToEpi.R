@@ -8,7 +8,7 @@
 
 require(tidyverse)
 setwd(dirname(sys.frame(1)$ofile))
-source("source_aggBias_explore_functions.R")
+source("source_aggBias_model_explore_functions.R")
 
 #### set these! ###############################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"

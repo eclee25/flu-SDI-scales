@@ -208,8 +208,12 @@ string_fit_fname <- function(modCodeStr){
   return(grep("summaryStatsFitted_", list.files(path = searchDir, full.names = TRUE), value = TRUE))
 }
 ################################
-string_exportFig_aggBias_folder <- function(){
-  return(paste0(dirname(sys.frame(1)$ofile), "/../graph_outputs/aggBias_explore/"))
+string_exportFig_aggBias_model_folder <- function(){
+  return(paste0(dirname(sys.frame(1)$ofile), "/../graph_outputs/aggBias_model_explore/"))
+}
+################################
+string_exportFig_aggBias_data_folder <- function(){
+  return(paste0(dirname(sys.frame(1)$ofile), "/../graph_outputs/aggBias_data_explore/"))
 }
 ################################
 string_exportFig_wksToEpiAndPeak_folder <- function(){

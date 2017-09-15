@@ -52,7 +52,7 @@ choro_fit_aggBias_stCty_wksToEpi_oneSeason <- function(modCodeStr_cty, modCodeSt
   seasLs <- plotDat %>% distinct(season) %>% unlist
   for (s in seasLs){
    
-    exportFname <- paste0(string_exportFig_aggBias_folder(), "choro_fit_aggBias_wksToEpi_S", s, ".png")
+    exportFname <- paste0(string_exportFig_aggBias_model_folder(), "choro_fit_aggBias_wksToEpi_S", s, ".png")
     pltDat <- plotDat %>% filter(season == s)
 
     # import county mapping info
@@ -94,7 +94,7 @@ choro_fitOverlap_stCty_wksToEpi_oneSeason <- function(modCodeStr_cty, modCodeStr
   seasLs <- plotDat %>% distinct(season) %>% unlist
   for (s in seasLs){
 
-    exportFname <- paste0(string_exportFig_aggBias_folder(), "choro_fitOverlap_stCty_wksToEpi_S", s, ".png")
+    exportFname <- paste0(string_exportFig_aggBias_model_folder(), "choro_fitOverlap_stCty_wksToEpi_S", s, ".png")
     pltDat <- plotDat %>% filter(season == s)
 
     choro <- ggplot() +
@@ -122,7 +122,7 @@ scatter_fitCompare_stCty_wksToEpi <- function(modCodeStr_cty, modCodeStr_st, plt
   plotDat <- import_obsFit_wksToEpi_ctySt(modCodeStr_cty, modCodeStr_st, offset_l, path_list) %>%
     mutate(season = as.character(season))
 
-  exportFname <- paste0(string_exportFig_aggBias_folder(), "scatter_fitCompare_stCty_wksToEpi.png")
+  exportFname <- paste0(string_exportFig_aggBias_model_folder(), "scatter_fitCompare_stCty_wksToEpi.png")
 
   # scatterplot with offset
   if(offset_l){
@@ -193,7 +193,7 @@ choro_fit_aggBias_seasIntensityRR_oneSeason <- function(modCodeStr_cty, modCodeS
   seasLs <- plotDat %>% distinct(season) %>% unlist
   for (s in seasLs){
    
-    exportFname <- paste0(string_exportFig_subsampleAggBias_folder(), "choro_fit_aggBias_seasIntensityRR_S", s, ".png")
+    exportFname <- paste0(string_exportFig_aggBias_model_folder(), "choro_fit_aggBias_seasIntensityRR_S", s, ".png")
     pltDat <- plotDat %>% filter(season == s)
 
     # import county mapping info
