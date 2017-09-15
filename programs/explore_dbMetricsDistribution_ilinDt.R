@@ -59,8 +59,8 @@ explore_dbMetricsDistribution_ilinDt <- function(span.var, degree.var, spatial){
 
   # early ILI plot
   plt.distr.iliEarly <- ggplot(dbMetrics.g %>% filter(metric=='ilinDt.early'), aes(x=burden, group=season)) +
-    geom_histogram(aes(y=..density..), binwidth=10) + geom_density() + 
-    coord_cartesian(xlim=c(0, 300)) +
+    geom_histogram(aes(y=..density..), binwidth=1) + geom_density() + 
+    coord_cartesian(xlim=c(0, 50)) +
     facet_wrap(~season) + ggtitle("Sum ilinDt during early flu season")
   ggsave(sprintf("distr_ILIearly_%silinDt%s%s%s.png", code, code2, code.str, spatial$stringabbr), plt.distr.iliEarly, width=w, height=h)
   
