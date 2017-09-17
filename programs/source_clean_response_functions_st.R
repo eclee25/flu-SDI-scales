@@ -59,7 +59,7 @@ cleanR_iliPeak_shift1_st <- function(filepathList){
   iliPeak_data <- read_csv(filepathList$path_response_st, col_types = "icllcd") %>%
     filter(metric == sprintf("%s.peak", dbCode)) %>%
     select(-metric) %>%
-    rename(y = burden)
+    rename(y = burden, abbr_st = state)
   
   # merge final data
   return_data <- full_join(iliPeak_data, pop_data, by = c("season", "abbr_st")) %>%

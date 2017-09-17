@@ -34,6 +34,7 @@ cleanR_iliEarly_shift1_reg <- function(filepathList){
     pop_data <- clean_pop_reg(filepathList)
 
     return_data <- full_join(iliEarly_data, pop_data, by = c("season", "regionID")) %>% 
+        mutate(year = 2000 + season) %>%
         select(regionID, lat ,lon, season, year, pop, y, has.epi) %>%
         mutate(y1 = y+1) %>%
         group_by(season) %>%
@@ -63,6 +64,7 @@ cleanR_iliPeak_shift1_reg <- function(filepathList){
     pop_data <- clean_pop_reg(filepathList)
 
     return_data <- full_join(iliPeak_data, pop_data, by = c("season", "regionID")) %>% 
+        mutate(year = 2000 + season) %>%
         select(regionID, lat ,lon, season, year, pop, y, has.epi) %>%
         mutate(y1 = y+1) %>%
         group_by(season) %>%
@@ -86,10 +88,10 @@ cleanR_wksToEpi_reg <- function(filepathList){
         rename(y = burden)
 
     print(filepathList$path_response_reg)
-    print(summary(wksToEpi_data))
     pop_data <- clean_pop_reg(filepathList)
 
     return_data <- full_join(wksToEpi_data, pop_data, by = c("season", "regionID")) %>% 
+        mutate(year = 2000 + season) %>%
         select(regionID, lat ,lon, season, year, pop, y, has.epi) %>%
         mutate(y1 = ifelse(y>0, y, NA)) %>%
         group_by(season) %>%
@@ -113,10 +115,10 @@ cleanR_wksToPeak_reg <- function(filepathList){
         rename(y = burden)
 
     print(filepathList$path_response_reg)
-    print(summary(wksToPeak_data))
     pop_data <- clean_pop_reg(filepathList)
 
     return_data <- full_join(wksToPeak_data, pop_data, by = c("season", "regionID")) %>% 
+        mutate(year = 2000 + season) %>%
         select(regionID, lat ,lon, season, year, pop, y, has.epi) %>%
         mutate(y1 = ifelse(y>0, y, NA)) %>%
         group_by(season) %>%
@@ -136,16 +138,16 @@ clean_pop_reg <- function(filepathList){
 
     st_pop_data <- clean_pop_st(filepathList) %>%
         select(fips_st, season, year, pop)
-    reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "region"), skip = 1)
-    coord_data <- read_csv(filepathList$path_latlon_reg, col_types = "cdd", col_names = c("lat", "lon"), skip = 1) %>%
-        mutate(region = as.numeric(substring(region, 2, nchar(region))))
+    reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1)
+    coord_data <- read_csv(filepathList$path_latlon_reg, col_types = "cdd", col_names = c("regionID", "lat", "lon"), skip = 1) %>%
+        mutate(regionID = as.numeric(substring(regionID, 2, nchar(regionID))))
 
     dummy <- full_join(st_pop_data, reg_cw, by = c("fips_st")) %>%
-        group_by(region, season) %>%
+        group_by(regionID, season) %>%
         summarise(pop = sum(pop)) %>%
         filter(season > 1)
 
-    fulldata <- left_join(dummy, coord_data, by = "region")
+    fulldata <- left_join(dummy, coord_data, by = "regionID")
 
     return(fulldata)
 }
