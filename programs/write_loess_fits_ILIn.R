@@ -78,6 +78,7 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
     mutate(Thu.week=as.Date(Thu.week, origin="1970-01-01")) %>% 
     mutate(incl.lm2 = ifelse(.fitted > ILIn, FALSE, TRUE)) %>%
     mutate(ilin.dt = ILIn-.fitted) # 7/28/16: don't make any change to detrending based on incl.lm2
+    
   
   # 7/28/16: new indicator incl.lm2 is false if .fitted > ILIn; true if incl.lm is true
   
@@ -86,7 +87,7 @@ write_loess_fits_ILIn <- function(span.var, degree.var, spatial){
   setwd('../R_export')
   
   # rename scale variable
-  allLoessMods_fit_ILI2 <- scaleRename(spatial$scale, allLoessMods_fit_ILI) 
+  allLoessMods_fit_ILI2 <- scaleRename(spatial$scale, allLoessMods_fit_ILI)
   
   # write fitted and original loess smoothed ILI data 
   write.csv(allLoessMods_fit_ILI2, file=sprintf('loess%s_all%sMods_ILIn%s.csv', code.str, spatial$stringcode, spatial$servToggle), row.names=FALSE)
