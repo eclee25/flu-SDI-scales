@@ -9,6 +9,7 @@
 require(tidyverse)
 require(data.table)
 
+setwd(dirname(sys.frame(1)$ofile))
 source("source_clean_response_functions_cty.R") # functions to clean response and IMS coverage data (cty)
 source("source_clean_response_functions_st.R") # functions to clean response (st)
 source("source_clean_response_functions_reg.R") # functions to clean response (reg)
@@ -178,7 +179,7 @@ import_obs_wksToPeak <- function(filepathList){
   return(obsDat)
 }
 ################################
-import_obs_wksToPeak_st <- function( filepathList){
+import_obs_wksToPeak_st <- function(filepathList){
   print(match.call())
   # import observed data for weeks to epidemic peak at state level
   # acts as a wrapper for cleanR_wksToPeak_st
