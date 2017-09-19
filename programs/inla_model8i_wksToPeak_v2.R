@@ -1,8 +1,8 @@
 
 ## Name: Elizabeth Lee
-## Date: 4/1/17
-## Function: Model 8f v2: county neighbor spatial model, weeks to epidemic start (from wknum 40) response variable
-## Filenames: physicianCoverage_IMSHealth_state.csv, dbMetrics_periodicReg_ilinDt_Octfit_span0.4_degree2_analyzeDB_st.csv
+## Date: 9/19/17
+## Function: Model 8i v2: county neighbor spatial model, weeks to peak (from wknum 40) response variable, with interaction terms
+## Filenames: 
 ## Data Source: IMS Health
 ## Notes:
 ##
@@ -20,7 +20,7 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "8f_wksToEpi_v2-12"
+modCodeStr <- "8i_wksToPeak_v2-1"
 rdmFx_RV <- "phi"
 likString <- "poisson"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
@@ -28,14 +28,14 @@ s <- 999 # all seasons code for spatiotemporal analysis = 999
 
 #### SOURCE: clean and import model data #################################
 setwd(dirname(sys.frame(1)$ofile))
-source("source_prepare_inlaData_cty.R") # convert data frame to list of lists
+source("source_prepare_inlaData_cty.R") # convert dataframe to list of lists
 source("source_export_inlaData_cty.R") # functions to plot county-specific model diagnostics
 source("source_export_inlaData.R") # functions to plot general model diagnostics
 source("source_export_inlaData_hurdle.R") # data export functions for hurdle model
 source("source_pp_checks.R") # cpo individual level
 
 #### FILEPATHS #################################
-file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8f_wksToPeak_v7.csv")
+file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8i_wksToPeak_v7.csv")
 path_adjMxExport_cty <- paste0(getwd(), "/../reference_data/UScounty_shapefiles/US_county_adjacency.graph")
 
 #### MAIN #################################
