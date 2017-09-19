@@ -35,7 +35,7 @@ source("source_export_inlaData_hurdle.R") # data export functions for hurdle mod
 source("source_pp_checks.R") # cpo individual level
 
 #### FILEPATHS #################################
-file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8f_wksToPeak_v7.csv")
+file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8f_wksToEpi_v7.csv")
 path_adjMxExport_cty <- paste0(getwd(), "/../reference_data/UScounty_shapefiles/US_county_adjacency.graph")
 
 #### MAIN #################################
