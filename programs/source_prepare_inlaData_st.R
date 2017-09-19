@@ -128,7 +128,6 @@ model10f_wksToEpi_v2 <- function(filepathList){
   narrAnomSpecHum_st_df <- cleanX_noaanarrAnomSpecHum_wksToEpi_st(filepathList)
   wonderPollution_st_df <- cleanX_wonderAirParticulateMatter_wksToEpi_st(filepathList)
   acsOnePersonHH_st_df <- cleanX_acsOnePersonHH_st()
-  sourceLocDist_st_df <- cleanX_distanceFromSourceLocations_st(filepathList)
   infantAnyVax_st_df <- cleanX_nisInfantAnyVaxCov_st()
   elderlyAnyVax_st_df <- cleanX_brfssElderlyAnyVaxCov_st() 
   protectedPriorSeas_df <- cleanX_protectedFromPrevSeason_st(filepathList)
@@ -158,7 +157,6 @@ model10f_wksToEpi_v2 <- function(filepathList){
     full_join(narrAnomSpecHum_st_df, by = c("season", "fips_st")) %>%
     full_join(wonderPollution_st_df, by = c("season", "fips_st")) %>%
     full_join(acsOnePersonHH_st_df, by = c("fips_st", "year")) %>%
-    full_join(sourceLocDist_st_df, by = c("abbr_st", "season")) %>%
     full_join(graphIdx_st_df, by = "fips_st") %>%
     mutate(O_imscoverage = centerStandardize(adjProviderCoverage)) %>%
     mutate(O_careseek = centerStandardize(visitsPerPopT)) %>%
@@ -179,11 +177,10 @@ model10f_wksToEpi_v2 <- function(filepathList){
     mutate(X_pollution = centerStandardize(avg_pm)) %>%
     mutate(X_singlePersonHH = centerStandardize(perc_hh_1p)) %>%
     mutate(X_latitude = centerStandardize(lat)) %>%
-    mutate(X_sourceLocDist = centerStandardize(sourceLocDist)) %>%
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
     mutate(logE = log(E), y1 = y1) %>% # model response y1 = log(y+1)
-    select(-adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -anomHumidity, -avg_pm, -perc_hh_1p, -sourceLocDist) %>%
+    select(-adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -anomHumidity, -avg_pm, -perc_hh_1p) %>%
     filter(season %in% 3:9) %>%
     mutate(ID = seq_along(fips_st))
   

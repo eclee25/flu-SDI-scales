@@ -57,17 +57,13 @@ for (i in 1:length(modCodeLs)){
   path_response_st <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_st.csv", dbCodeStr))
   path_fullIndic_st <- paste0(getwd(), sprintf("/fullIndicAll_periodicReg%s_analyzeDB_st.csv", dbCodeStr))
 
-  setwd("./origin_locations")
-  path_srcLoc_st <- paste0(getwd(), sprintf("/fluseason_source_locations_%s.csv", origin_locations_file))
-  
   # put all paths in a list to pass them around in functions
   path_list <- list(path_abbr_st = path_abbr_st,
                     path_latlon_st = path_latlon_st,
                     path_response_st = path_response_st, 
                     path_graphExport_st = path_graphExport_st,
                     path_graphIdx_st = path_graphIdx_st,
-                    path_fullIndic_st = path_fullIndic_st,
-                    path_srcLoc_st = path_srcLoc_st)
+                    path_fullIndic_st = path_fullIndic_st)
   
   #### MAIN #################################
   #### Import and process data ####
