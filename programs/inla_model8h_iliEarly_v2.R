@@ -1,7 +1,7 @@
 
 ## Name: Elizabeth Lee
 ## Date: 9/19/17
-## Function: Model 8i v2: county neighbor spatial model, weeks to peak (from wknum 40) response variable, with interaction terms
+## Function: Model 8h v2: county neighbor spatial dependence model, early ILI intensity response variable
 ## Filenames: 
 ## Data Source: IMS Health
 ## Notes:
@@ -20,9 +20,9 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 #### set these! ################################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "8i_wksToPeak_v2-1"
-rdmFx_RV <- "phi"
-likString <- "poisson"
+modCodeStr <- "8h_iliEarly_v2-1"
+rdmFx_RV <- "nu"
+likString <- "normal"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 s <- 999 # all seasons code for spatiotemporal analysis = 999
 
@@ -35,7 +35,7 @@ source("source_export_inlaData_hurdle.R") # data export functions for hurdle mod
 source("source_pp_checks.R") # cpo individual level
 
 #### FILEPATHS #################################
-file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8i_wksToPeak_v7.csv")
+file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8h_iliEarly_v7.csv")
 path_adjMxExport_cty <- paste0(getwd(), "/../reference_data/UScounty_shapefiles/US_county_adjacency.graph")
 
 #### MAIN #################################
@@ -49,9 +49,7 @@ formula <- Y ~ -1 +
   f(fips_st_nonzero, model = "iid") +
   f(regionID_nonzero, model = "iid") +
   f(season_nonzero, model = "iid") +
-  intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_anomHumidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_latitude_nonzero
-
-  # + X_sourceLocDist_nonzero + X_humidity_nonzero
+  intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_anomHumidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_latitude_nonzero + offset(logE_nonzero)
 
 #### export formatting ####
 # diagnostic plot export directories
@@ -71,7 +69,7 @@ path_csvExport <- getwd()
 modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
 
 mod <- inla(formula,
-            family = "poisson",
+            family = "gaussian",
             data = modData_hurdle,
             control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
             control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
