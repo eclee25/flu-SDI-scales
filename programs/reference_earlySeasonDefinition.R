@@ -19,7 +19,7 @@ setwd("../graph_outputs")
 exportPath <- paste0(getwd(),"/reference_earlySeasonDefinition/")
 
 #### local functions ################################
-# define early season as period of maximum consecutive exponential growth, with an upper limit of 4 weeks
+# define early season as period of maximum consecutive exponential growth, with a range of 2-3 weeks
 consider.expGrowth_maxconsec <- function(x){
     rle.results = rle(x)
     max.consec = max(0, rle.results$lengths[which(rle.results$values)]) # which(rle.results$values) works because values are boolean
