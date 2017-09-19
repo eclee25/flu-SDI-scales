@@ -28,10 +28,10 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   code <-"" # linear time trend term
   code2 <- "_Octfit"
   
-#   # uncomment when running script separately
-#   spatial <- list(scale = "zip3", stringcode = "Zip3", stringabbr = "", serv = "_emergency", servToggle = "_emergency")
-#   span.var <- 0.4 # 0.4, 0.6
-#   degree.var <- 2
+  # # uncomment when running script separately
+  # spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty", serv = "", servToggle = "", age = "_totAge", ageToggle = "")
+  # span.var <- 0.4 # 0.4, 0.6
+  # degree.var <- 2
   
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
@@ -150,9 +150,9 @@ write_relativeDiseaseBurden_ilinDt <- function(span.var, degree.var, spatial){
   # create dataset with metrics
   # 4) wks.to.epi = # weeks between start of flu period and start of epidemic; 5) wks.to.peak = # weeks between start of flu period and max epi week (changed 9/8/17)
   dbMetrics.timing <- createTiming %>% group_by(season, scale) %>% 
-    summarise(minweek = max(t.minweek), firstepiweek = max(t.firstepiweek, na.rm=T), peakweek = max(t.peakweek, na.rm=T)) %>% 
-    mutate(wks.to.epi = 1 + firstepiweek - minweek) %>% 
-    mutate(wks.to.peak = 1 + peakweek - minweek) 
+    summarise(minweek = max(t.minweek, na.rm=T), firstepiweek = max(t.firstepiweek, na.rm=T), peakweek = max(t.peakweek, na.rm=T)) %>% 
+    mutate(wks.to.epi = ifelse(abs(firstepiweek) == Inf, NA, 1 + firstepiweek - minweek)) %>% 
+    mutate(wks.to.peak = ifelse(abs(peakweek) == Inf, NA, 1 + peakweek - minweek))  # 9/19/17: these disease burden measures were Inf when firstepiweek and peakweek were vectors of NAs
   # merge timing metrics with other dz burden metrics
   dbMetrics2 <- full_join(dbMetrics, dbMetrics.timing, by=c("season", "scale")) %>% 
     select(-minweek, -firstepiweek, -peakweek)
