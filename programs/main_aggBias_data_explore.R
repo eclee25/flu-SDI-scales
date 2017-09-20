@@ -55,10 +55,11 @@ obs_iliPeak_ctyReg <- do.call(import_obs_iliPeak_ctyReg, c(dataParams))
 
 #### statistics ############################
 if("statistics" %in% modules){
-  timeSt <- pairedTest_timingMagnitude(obs_wksToEpi_ctySt, obs_wksToPeak_ctySt)
-  timeReg <- pairedTest_timingMagnitude(obs_wksToEpi_ctyReg, obs_wksToPeak_ctyReg)
-  magSt <- pairedTest_timingMagnitude(obs_iliEarly_ctySt, obs_iliPeak_ctySt)
-  magReg <- pairedTest_timingMagnitude(obs_iliEarly_ctyReg, obs_iliPeak_ctyReg)
+  timeSt <- pairedTest_aggBias_timingMagnitude(obs_wksToEpi_ctySt, obs_wksToPeak_ctySt)
+  timeReg <- pairedTest_aggBias_timingMagnitude(obs_wksToEpi_ctyReg, obs_wksToPeak_ctyReg)
+  magSt <- pairedTest_aggBias_timingMagnitude(obs_iliEarly_ctySt, obs_iliPeak_ctySt)
+  magReg <- pairedTest_aggBias_timingMagnitude(obs_iliEarly_ctyReg, obs_iliPeak_ctyReg)
+  # list(histPlot=histPlot, absHistPlot=absHistPlot, dbPlot=dbPlot, absDbPlot=absDbPlot, ttest=ttest, absTtest=absTtest)
 }
 
 #### plots ############################

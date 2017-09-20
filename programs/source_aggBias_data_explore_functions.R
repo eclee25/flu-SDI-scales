@@ -12,7 +12,7 @@ setwd(dirname(sys.frame(1)$ofile))
 source("source_import_modeldata.R")
 
 #### statistics functions ################################
-pairedTest_timingMagnitude <- function(obs_early, obs_peak){
+pairedTest_aggBias_timingMagnitude <- function(obs_early, obs_peak){
   print(match.call())
   # compare aggregation bias for wksToEpi-wksToPeak, iliEarly-iliPeak measures, works for both ctySt and ctyReg levels
   
@@ -26,27 +26,40 @@ pairedTest_timingMagnitude <- function(obs_early, obs_peak){
   names(dat2)[3] <- "peakBias"
 
   fullDat <- full_join(dat1, dat2, by = c("season", "fips")) %>%
-    mutate(aggBiasDiff = peakBias - earlyBias)
+    mutate(aggBiasDiff = peakBias - earlyBias) %>%
+    mutate(abs_peakBias = abs(peakBias), abs_earlyBias = abs(earlyBias)) %>%
+    mutate(absAggBiasDiff = abs_peakBias - abs_earlyBias)
   fullDat2 <- fullDat %>%
-    gather(measure, value, earlyBias:aggBiasDiff)
+    gather(measure, value, earlyBias:absAggBiasDiff)
 
   # check that the difference between the measures follows a normal distribution, thus making it appropriate for a paired T-test 
   histPlot <- hist(fullDat$aggBiasDiff, bins = 100)
-  print(histPlot)
+  absHistPlot <- hist(fullDat$absAggBiasDiff, bins = 100)
+
 
   # plot overlapping histogram for the two distributions
   dbPlot <- ggplot(fullDat2 %>%
-    filter(measure != "aggBiasDiff"), aes(x = value)) +
-    geom_freqpoly(aes(y = ..ndensity.., colour = measure), bins = 100, na.rm=TRUE) +
+    filter(measure %in% c("earlyBias", "peakBias")), aes(x = value)) +
+    geom_freqpoly(aes(y = ..density.., colour = measure), bins = 50, na.rm=TRUE) +
     theme_bw() +
     theme(legend.position = "bottom")
   print(dbPlot)
 
-  # perform paired t-test
-  output <- t.test(fullDat$earlyBias, fullDat$peakBias, paired = TRUE)
-  print(output)
+  absDbPlot <- ggplot(fullDat2 %>%
+    filter(measure %in% c("abs_earlyBias", "abs_peakBias")), aes(x = value)) +
+    geom_freqpoly(aes(y = ..density.., colour = measure), bins = 50, na.rm=TRUE) +
+    theme_bw() +
+    theme(legend.position = "bottom")
+  print(absDbPlot)
 
-  return(list(histPlot, dbPlot, output))
+  # perform paired t-test
+  ttest <- t.test(fullDat$earlyBias, fullDat$peakBias, paired = TRUE)
+  print(ttest)
+
+  absTtest <- t.test(fullDat$abs_earlyBias, fullDat$abs_peakBias, paired = TRUE)
+  print(absTtest)
+
+  return(list(histPlot=histPlot, absHistPlot=absHistPlot, dbPlot=dbPlot, absDbPlot=absDbPlot, ttest=ttest, absTtest=absTtest))
 
 }
 ################################
