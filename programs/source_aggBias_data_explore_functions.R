@@ -11,303 +11,79 @@ require(lazyeval)
 setwd(dirname(sys.frame(1)$ofile))
 source("source_import_modeldata.R")
 
+#### statistics functions ################################
+pairedTest_timingMagnitude <- function(obs_early, obs_peak){
+  print(match.call())
+  # compare aggregation bias for wksToEpi-wksToPeak, iliEarly-iliPeak measures, works for both ctySt and ctyReg levels
+  
+  # import data
+  dat1 <- obs_early %>%
+    select(season, fips, fips_st, contains("obs_diff")) 
+  names(dat1)[4] <- "earlyBias"
+
+  dat2 <- obs_peak %>%
+    select(season, fips, contains("obs_diff")) 
+  names(dat2)[3] <- "peakBias"
+
+  fullDat <- full_join(dat1, dat2, by = c("season", "fips")) %>%
+    mutate(aggBiasDiff = peakBias - earlyBias)
+  fullDat2 <- fullDat %>%
+    gather(measure, value, earlyBias:aggBiasDiff)
+
+  # check that the difference between the measures follows a normal distribution, thus making it appropriate for a paired T-test 
+  histPlot <- hist(fullDat$aggBiasDiff, bins = 100)
+  print(histPlot)
+
+  # plot overlapping histogram for the two distributions
+  dbPlot <- ggplot(fullDat2 %>%
+    filter(measure != "aggBiasDiff"), aes(x = value)) +
+    geom_freqpoly(aes(y = ..ndensity.., colour = measure), bins = 100, na.rm=TRUE) +
+    theme_bw() +
+    theme(legend.position = "bottom")
+  print(dbPlot)
+
+  # perform paired t-test
+  output <- t.test(fullDat$earlyBias, fullDat$peakBias, paired = TRUE)
+  print(output)
+
+  return(list(histPlot, dbPlot, output))
+
+}
+################################
+
+
 #### scatter plotting functions ################################
-scatter_obsCompare_stCty_wksToEpi <- function(modCodeStr_cty, modCodeStr_st, pltFormats, datFormats, path_list){
+scatter_obsCompare_aggBias_timingMagnitude <- function(obs_measure_aggBias, staticFormats, dynFormats){
   print(match.call())
 
   # plot formatting
-  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
-  offset_l <- datFormats$offset_l
+  w <- staticFormats$w; h <- staticFormats$h; dp <- 300
+  offset_l <- staticFormats$offset_l
+  measure <- dynFormats$measure; bigscale <- dynFormats$bigscale
   
   # import county and state data
-  plotDat <- import_obsFit_wksToEpi_ctySt(modCodeStr_cty, modCodeStr_st, offset_l, path_list) %>%
-    mutate(season = as.character(season))
+  plotDat <- obs_measure_aggBias %>%
+    mutate(season = as.character(season)) 
 
-  exportFname <- paste0(string_exportFig_aggBias_data_folder(), "scatter_obsCompare_stCty_wksToEpi.png")
+  exportFname <- paste0(string_exportFig_aggBias_data_folder(), "scatter_obsCompare_", bigscale, "Cty_", measure, ".png")
 
   # scatterplot with offset
   if(offset_l){
-    scatter <- ggplot(plotDat, aes(x = obs_rr_cty, y = obs_rr_st)) +
+    scatter <- ggplot(plotDat %>% rename_(obs_bigscale = paste0("obs_rr_", bigscale)), aes(x = obs_rr_cty, y = obs_bigscale)) +
       geom_point(colour = "blue", alpha = 0.3) +
       geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("RR for Observed Weeks to Epidemic Onset (county)") +
-      scale_y_continuous("RR for Observed Weeks to Epidemic Onset (state)") +
+      scale_x_continuous(sprintf("RR for Observed %s (county)", measure)) +
+      scale_y_continuous(sprintf("RR for Observed %s (%s)", measure, bigscale)) +
       theme_bw() +
       theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
       facet_wrap(~season, nrow = 2)
 
     } else {
-    scatter <- ggplot(plotDat, aes(x = obs_y_cty, y = obs_y_st)) +
+    scatter <- ggplot(plotDat %>% rename_(obs_bigscale = paste0("obs_y_", bigscale)), aes(x = obs_y_cty, y = obs_bigscale)) +
       geom_point(colour = "blue", alpha = 0.3) +
       geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("Observed Weeks to Epidemic Onset (county)") +
-      scale_y_continuous("Observed Weeks to Epidemic Onset (state)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-    }
-
-  ggsave(exportFname, scatter, height = h, width = w, dpi = dp)
-}
-################################
-scatter_obsCompare_regCty_wksToEpi <- function(modCodeStr_cty, pltFormats, datFormats, path_list){
-  print(match.call())
-
-  # plot formatting
-  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
-  offset_l <- datFormats$offset_l
-  
-  # import county and region data
-  plotDat <- import_obs_wksToEpi_ctyReg(modCodeStr_cty, offset_l, path_list) %>%
-    mutate(season = as.character(season))
-
-  exportFname <- paste0(string_exportFig_aggBias_data_folder(), "scatter_obsCompare_regCty_wksToEpi.png")
-
-  # scatterplot with offset
-  if(offset_l){
-    scatter <- ggplot(plotDat, aes(x = obs_rr_cty, y = obs_rr_reg)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("RR for Observed Weeks to Epidemic Onset (county)") +
-      scale_y_continuous("RR for Observed Weeks to Epidemic Onset (state)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-
-    } else {
-    scatter <- ggplot(plotDat, aes(x = obs_y_cty, y = obs_y_reg)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("Observed Weeks to Epidemic Onset (county)") +
-      scale_y_continuous("Observed Weeks to Epidemic Onset (state)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-    }
-
-  ggsave(exportFname, scatter, height = h, width = w, dpi = dp)
-}
-################################
-scatter_obsCompare_stCty_wksToPeak <- function(pltFormats, datFormats, path_list){
-  print(match.call())
-
-  # plot formatting
-  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
-  offset_l <- datFormats$offset_l
-  
-  # import county and state data
-  plotDat <- import_obs_wksToPeak_ctySt(offset_l, path_list) %>%
-    mutate(season = as.character(season))
-
-  exportFname <- paste0(string_exportFig_aggBias_data_folder(), "scatter_obsCompare_stCty_wksToPeak.png")
-
-  # scatterplot with offset
-  if(offset_l){
-    scatter <- ggplot(plotDat, aes(x = obs_rr_cty, y = obs_rr_st)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("RR for Observed Weeks to Epidemic Peak (county)") +
-      scale_y_continuous("RR for Observed Weeks to Epidemic Peak (state)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-
-    } else {
-    scatter <- ggplot(plotDat, aes(x = obs_y_cty, y = obs_y_st)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("Observed Weeks to Epidemic Peak (county)") +
-      scale_y_continuous("Observed Weeks to Epidemic Peak (state)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-    }
-
-  ggsave(exportFname, scatter, height = h, width = w, dpi = dp)
-}
-################################
-scatter_obsCompare_regCty_wksToPeak <- function(pltFormats, datFormats, path_list){
-  print(match.call())
-
-  # plot formatting
-  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
-  offset_l <- datFormats$offset_l
-  
-  # import county and region data
-  plotDat <- import_obs_wksToPeak_ctyReg(offset_l, path_list) %>%
-    mutate(season = as.character(season))
-
-  exportFname <- paste0(string_exportFig_aggBias_data_folder(), "scatter_obsCompare_regCty_wksToPeak.png")
-
-  # scatterplot with offset
-  if(offset_l){
-    scatter <- ggplot(plotDat, aes(x = obs_rr_cty, y = obs_rr_reg)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("RR for Observed Weeks to Epidemic Peak (county)") +
-      scale_y_continuous("RR for Observed Weeks to Epidemic Peak (region)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-
-    } else {
-    scatter <- ggplot(plotDat, aes(x = obs_y_cty, y = obs_y_reg)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("Observed Weeks to Epidemic Peak (county)") +
-      scale_y_continuous("Observed Weeks to Epidemic Peak (region)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-    }
-
-  ggsave(exportFname, scatter, height = h, width = w, dpi = dp)
-}
-################################
-scatter_obsCompare_stCty_iliEarly <- function(pltFormats, datFormats, path_list){
-  print(match.call())
-
-  # plot formatting
-  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
-  offset_l <- datFormats$offset_l
-  
-  # import county and state data
-  plotDat <- import_obs_iliEarly_ctySt(offset_l, path_list) %>%
-    mutate(season = as.character(season))
-
-  exportFname <- paste0(string_exportFig_aggBias_data_folder(), "scatter_obsCompare_stCty_iliEarly.png")
-
-  # scatterplot with offset
-  if(offset_l){
-    scatter <- ggplot(plotDat, aes(x = obs_rr_cty, y = obs_rr_st)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("RR for Observed Early Seasonal Intensity (county)") +
-      scale_y_continuous("RR for Observed Early Seasonal Intensity (state)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-
-    } else {
-    scatter <- ggplot(plotDat, aes(x = obs_y_cty, y = obs_y_st)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("Observed Early Seasonal Intensity (county)") +
-      scale_y_continuous("Observed Early Seasonal Intensity (state)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-    }
-
-  ggsave(exportFname, scatter, height = h, width = w, dpi = dp)
-}
-################################
-scatter_obsCompare_regCty_iliEarly <- function(pltFormats, datFormats, path_list){
-  print(match.call())
-
-  # plot formatting
-  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
-  offset_l <- datFormats$offset_l
-  
-  # import county and state data
-  plotDat <- import_obs_iliEarly_ctyReg(offset_l, path_list) %>%
-    mutate(season = as.character(season))
-
-  exportFname <- paste0(string_exportFig_aggBias_data_folder(), "scatter_obsCompare_regCty_iliEarly.png")
-
-  # scatterplot with offset
-  if(offset_l){
-    scatter <- ggplot(plotDat, aes(x = obs_rr_cty, y = obs_rr_reg)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("RR for Observed Early Seasonal Intensity (county)") +
-      scale_y_continuous("RR for Observed Early Seasonal Intensity (region)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-
-    } else {
-    scatter <- ggplot(plotDat, aes(x = obs_y_cty, y = obs_y_reg)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("Observed Early Seasonal Intensity (county)") +
-      scale_y_continuous("Observed Early Seasonal Intensity (region)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-    }
-
-  ggsave(exportFname, scatter, height = h, width = w, dpi = dp)
-}
-################################
-scatter_obsCompare_stCty_iliPeak <- function(pltFormats, datFormats, path_list){
-  print(match.call())
-
-  # plot formatting
-  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
-  offset_l <- datFormats$offset_l
-  
-  # import county and state data
-  plotDat <- import_obs_iliPeak_ctySt(offset_l, path_list) %>%
-    mutate(season = as.character(season))
-
-  exportFname <- paste0(string_exportFig_aggBias_data_folder(), "scatter_obsCompare_stCty_iliPeak.png")
-
-  # scatterplot with offset
-  if(offset_l){
-    scatter <- ggplot(plotDat, aes(x = obs_rr_cty, y = obs_rr_st)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("RR for Observed Peak Seasonal Intensity (county)") +
-      scale_y_continuous("RR for Observed Peak Seasonal Intensity (state)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-
-    } else {
-    scatter <- ggplot(plotDat, aes(x = obs_y_cty, y = obs_y_st)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("Observed Peak Seasonal Intensity (county)") +
-      scale_y_continuous("Observed Peak Seasonal Intensity (state)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-    }
-
-  ggsave(exportFname, scatter, height = h, width = w, dpi = dp)
-}
-################################
-scatter_obsCompare_regCty_iliPeak <- function(pltFormats, datFormats, path_list){
-  print(match.call())
-
-  # plot formatting
-  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
-  offset_l <- datFormats$offset_l
-  
-  # import county and state data
-  plotDat <- import_obs_iliPeak_ctyReg(offset_l, path_list) %>%
-    mutate(season = as.character(season))
-
-  exportFname <- paste0(string_exportFig_aggBias_data_folder(), "scatter_obsCompare_regCty_iliPeak.png")
-
-  # scatterplot with offset
-  if(offset_l){
-    scatter <- ggplot(plotDat, aes(x = obs_rr_cty, y = obs_rr_reg)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("RR for Observed Peak Seasonal Intensity (county)") +
-      scale_y_continuous("RR for Observed Peak Seasonal Intensity (region)") +
-      theme_bw() +
-      theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
-      facet_wrap(~season, nrow = 2)
-
-    } else {
-    scatter <- ggplot(plotDat, aes(x = obs_y_cty, y = obs_y_reg)) +
-      geom_point(colour = "blue", alpha = 0.3) +
-      geom_abline(colour = "black", intercept = 0, slope = 1) +
-      scale_x_continuous("Observed Early Seasonal Intensity (county)") +
-      scale_y_continuous("Observed Early Seasonal Intensity (region)") +
+      scale_x_continuous(sprintf("Observed %s (county)", measure)) +
+      scale_y_continuous(sprintf("Observed %s (%s)", measure, bigscale)) +
       theme_bw() +
       theme(text = element_text(size = 12), legend.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.position = "bottom") +
       facet_wrap(~season, nrow = 2)
@@ -319,14 +95,11 @@ scatter_obsCompare_regCty_iliPeak <- function(pltFormats, datFormats, path_list)
 
 
 #### aggBias plotting functions ################################
-choro_obs_aggBias_stCty_wksToEpi_oneSeason <- function(modCodeStr_cty, modCodeStr_st, pltFormats, datFormats, filepathList){
+choro_obs_aggBias_stCty_wksToEpi_oneSeason <- function(obs_wksToEpi_ctySt, pltFormats){
     print(match.call())
 
-    # data formatting
-    offset_l <- datFormats$offset_l
-
     # import difference between county and state weeks to epi
-    prepDat <- import_obsFit_wksToEpi_ctySt(modCodeStr_cty, modCodeStr_st, offset_l, filepathList)
+    prepDat <- obs_wksToEpi_ctySt
 
     # # check breaks for aggBias
     # print(hist(prepDat$obs_diff_stCty))
@@ -349,14 +122,11 @@ choro_obs_aggBias_stCty_wksToEpi_oneSeason <- function(modCodeStr_cty, modCodeSt
     }
 }
 ################################
-choro_obs_aggBias_regCty_wksToEpi_oneSeason <- function(modCodeStr_cty, pltFormats, datFormats, filepathList){
+choro_obs_aggBias_regCty_wksToEpi_oneSeason <- function(obs_wksToEpi_ctyReg, pltFormats){
     print(match.call())
 
-    # data formatting
-    offset_l <- datFormats$offset_l
-
     # import difference between county and region weeks to epi
-    prepDat <- import_obs_wksToEpi_ctyReg(modCodeStr_cty, offset_l, filepathList)
+    prepDat <- obs_wksToEpi_ctyReg
 
     # # check breaks for aggBias
     # print(hist(prepDat$obs_diff_regCty))
@@ -380,14 +150,11 @@ choro_obs_aggBias_regCty_wksToEpi_oneSeason <- function(modCodeStr_cty, pltForma
     }
 }
 ################################
-choro_obs_aggBias_stCty_wksToPeak_oneSeason <- function(pltFormats, datFormats, filepathList){
+choro_obs_aggBias_stCty_wksToPeak_oneSeason <- function(obs_wksToPeak_ctySt, pltFormats){
     print(match.call())
 
-    # data formatting
-    offset_l <- datFormats$offset_l
-
     # import difference between county and state weeks to peak
-    prepDat <- import_obs_wksToPeak_ctySt(offset_l, filepathList)
+    prepDat <- obs_wksToPeak_ctySt
 
     # # check breaks for aggBias
     # print(hist(prepDat$obs_diff_stCty))
@@ -410,14 +177,11 @@ choro_obs_aggBias_stCty_wksToPeak_oneSeason <- function(pltFormats, datFormats, 
     }
 }
 ################################
-choro_obs_aggBias_regCty_wksToPeak_oneSeason <- function(pltFormats, datFormats, filepathList){
+choro_obs_aggBias_regCty_wksToPeak_oneSeason <- function(obs_wksToPeak_ctyReg, pltFormats){
     print(match.call())
 
-    # data formatting
-    offset_l <- datFormats$offset_l
-
     # import difference between county and region weeks to peak
-    prepDat <- import_obs_wksToPeak_ctyReg(offset_l, filepathList)
+    prepDat <- obs_wksToPeak_ctyReg
 
     # # check breaks for aggBias
     # print(hist(prepDat$obs_diff_regCty))
@@ -440,14 +204,11 @@ choro_obs_aggBias_regCty_wksToPeak_oneSeason <- function(pltFormats, datFormats,
     }
 }
 ################################
-choro_obs_aggBias_stCty_iliEarly_oneSeason <- function(pltFormats, datFormats, filepathList){
+choro_obs_aggBias_stCty_iliEarly_oneSeason <- function(obs_iliEarly_ctySt, pltFormats){
     print(match.call())
 
-    # data formatting
-    offset_l <- datFormats$offset_l
-
     # import difference between county and state ili in early flu season
-    prepDat <- import_obs_iliEarly_ctySt(offset_l, filepathList)
+    prepDat <- obs_iliEarly_ctySt
 
     # # check breaks for aggBias
     # print(hist(prepDat$obs_diff_stCty))
@@ -471,14 +232,11 @@ choro_obs_aggBias_stCty_iliEarly_oneSeason <- function(pltFormats, datFormats, f
     }
 }
 ################################
-choro_obs_aggBias_regCty_iliEarly_oneSeason <- function(pltFormats, datFormats, filepathList){
+choro_obs_aggBias_regCty_iliEarly_oneSeason <- function(obs_iliEarly_ctyReg, pltFormats){
     print(match.call())
 
-    # data formatting
-    offset_l <- datFormats$offset_l
-
     # import difference between county and region ili in early flu season
-    prepDat <- import_obs_iliEarly_ctyReg(offset_l, filepathList)
+    prepDat <- obs_iliEarly_ctyReg
 
     # # check breaks for aggBias
     # print(hist(prepDat$obs_diff_regCty))
@@ -502,14 +260,11 @@ choro_obs_aggBias_regCty_iliEarly_oneSeason <- function(pltFormats, datFormats, 
     }
 }
 ################################
-choro_obs_aggBias_stCty_iliPeak_oneSeason <- function(pltFormats, datFormats, filepathList){
+choro_obs_aggBias_stCty_iliPeak_oneSeason <- function(obs_iliPeak_ctySt, pltFormats){
     print(match.call())
 
-    # data formatting
-    offset_l <- datFormats$offset_l
-
     # import difference between county and state peak ILI
-    prepDat <- import_obs_iliPeak_ctySt(offset_l, filepathList)
+    prepDat <- obs_iliPeak_ctySt
 
     # # check breaks for aggBias
     # print(hist(prepDat$obs_diff_stCty))
@@ -533,14 +288,11 @@ choro_obs_aggBias_stCty_iliPeak_oneSeason <- function(pltFormats, datFormats, fi
     }
 }
 ################################
-choro_obs_aggBias_regCty_iliPeak_oneSeason <- function(pltFormats, datFormats, filepathList){
+choro_obs_aggBias_regCty_iliPeak_oneSeason <- function(obs_iliPeak_ctyReg, pltFormats){
     print(match.call())
 
-    # data formatting
-    offset_l <- datFormats$offset_l
-
     # import difference between county and region peak ILI
-    prepDat <- import_obs_iliPeak_ctyReg(offset_l, filepathList)
+    prepDat <- obs_iliPeak_ctyReg
 
     # # check breaks for aggBias
     # print(hist(prepDat$obs_diff_regCty))

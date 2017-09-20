@@ -111,6 +111,70 @@ import_obsFit_wksToEpi_ctySt <- function(modCodeStr_cty, modCodeStr_st, offset_l
   return(fullFitDat) 
 }
 ################################
+import_obs_wksToEpi <- function(filepathList){
+  print(match.call())
+  # import observed for weeks to epidemic onset at county level
+   
+  # import observed and expected wks to epi
+  obsDat <- cleanR_wksToEpi_cty(filepathList) %>%
+        mutate(obs_y = y1, E = E) %>%
+        select(season, fips, obs_y, E)
+   
+  return(obsDat)
+}
+################################
+import_obs_wksToEpi_st <- function(filepathList){
+  print(match.call())
+  # import observed for weeks to epidemic onset at state level
+   
+  # import observed and expected wks to epi
+  obsDat <- cleanR_wksToEpi_st(filepathList) %>%
+        mutate(obs_y = y1, E = E) %>%
+        select(season, fips_st, obs_y, E)
+   
+  return(obsDat)
+}
+################################
+import_obs_wksToEpi_ctySt <- function(offset_l, filepathList){
+  print(match.call())
+  # import fitted values for county and state models: weeks to epidemic onset
+
+  # import county and state data for models with offset
+  if (offset_l){
+    ctyDat <- import_obs_wksToEpi(filepathList) %>%
+      rename(obs_y_cty = obs_y) %>%
+      mutate(obs_rr_cty = obs_y_cty/E) %>%
+      select(season, fips, obs_rr_cty, obs_y_cty) %>%
+      mutate(fips_st = substring(fips, 1, 2))
+  
+    stDat <- import_obs_wksToEpi_st(modCodeStr_st, filepathList) %>%
+      rename(obs_y_st = obs_y) %>%
+      mutate(obs_rr_st = obs_y_st/E) %>%
+      select(season, fips_st, obs_rr_st, obs_y_st)
+
+    fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
+      mutate(obs_diff_stCty = obs_rr_st-obs_rr_cty)
+      select(season, fips, fips_st, obs_rr_cty, obs_rr_st, obs_diff_stCty)
+
+  } else{ # data without offset adjustment
+    ctyDat <- import_obs_wksToEpi(filepathList) %>%
+      rename(obs_y_cty = obs_y) %>%
+      select(season, fips, obs_y_cty) %>%
+      mutate(fips_st = substring(fips, 1, 2))
+  
+    stDat <- import_obs_wksToEpi_st(filepathList) %>%
+      rename(obs_y_st = obs_y) %>%
+      select(season, fips_st, obs_y_st)
+
+    fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
+      mutate(obs_diff_stCty = obs_y_st-obs_y_cty) %>%
+      select(season, fips, fips_st, obs_y_cty, obs_y_st, obs_diff_stCty)
+
+  }
+  
+  return(fullObsDat) 
+}
+################################
 import_obs_wksToEpi_reg <- function(filepathList){
     print(match.call())
     # import observed data for weeks to epidemic onset at region level (no region level models)
@@ -124,13 +188,13 @@ import_obs_wksToEpi_reg <- function(filepathList){
     return(obsDat)
 }
 ################################
-import_obs_wksToEpi_ctyReg <- function(modCodeStr_cty, offset_l, filepathList){
+import_obs_wksToEpi_ctyReg <- function(offset_l, filepathList){
     print(match.call())
     # import observed values for county and region models: weeks to epidemic onset
 
     # import county and region data with offset
     if (offset_l){
-        ctyDat <- import_obsFit_wksToEpi(modCodeStr_cty, filepathList) %>%
+        ctyDat <- import_obs_wksToEpi(filepathList) %>%
             mutate(obs_rr_cty = obs_y/E) %>%
             rename(obs_y_cty = obs_y) %>%
             mutate(fips_st = substring(fips, 1, 2))
@@ -147,7 +211,7 @@ import_obs_wksToEpi_ctyReg <- function(modCodeStr_cty, offset_l, filepathList){
           select(season, fips, fips_st, regionID, obs_rr_cty, obs_rr_reg, obs_diff_regCty)
     
     } else{ # data without offset adjustment
-        ctyDat <- import_obsFit_wksToEpi(modCodeStr_cty, filepathList) %>%
+        ctyDat <- import_obs_wksToEpi(filepathList) %>%
             rename(obs_y_cty = obs_y) %>%
             mutate(fips_st = substring(fips, 1, 2))
 
