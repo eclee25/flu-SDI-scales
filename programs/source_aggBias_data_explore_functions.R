@@ -108,6 +108,38 @@ scatter_obsCompare_aggBias_timingMagnitude <- function(obs_measure_aggBias, stat
 
 
 #### aggBias plotting functions ################################
+
+#################################
+choro_obs_aggBias_avgSeason <- function(importDat, pltFormats, breaks){
+    print(match.call())
+
+    dbCode <- pltFormats$dbCode; scaleDiff <- pltFormats$scaleDiff
+
+    # import aggregation bias
+    prepDat <- importDat %>%
+      rename_("obs_aggBias" = pltFormats$pltVar) %>%
+      group_by(fips) %>%
+      summarise(obs_aggBias = mean(obs_aggBias, na.rm = TRUE))
+
+    # # check breaks for aggBias
+    # print(hist(prepDat$obs_aggBias))
+    # print(summary(prepDat))
+
+    # breaks have 8 values
+    pltFormats$breaks <- breaks
+    pltFormats$manualPalette <- c("#10456a", "#1c73b1", "#67add4", "#cacaca", "#69a761", "#2f8e41", "#09622a") # 3 blue - grey - 3 green
+
+    pltDat <- prepDat %>%
+      mutate(obs_diff = cut(obs_aggBias, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) 
+    
+    factorlvls <- levels(pltDat$obs_aggBias)
+
+    pltFormats$exportFname <- paste0(string_exportFig_aggBias_data_folder(), dbCode, "/choro_obs_aggBias_", scaleDiff, "_", dbCode, "_seasonAvg.png")
+
+    choro_aggBias_oneSeason(pltDat, pltFormats)
+
+}
+#################################
 choro_obs_aggBias_stCty_wksToEpi_oneSeason <- function(obs_wksToEpi_ctySt, pltFormats){
     print(match.call())
 

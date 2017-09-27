@@ -12,7 +12,7 @@ source("source_aggBias_data_explore_functions.R")
 
 #### set these! ###############################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modules <- c("statistics") # "statistics", "scatterplot", "choro"
+modules <- c("choroAvg") # "statistics", "scatterplot", "choro", "choroAvg"
 
 ###############################
 ## PATHS ##
@@ -79,8 +79,8 @@ if("scatterplot" %in% modules){
   scatter_obsCompare_aggBias_timingMagnitude(obs_iliPeak_ctyReg, staticFormats, dynFormats[[8]])
 }
 
-
-# choropleth of magnitude of aggregation bias
+############################
+# choropleth of magnitude of aggregation bias - one season
 if("choro" %in% modules){
   plotFormats <- list(w = 6, h = 4)
   choro_obs_aggBias_stCty_wksToEpi_oneSeason(obs_wksToEpi_ctySt, plotFormats)
@@ -95,5 +95,37 @@ if("choro" %in% modules){
   # Interpretation: positive error (green) means that state model predicted a later epidemic onset than the county model
 }
  
+############################
+# choropleth of magnitude of aggregation bias - average seasons
+if("choroAvg" %in% modules){
+  plotFormatsDf <- tbl_df(data.frame(
+    dbCode = c(rep("wksToEpi", 2), rep("wksToPeak", 2), rep("iliEarly", 2), rep("iliPeak", 2)), 
+    scaleDiff = rep(c("stCty", "regCty"), 4), 
+    # breaks = ,
+    w = 6, 
+    h = 4)) %>%
+    mutate(pltVar = paste0("obs_diff_", scaleDiff))
 
+  breaksDf <- data.frame(
+    wksToEpi_ctySt = c(-14, -5, -3, -1, 1, 3, 5, 8), 
+    wksToEpi_ctyReg = c(-15, -6, -3,-1, 1, 3, 6, 9),
+    wksToPeak_ctySt = c(-10, -4, -2, -1, 1, 2, 4, 7),
+    wksToPeak_ctyReg = c(-8, -3, -2, -1, 1, 2, 3, 7),
+    iliEarly_ctySt = c(-20, -4, -2, -1, 1, 2, 4, 5),
+    iliEarly_ctyReg = c(-21, -4, -2, -1, 1, 2, 4, 6),
+    iliPeak_ctySt = c(-31, -4, -2, -1, 1, 2, 4, 6),
+    iliPeak_ctyReg = c(-34, -6, -3, -1, 1, 2, 3.5, 5))
+
+  choro_obs_aggBias_avgSeason(obs_wksToEpi_ctySt, as.list(plotFormatsDf[1,]), breaksDf$wksToEpi_ctySt)
+  choro_obs_aggBias_avgSeason(obs_wksToEpi_ctyReg, as.list(plotFormatsDf[2,]), breaksDf$wksToEpi_ctyReg)
+  choro_obs_aggBias_avgSeason(obs_wksToPeak_ctySt, as.list(plotFormatsDf[3,]), breaksDf$wksToPeak_ctySt)
+  choro_obs_aggBias_avgSeason(obs_wksToPeak_ctyReg, as.list(plotFormatsDf[4,]), breaksDf$wksToPeak_ctyReg)
+  choro_obs_aggBias_avgSeason(obs_iliEarly_ctySt, as.list(plotFormatsDf[5,]), breaksDf$iliEarly_ctySt)
+  choro_obs_aggBias_avgSeason(obs_iliEarly_ctyReg, as.list(plotFormatsDf[6,]), breaksDf$iliEarly_ctyReg)
+  choro_obs_aggBias_avgSeason(obs_iliPeak_ctySt, as.list(plotFormatsDf[7,]), breaksDf$iliPeak_ctySt)
+  choro_obs_aggBias_avgSeason(obs_iliPeak_ctyReg, as.list(plotFormatsDf[8,]), breaksDf$iliPeak_ctyReg)
+  # ADD FUNCTION TO WRITE AGGBIAS FROM THE DATA CALCULATED IN THESE FUNCTIONS
+
+  # Interpretation: positive error (green) means that state model predicted a later epidemic onset than the county model
+}
 

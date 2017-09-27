@@ -153,7 +153,7 @@ import_obs_wksToEpi_ctySt <- function(offset_l, filepathList){
       select(season, fips_st, obs_rr_st, obs_y_st)
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
-      mutate(obs_diff_stCty = obs_rr_st-obs_rr_cty)
+      mutate(obs_diff_stCty = obs_rr_st-obs_rr_cty) %>%
       select(season, fips, fips_st, obs_rr_cty, obs_rr_st, obs_diff_stCty)
 
   } else{ # data without offset adjustment
