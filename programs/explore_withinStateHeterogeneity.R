@@ -34,29 +34,33 @@ path_list <- list(path_abbr_st = path_abbr_st,
                   path_latlon_cty = path_latlon_cty,
                   path_response_cty = path_response_cty)
 
-setwd("../graph_outputs/explore_withinStateHeterogeneity")
+setwd("../graph_outputs/explore_withinStateHeterogeneity/")
 path_exportFig <- getwd()
 
 #### Functions #################################
-scatter_variance <- function(prepData){
+scatter_variance <- function(prepData, plotFormats){
   # filter the data for a single season if needed
   print(match.call())
   
+  ylab <- plotFormats$ylabScatter; dbCode <- plotFormats$dbCode
+
   pltData <- prepData %>%
     mutate(xAxis = factor(hetRank, labels = st))
   
   plt <- ggplot(pltData, aes(x = xAxis, y = variance)) +
     geom_point() +
-    scale_y_continuous("Variance in epidemic onset") +
+    scale_y_continuous(ylab) +
     theme_bw() + 
     theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=10), text = element_text(size = 10))
   
-  ggsave(paste0(path_exportFig, "/scatter_variance.jpeg"), height = 4, width = 6, units = "in")
+  ggsave(paste0(path_exportFig, dbCode, "/scatter_variance_", dbCode, ".jpeg"), height = 4, width = 6, units = "in")
 }
 #################################
-boxplot_response <- function(respData){
+boxplot_response <- function(respData, plotFormats){
   # for all seasons
   print(match.call())
+
+  ylab <- plotFormats$ylabBoxplot; dbCode <- plotFormats$dbCode
 
   pltData <- respData #%>%
     # mutate(xAxis = factor(hetRank, labels = st))
@@ -64,17 +68,19 @@ boxplot_response <- function(respData){
   plt <- ggplot(pltData, aes(st, y = y1)) +
     geom_boxplot() +
     # scale_x_continuous("", labels = )
-    scale_y_continuous("Weeks to epidemic onset") +
+    scale_y_continuous(ylab) +
     theme_bw() + 
     theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=10), text = element_text(size = 10)) + 
     facet_grid(season~.)
   
-  ggsave(paste0(path_exportFig, "/boxplot_response.jpeg"), height = 8, width = 8, units = "in")
+  ggsave(paste0(path_exportFig, dbCode "/boxplot_response_", dbCode, ".jpeg"), height = 8, width = 8, units = "in")
 }
 #################################
-boxplot_response_oneSeas <- function(respData){
+boxplot_response_oneSeas <- function(respData, plotFormats){
   # for all seasons
   print(match.call())
+
+  ylab <- plotFormats$ylabBoxplot; dbCode <- plotFormats$dbCode
 
   seasons <- respData %>% distinct(season) %>% unlist
   for (s in seasons){
@@ -89,42 +95,75 @@ boxplot_response_oneSeas <- function(respData){
     plt <- ggplot(pltData, aes(xAxis, y = y1)) +
         geom_boxplot() +
         ggtitle(paste("Season", s)) +
-        scale_y_continuous("Weeks to epidemic onset") +
+        scale_y_continuous(ylab) +
         theme_bw() + 
         theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=10), text = element_text(size = 10))
 
-    ggsave(paste0(path_exportFig, "/boxplot_response_S", s, ".jpeg"), height = 4, width = 6, units = "in")
+    ggsave(paste0(path_exportFig, dbCode, "/boxplot_response_", dbCode, "_S", s, ".jpeg"), height = 4, width = 6, units = "in")
   }
   
 }
 
+#### Process data #################################
+# pool data across seasons
+process_pooledData <- function(yData){
+  return(yData %>%
+    group_by(st) %>%
+    mutate(forCount = ifelse(!is.na(y1), 1, 0)) %>%
+    summarise(variance = var(y1, na.rm = TRUE), counted = sum(forCount), totCty = length(y1)) %>%
+    arrange(desc(variance)) %>%
+    mutate(hetRank = seq_along(variance)) %>%
+    ungroup
+  )
+}
+#################################
+# group data by season and link ranks and full response data
+process_respData <- function(yData){
+  varDat_bySeas <- yData %>%
+    mutate(forCount = ifelse(!is.na(y1), 1, 0)) %>%
+    group_by(st, season) %>%
+    summarise(variance = var(y1, na.rm = TRUE), counted = sum(forCount), totCty = length(y1)) %>%
+    filter(st != "DC" & counted > 0) %>%
+    arrange(season, desc(variance)) %>%
+    group_by(season) %>%
+    mutate(hetRank = seq_along(variance)) %>%
+    ungroup
+
+  return(left_join(yData, varDat_bySeas %>% select(st, season, hetRank), by = c("season", "st")))
+}
+#################################
+
+
 #### MAIN #################################
-yDat <- cleanR_wksToEpi_cty(path_list)
+# import data
+wksToEpi <- cleanR_wksToEpi_cty(path_list)
+pltFormats_wksToEpi <- list(dbCode = "wksToEpi", ylabScatter = "Variance in epidemic onset", ylabBoxplot = "Weeks to epidemic onset")
 
-# clean data in 2 ways: pooled across seasons, or not
-varDat_pooled <- yDat %>%
-  group_by(st) %>%
-  mutate(forCount = ifelse(!is.na(y1), 1, 0)) %>%
-  summarise(variance = var(y1, na.rm = TRUE), counted = sum(forCount), totCty = length(y1)) %>%
-  arrange(desc(variance)) %>%
-  mutate(hetRank = seq_along(variance))
+wksToPeak <- cleanR_wksToPeak_cty(path_list)
+pltFormats_wksToPeak <- list(dbCode = "wksToPeak", ylabScatter = "Variance in peak timing", ylabBoxplot = "Weeks to peak")
 
-varDat_bySeas <- yDat %>%
-  mutate(forCount = ifelse(!is.na(y1), 1, 0)) %>%
-  group_by(st, season) %>%
-  summarise(variance = var(y1, na.rm = TRUE), counted = sum(forCount), totCty = length(y1)) %>%
-  filter(st != "DC" & counted > 0) %>%
-  arrange(season, desc(variance)) %>%
-  group_by(season) %>%
-  mutate(hetRank = seq_along(variance)) %>%
-  ungroup
+iliEarly <- cleanR_iliEarly_shift1_cty(path_list)
+pltFormats_iliEarly <- list(dbCode = "iliEarly", ylabScatter = "Variance in early seasonal intensity", ylabBoxplot = "Early seasonal intensity")
 
-# link ranks and full response data
-respDat <- left_join(yDat, varDat_bySeas %>% select(st, season, hetRank), by = c("season", "st"))
+iliPeak <- cleanR_iliPeak_shift1_cty(path_list)
+pltFormats_iliPeak <- list(dbCode = "iliPeak", ylabScatter = "Variance in peak seasonal intensity", ylabBoxplot = "Peak seasonal intensity")
 
-#### plot data ####
-# plot variance across states
 
-scatter_variance(varDat_pooled)
-boxplot_response(respDat)
-boxplot_response_oneSeas(respDat)
+
+#### plot variance across states ####
+# wks to epi
+scatter_variance(process_pooledData(wksToEpi), pltFormats_wksToEpi)
+boxplot_response(process_respData(wksToEpi), pltFormats_wksToEpi)
+boxplot_response_oneSeas(process_respData(wksToEpi), pltFormats_wksToEpi)
+# wks to peak
+scatter_variance(process_pooledData(wksToPeak), pltFormats_wksToPeak)
+boxplot_response(process_respData(wksToPeak), pltFormats_wksToPeak)
+boxplot_response_oneSeas(process_respData(wksToPeak), pltFormats_wksToPeak)
+# iliEarly
+scatter_variance(process_pooledData(iliEarly), pltFormats_iliEarly)
+boxplot_response(process_respData(iliEarly), pltFormats_iliEarly)
+boxplot_response_oneSeas(process_respData(iliEarly), pltFormats_iliEarly)
+# iliPeak
+scatter_variance(process_pooledData(iliPeak), pltFormats_iliPeak)
+boxplot_response(process_respData(iliPeak), pltFormats_iliPeak)
+boxplot_response_oneSeas(process_respData(iliPeak), pltFormats_iliPeak)
