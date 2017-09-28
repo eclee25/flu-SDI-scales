@@ -12,7 +12,7 @@ source("source_aggBias_data_explore_functions.R")
 
 #### set these! ###############################
 dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modules <- c("choroAvg") # "statistics", "scatterplot", "choro", "choroAvg"
+modules <- c("dataExport") # "statistics", "scatterplot", "choro", "choroAvg", "dataExport"
 
 ###############################
 ## PATHS ##
@@ -22,6 +22,7 @@ path_latlon_cty <- paste0(getwd(), "/cty_pop_latlon.csv")
 path_latlon_st <- paste0(getwd(), "/state_latlon.csv")
 path_latlon_reg <- paste0(getwd(), "/region_latlon.csv")
 path_region_cw <- paste0(getwd(), "/state_abbreviations_FIPS_region.csv")
+
 setwd("../R_export")
 path_response_cty <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_cty.csv", dbCodeStr))
 path_response_st <- paste0(getwd(), sprintf("/dbMetrics_periodicReg%s_analyzeDB_st.csv", dbCodeStr))
@@ -34,6 +35,9 @@ path_list <- list(path_abbr_st = path_abbr_st,
                   path_response_st = path_response_st,
                   path_response_reg = path_response_reg,
                   path_response_cty = path_response_cty)
+
+setwd("./test_dbVariance_aggBiasMagnitude")
+path_exportData <- getwd()
 
 ################################
 ## MAIN ##
@@ -124,8 +128,26 @@ if("choroAvg" %in% modules){
   choro_obs_aggBias_avgSeason(obs_iliEarly_ctyReg, as.list(plotFormatsDf[6,]), breaksDf$iliEarly_ctyReg)
   choro_obs_aggBias_avgSeason(obs_iliPeak_ctySt, as.list(plotFormatsDf[7,]), breaksDf$iliPeak_ctySt)
   choro_obs_aggBias_avgSeason(obs_iliPeak_ctyReg, as.list(plotFormatsDf[8,]), breaksDf$iliPeak_ctyReg)
-  # ADD FUNCTION TO WRITE AGGBIAS FROM THE DATA CALCULATED IN THESE FUNCTIONS
+
 
   # Interpretation: positive error (green) means that state model predicted a later epidemic onset than the county model
 }
 
+############################
+# export data to file
+if("dataExport" %in% modules){
+  dataFormats <- tbl_df(data.frame(
+    dbCode = c(rep("wksToEpi", 2), rep("wksToPeak", 2), rep("iliEarly", 2), rep("iliPeak", 2)), 
+    pltVar = "obs_diff_stCty")) %>%
+    mutate(exportPath = paste0(path_exportData, "/aggBias_", rep(c("st_", "cty_"), 4), dbCode, ".csv")) 
+
+  write_st_aggBias(obs_wksToEpi_ctySt, as.list(dataFormats[1,]))
+  write_cty_aggBias(obs_wksToEpi_ctySt, as.list(dataFormats[2,]))
+  write_st_aggBias(obs_wksToPeak_ctySt, as.list(dataFormats[3,]))
+  write_cty_aggBias(obs_wksToPeak_ctySt, as.list(dataFormats[4,]))
+  write_st_aggBias(obs_iliEarly_ctySt, as.list(dataFormats[5,]))
+  write_cty_aggBias(obs_iliEarly_ctySt, as.list(dataFormats[6,]))
+  write_st_aggBias(obs_iliPeak_ctySt, as.list(dataFormats[7,]))
+  write_cty_aggBias(obs_iliPeak_ctySt, as.list(dataFormats[8,]))
+
+}

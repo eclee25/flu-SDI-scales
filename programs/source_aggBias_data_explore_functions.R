@@ -108,8 +108,6 @@ scatter_obsCompare_aggBias_timingMagnitude <- function(obs_measure_aggBias, stat
 
 
 #### aggBias plotting functions ################################
-
-#################################
 choro_obs_aggBias_avgSeason <- function(importDat, pltFormats, breaks){
     print(match.call())
 
@@ -386,3 +384,33 @@ choro_aggBias_oneSeason <- function(pltDat, pltFormats){
     ggsave(exportFname, choro, height = h, width = w, dpi = dp)
 }
 ################################
+
+#### data export functions ################################
+write_st_aggBias <- function(importDat, dataFormats){
+  print(match.call())
+
+  writeData <- importDat %>%
+    rename_("obs_aggBias" = dataFormats$pltVar) %>%
+    group_by(fips_st) %>%
+    summarise(obs_aggBias = mean(obs_aggBias, na.rm = TRUE)) %>%
+    mutate(obs_aggBiasMag = abs(obs_aggBias))
+
+  print(summary(writeData))
+
+  write_csv(writeData, dataFormats$exportPath)
+}
+#################################
+write_cty_aggBias <- function(importDat, dataFormats){
+  print(match.call())
+
+  writeData <- importDat %>%
+    rename_("obs_aggBias" = dataFormats$pltVar) %>%
+    group_by(fips) %>%
+    summarise(obs_aggBias = mean(obs_aggBias, na.rm = TRUE)) %>%
+    mutate(obs_aggBiasMag = abs(obs_aggBias))
+
+  write_csv(writeData, dataFormats$exportPath)
+}
+#################################
+
+
