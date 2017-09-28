@@ -37,6 +37,9 @@ path_list <- list(path_abbr_st = path_abbr_st,
 setwd("../graph_outputs/explore_withinStateHeterogeneity/")
 path_exportFig <- getwd()
 
+setwd("../../R_export/test_dbVariance_aggBiasMagnitude/")
+path_exportData <- getwd()
+
 #### Functions #################################
 scatter_variance <- function(prepData, plotFormats){
   # filter the data for a single season if needed
@@ -53,7 +56,7 @@ scatter_variance <- function(prepData, plotFormats){
     theme_bw() + 
     theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=10), text = element_text(size = 10))
   
-  ggsave(paste0(path_exportFig, dbCode, "/scatter_variance_", dbCode, ".jpeg"), height = 4, width = 6, units = "in")
+  ggsave(paste0(path_exportFig, "/", dbCode, "/scatter_variance_", dbCode, ".jpeg"), height = 4, width = 6, units = "in")
 }
 #################################
 boxplot_response <- function(respData, plotFormats){
@@ -73,7 +76,7 @@ boxplot_response <- function(respData, plotFormats){
     theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=10), text = element_text(size = 10)) + 
     facet_grid(season~.)
   
-  ggsave(paste0(path_exportFig, dbCode "/boxplot_response_", dbCode, ".jpeg"), height = 8, width = 8, units = "in")
+  ggsave(paste0(path_exportFig, "/", dbCode, "/boxplot_response_", dbCode, ".jpeg"), height = 8, width = 8, units = "in")
 }
 #################################
 boxplot_response_oneSeas <- function(respData, plotFormats){
@@ -99,20 +102,32 @@ boxplot_response_oneSeas <- function(respData, plotFormats){
         theme_bw() + 
         theme(axis.title.x=element_blank(), axis.text.x=element_text(angle=45, vjust=1, hjust=1), axis.text=element_text(size=10), text = element_text(size = 10))
 
-    ggsave(paste0(path_exportFig, dbCode, "/boxplot_response_", dbCode, "_S", s, ".jpeg"), height = 4, width = 6, units = "in")
+    ggsave(paste0(path_exportFig, "/", dbCode, "/boxplot_response_", dbCode, "_S", s, ".jpeg"), height = 4, width = 6, units = "in")
   }
   
 }
 
 #### Process data #################################
-# pool data across seasons
+# pool data across seasons at state level
 process_pooledData <- function(yData){
   return(yData %>%
-    group_by(st) %>%
+    mutate(fips_st = substr.Right(paste0("0", stateID), 2)) %>%
+    group_by(fips_st) %>%
+    mutate(forCount = ifelse(!is.na(y1), 1, 0)) %>%
+    summarise(st = first(st), variance = var(y1, na.rm = TRUE), counted = sum(forCount), totCty = length(y1)) %>%
+    filter(st != "DC" & counted > 0) %>%
+    mutate(hetRank = data.table::frank(-variance)) %>%
+    ungroup
+  )
+}
+#################################
+# pool data across seasons at county level
+process_pooledData_cty <- function(yData){
+  return(yData %>%
+    group_by(fips) %>%
     mutate(forCount = ifelse(!is.na(y1), 1, 0)) %>%
     summarise(variance = var(y1, na.rm = TRUE), counted = sum(forCount), totCty = length(y1)) %>%
-    arrange(desc(variance)) %>%
-    mutate(hetRank = seq_along(variance)) %>%
+    mutate(hetRank = data.table::frank(-variance)) %>%
     ungroup
   )
 }
@@ -121,15 +136,22 @@ process_pooledData <- function(yData){
 process_respData <- function(yData){
   varDat_bySeas <- yData %>%
     mutate(forCount = ifelse(!is.na(y1), 1, 0)) %>%
-    group_by(st, season) %>%
-    summarise(variance = var(y1, na.rm = TRUE), counted = sum(forCount), totCty = length(y1)) %>%
+    mutate(fips_st = substr.Right(paste0("0", stateID), 2)) %>%
+    group_by(fips_st, season) %>%
+    summarise(st = first(st), variance = var(y1, na.rm = TRUE), counted = sum(forCount), totCty = length(y1)) %>%
     filter(st != "DC" & counted > 0) %>%
     arrange(season, desc(variance)) %>%
     group_by(season) %>%
-    mutate(hetRank = seq_along(variance)) %>%
+    mutate(hetRank = data.table::frank(-variance)) %>%
     ungroup
 
   return(left_join(yData, varDat_bySeas %>% select(st, season, hetRank), by = c("season", "st")))
+}
+#################################
+write_pooledData <- function(processedData, exportPath){
+  writeData <- processedData %>%
+    rename(contribCty = counted)
+  write_csv(writeData, exportPath) 
 }
 #################################
 
@@ -137,33 +159,51 @@ process_respData <- function(yData){
 #### MAIN #################################
 # import data
 wksToEpi <- cleanR_wksToEpi_cty(path_list)
+wksToEpi_pooled <- process_pooledData(wksToEpi)
+wksToEpi_pooled_cty <- process_pooledData_cty(wksToEpi)
 pltFormats_wksToEpi <- list(dbCode = "wksToEpi", ylabScatter = "Variance in epidemic onset", ylabBoxplot = "Weeks to epidemic onset")
 
 wksToPeak <- cleanR_wksToPeak_cty(path_list)
+wksToPeak_pooled <- process_pooledData(wksToPeak)
+wksToPeak_pooled_cty <- process_pooledData_cty(wksToPeak)
 pltFormats_wksToPeak <- list(dbCode = "wksToPeak", ylabScatter = "Variance in peak timing", ylabBoxplot = "Weeks to peak")
 
 iliEarly <- cleanR_iliEarly_shift1_cty(path_list)
+iliEarly_pooled <- process_pooledData(iliEarly)
+iliEarly_pooled_cty <- process_pooledData_cty(iliEarly)
 pltFormats_iliEarly <- list(dbCode = "iliEarly", ylabScatter = "Variance in early seasonal intensity", ylabBoxplot = "Early seasonal intensity")
 
 iliPeak <- cleanR_iliPeak_shift1_cty(path_list)
+iliPeak_pooled <- process_pooledData(iliPeak)
+iliPeak_pooled_cty <- process_pooledData_cty(iliPeak)
 pltFormats_iliPeak <- list(dbCode = "iliPeak", ylabScatter = "Variance in peak seasonal intensity", ylabBoxplot = "Peak seasonal intensity")
 
-
+#### write pooled data ####
+# state level
+write_pooledData(wksToEpi_pooled, paste0(path_exportData, "/dbVariance_st_wksToEpi.csv"))
+write_pooledData(wksToPeak_pooled, paste0(path_exportData, "/dbVariance_st_wksToPeak.csv"))
+write_pooledData(iliEarly_pooled, paste0(path_exportData, "/dbVariance_st_iliEarly.csv"))
+write_pooledData(iliPeak_pooled, paste0(path_exportData, "/dbVariance_st_iliPeak.csv"))
+# county level
+write_pooledData(wksToEpi_pooled_cty, paste0(path_exportData, "/dbVariance_cty_wksToEpi.csv"))
+write_pooledData(wksToPeak_pooled_cty, paste0(path_exportData, "/dbVariance_cty_wksToPeak.csv"))
+write_pooledData(iliEarly_pooled_cty, paste0(path_exportData, "/dbVariance_cty_iliEarly.csv"))
+write_pooledData(iliPeak_pooled_cty, paste0(path_exportData, "/dbVariance_cty_iliPeak.csv"))
 
 #### plot variance across states ####
 # wks to epi
-scatter_variance(process_pooledData(wksToEpi), pltFormats_wksToEpi)
+scatter_variance(wksToEpi_pooled, pltFormats_wksToEpi)
 boxplot_response(process_respData(wksToEpi), pltFormats_wksToEpi)
 boxplot_response_oneSeas(process_respData(wksToEpi), pltFormats_wksToEpi)
 # wks to peak
-scatter_variance(process_pooledData(wksToPeak), pltFormats_wksToPeak)
+scatter_variance(wksToPeak_pooled, pltFormats_wksToPeak)
 boxplot_response(process_respData(wksToPeak), pltFormats_wksToPeak)
 boxplot_response_oneSeas(process_respData(wksToPeak), pltFormats_wksToPeak)
 # iliEarly
-scatter_variance(process_pooledData(iliEarly), pltFormats_iliEarly)
+scatter_variance(iliEarly_pooled, pltFormats_iliEarly)
 boxplot_response(process_respData(iliEarly), pltFormats_iliEarly)
 boxplot_response_oneSeas(process_respData(iliEarly), pltFormats_iliEarly)
 # iliPeak
-scatter_variance(process_pooledData(iliPeak), pltFormats_iliPeak)
+scatter_variance(iliPeak_pooled, pltFormats_iliPeak)
 boxplot_response(process_respData(iliPeak), pltFormats_iliPeak)
 boxplot_response_oneSeas(process_respData(iliPeak), pltFormats_iliPeak)
