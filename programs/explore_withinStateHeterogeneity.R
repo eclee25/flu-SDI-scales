@@ -150,7 +150,8 @@ process_respData <- function(yData){
 #################################
 write_pooledData <- function(processedData, exportPath){
   writeData <- processedData %>%
-    rename(contribCty = counted)
+    rename(contribCty = counted) %>%
+    select(-st)
   write_csv(writeData, exportPath) 
 }
 #################################
