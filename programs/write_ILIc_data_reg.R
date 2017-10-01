@@ -41,6 +41,7 @@ reg_pop <- read_csv('pop_st_Census_00-10.csv', col_types = 'c_ii') %>%
   summarise(pop = sum(pop))
 
 setwd('../R_export')
+cov_df <- read_csv('physicianCoverage_IMSHealth_region.csv')
 
 #### plot formatting ################################
 w <- 8; h <- 6; dp <- 300
