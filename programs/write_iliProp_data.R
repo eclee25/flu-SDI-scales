@@ -1,8 +1,11 @@
 
 ## Name: Elizabeth Lee
 ## Date: 10/1/17
-## Function: write iliProp data: iliProp_{z, w} = ili_{z, w} / visits_{z, w}
-## iliProp = proportion of visits due to ILI
+## Function: write ilic & iliProp data: iliProp_{z, w} = ili_{z, w} / visits_{z, w}
+# ilic_{z, w} = ili_{z, w} / alpha_{z, y} / effPhysCov_{z, y}
+# iliProp = proportion of visits due to ILI
+# IR data: IR = iliProp * pop/100000
+
 ## Filenames: physician_coverage/DX_Coverage_by_Flu_Season_20150620.csv; Py_export/iliByallZip_allWeekly_totServ_totAge.csv
 ## Data Source: IMS Health ili dataset and physician coverage dataset
 ## Notes: adapted rom write_ilic_data.R
