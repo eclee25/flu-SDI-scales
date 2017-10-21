@@ -22,7 +22,6 @@ run_intercept_model <- function(fullData, formula){
     control.predictor = list(compute = TRUE),
     control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE),
     verbose = TRUE,
-    keep = TRUE,
     debug = TRUE)
 
   return(modelOut)
