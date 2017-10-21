@@ -76,6 +76,66 @@ cleanR_iliPeak_shift1_reg <- function(filepathList){
 }
 ################################
 
+cleanR_iliEarly_irDt_shift1_reg <- function(filepathList){
+    # clean response variable: irDt.early plus 1 (so it is comparable with iliSum)
+    print(match.call())
+
+    # grab disease burden metric (e.g., irDt): match "ili" 1+ times
+    dbCode <- grep("irDt+", strsplit(filepathList$path_response_reg, "_")[[1]], value=T)
+    # clean data
+    iliEarly_data <- read_csv(filepathList$path_response_reg, col_types = "icllcd") %>%
+        filter(metric == sprintf("%s.early", dbCode)) %>%
+        select(-metric) %>%
+        mutate(regionID = as.numeric(substring(region, 2, nchar(region)))) %>%
+        rename(y = burden)
+
+    print(filepathList$path_response_reg)
+    print(summary(iliEarly_data))
+    pop_data <- clean_pop_reg(filepathList)
+
+    return_data <- full_join(iliEarly_data, pop_data, by = c("season", "regionID")) %>% 
+        mutate(year = 2000 + season) %>%
+        select(regionID, lat ,lon, season, year, pop, y, has.epi) %>%
+        mutate(y1 = y+1) %>%
+        group_by(season) %>%
+        mutate(E = weighted.mean(y1, pop, na.rm=TRUE)) %>%
+        ungroup %>%
+        filter(season >= 3 & season <= 9)
+
+    return(return_data)
+}
+################################
+
+cleanR_iliPeak_irDt_shift1_reg <- function(filepathList){
+    # clean response variable: irDt.peak plus 1 (so it is comparable with iliSum)
+    print(match.call())
+
+    # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
+    dbCode <- grep("irDt+", strsplit(filepathList$path_response_reg, "_")[[1]], value=T)
+    # clean data
+    iliPeak_data <- read_csv(filepathList$path_response_reg, col_types = "icllcd") %>%
+        filter(metric == sprintf("%s.peak", dbCode)) %>%
+        select(-metric) %>%
+        mutate(regionID = as.numeric(substring(region, 2, nchar(region)))) %>%
+        rename(y = burden)
+
+    print(filepathList$path_response_reg)
+    print(summary(iliPeak_data))
+    pop_data <- clean_pop_reg(filepathList)
+
+    return_data <- full_join(iliPeak_data, pop_data, by = c("season", "regionID")) %>% 
+        mutate(year = 2000 + season) %>%
+        select(regionID, lat ,lon, season, year, pop, y, has.epi) %>%
+        mutate(y1 = y+1) %>%
+        group_by(season) %>%
+        mutate(E = weighted.mean(y1, pop, na.rm=TRUE)) %>%
+        ungroup %>%
+        filter(season >= 3 & season <= 9)
+
+    return(return_data)
+}
+################################
+
 cleanR_wksToEpi_reg <- function(filepathList){
     # clean response variable: wks.to.epi from beginning of flu period
     print(match.call())

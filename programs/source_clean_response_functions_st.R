@@ -74,6 +74,63 @@ cleanR_iliPeak_shift1_st <- function(filepathList){
 }
 ################################  
 
+cleanR_iliEarly_irDt_shift1_st <- function(filepathList){
+  # clean response variable: irDt.early
+  print(match.call())
+  
+  # grab disease burden metric (e.g., irDt): match "irDt" 1+ times
+  dbCode <- grep("irDt+", strsplit(filepathList$path_response_st, "_")[[1]], value=T)
+  # clean data
+  iliEarly_data <- read_csv(filepathList$path_response_st, col_types = "icllcd") %>%
+    filter(metric == sprintf("%s.early", dbCode)) %>%
+    select(-metric) %>%
+    rename(y = burden, abbr_st = state)
+  
+  print(filepathList$path_response_st)
+  print(summary(iliEarly_data))
+  pop_data <- clean_pop_st(filepathList) # 4/12/16 all 51 pops are there
+  
+  return_data <- full_join(iliEarly_data, pop_data, by = c("season", "abbr_st")) %>% # 4/12/16 full_join so pops don't drop
+    select(fips_st, abbr_st, state, lat, lon, season, year, pop, y, has.epi) %>% 
+    mutate(y1 = y+1) %>%
+    group_by(season) %>%
+    mutate(E = weighted.mean(y1, pop, na.rm=TRUE)) %>%
+    ungroup %>%
+    filter(season >= 3 & season <= 9)
+  
+  return(return_data)
+}
+################################
+
+cleanR_iliPeak_irDt_shift1_st <- function(filepathList){
+  # clean response variable: irDt.peak plus 1 (so it is comparable with iliSum); 9/15/17
+  print(match.call())
+  
+  # pop data: fips, county, st, season, year, pop, lat lon
+  pop_data <- clean_pop_st(filepathList)
+  
+  # 7/18/16: add incl.analysis indicator
+  # grab disease burden metric (e.g., irDt): match "irDt" 1+ times
+  dbCode <- grep("irDt+", strsplit(filepathList$path_response_st, "_")[[1]], value=T)
+  # clean burden data
+  iliPeak_data <- read_csv(filepathList$path_response_st, col_types = "icllcd") %>%
+    filter(metric == sprintf("%s.peak", dbCode)) %>%
+    select(-metric) %>%
+    rename(y = burden, abbr_st = state)
+  
+  # merge final data
+  return_data <- full_join(iliPeak_data, pop_data, by = c("season", "abbr_st")) %>%
+    select(fips_st, abbr_st, state, lat, lon, season, year, pop, y, has.epi) %>%
+    mutate(y1 = y+1)  %>% # 12/15/16 add 1 to all seasonal intensity values
+    group_by(season) %>%
+    mutate(E = weighted.mean(y1, pop, na.rm = TRUE)) %>%
+    ungroup %>%
+    filter(season >= 3 & season <= 9) # 12/12/16
+  
+  return(return_data)
+}
+################################  
+
 cleanR_wksToEpi_st <- function(filepathList){
   # clean response variable: wks.to.epi; 7/5/17
   print(match.call())
