@@ -81,7 +81,7 @@ timing_st <- run_intercept_model(timing_st_data, formula)
 
 ## State Magnitude ##
 mag_st_data <- create_response_data(obs_iliPeak_ctySt, obs_iliEarly_ctySt, st_datFormats, path_list)
-mag_st <- run_intercept_model(mag_st_data, formula_intercept)
+mag_st <- run_intercept_model(mag_st_data, formula)
 
 ## Region Timing ##
 timing_reg_data <- create_response_data(obs_wksToPeak_ctyReg, obs_wksToEpi_ctyReg, reg_datFormats, path_list)
