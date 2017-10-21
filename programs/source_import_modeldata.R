@@ -116,10 +116,13 @@ import_obs_wksToEpi <- function(filepathList){
   # import observed for weeks to epidemic onset at county level
    
   # import observed and expected wks to epi
-  obsDat <- cleanR_wksToEpi_cty(filepathList) %>%
+  inDat <- cleanR_wksToEpi_cty(filepathList) %>%
         mutate(obs_y = y1, E = E) %>%
         select(season, fips, obs_y, E)
-   
+  # add lat/lon coords
+  coordDat <- read_csv(filepathList$path_latlon_cty, col_types = "_c__dd")
+  obsDat <- left_join(inDat, coordDat, by = c("fips"))
+
   return(obsDat)
 }
 ################################
@@ -144,7 +147,7 @@ import_obs_wksToEpi_ctySt <- function(offset_l, filepathList){
     ctyDat <- import_obs_wksToEpi(filepathList) %>%
       rename(obs_y_cty = obs_y) %>%
       mutate(obs_rr_cty = obs_y_cty/E) %>%
-      select(season, fips, obs_rr_cty, obs_y_cty) %>%
+      select(season, fips, latitude, longitude, obs_rr_cty, obs_y_cty) %>%
       mutate(fips_st = substring(fips, 1, 2))
   
     stDat <- import_obs_wksToEpi_st(modCodeStr_st, filepathList) %>%
@@ -154,12 +157,12 @@ import_obs_wksToEpi_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_rr_st-obs_rr_cty) %>%
-      select(season, fips, fips_st, obs_rr_cty, obs_rr_st, obs_diff_stCty)
+      select(season, fips, fips_st, latitude, longitude, obs_rr_cty, obs_rr_st, obs_diff_stCty)
 
   } else{ # data without offset adjustment
     ctyDat <- import_obs_wksToEpi(filepathList) %>%
       rename(obs_y_cty = obs_y) %>%
-      select(season, fips, obs_y_cty) %>%
+      select(season, fips, latitude, longitude, obs_y_cty) %>%
       mutate(fips_st = substring(fips, 1, 2))
   
     stDat <- import_obs_wksToEpi_st(filepathList) %>%
@@ -168,8 +171,7 @@ import_obs_wksToEpi_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_y_st-obs_y_cty) %>%
-      select(season, fips, fips_st, obs_y_cty, obs_y_st, obs_diff_stCty)
-
+      select(season, fips, fips_st, latitude, longitude,  obs_y_cty, obs_y_st, obs_diff_stCty)
   }
   
   return(fullObsDat) 
@@ -208,7 +210,7 @@ import_obs_wksToEpi_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_rr_reg-obs_rr_cty) %>%
-          select(season, fips, fips_st, regionID, obs_rr_cty, obs_rr_reg, obs_diff_regCty)
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_rr_cty, obs_rr_reg, obs_diff_regCty)
     
     } else{ # data without offset adjustment
         ctyDat <- import_obs_wksToEpi(filepathList) %>%
@@ -223,8 +225,7 @@ import_obs_wksToEpi_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_y_reg-obs_y_cty) %>%
-          select(season, fips, fips_st, regionID, obs_y_cty, obs_y_reg, obs_diff_regCty)
-
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty)
     }
     
     return(fullObsDat)
@@ -236,9 +237,12 @@ import_obs_wksToPeak <- function(filepathList){
   # acts as a wrapper for cleanR_wksToPeak_cty
   
   # import observed and expected wks to epi
-  obsDat <- cleanR_wksToPeak_cty(filepathList) %>%
+  inDat <- cleanR_wksToPeak_cty(filepathList) %>%
         mutate(obs_y = y1, E = E) %>%
         select(season, fips, obs_y, E)
+  # add lat/lon coords
+  coordDat <- read_csv(filepathList$path_latlon_cty, col_types = "_c__dd")
+  obsDat <- left_join(inDat, coordDat, by = c("fips"))
   
   return(obsDat)
 }
@@ -265,7 +269,7 @@ import_obs_wksToPeak_ctySt <- function(offset_l, filepathList){
     ctyDat <- import_obs_wksToPeak(filepathList) %>%
       rename(obs_y_cty = obs_y) %>%
       mutate(obs_rr_cty = obs_y_cty/E) %>%
-      select(season, fips, obs_rr_cty, obs_y_cty) %>%
+      select(season, fips, latitude, longitude, obs_rr_cty, obs_y_cty) %>%
       mutate(fips_st = substring(fips, 1, 2))
   
     stDat <- import_obs_wksToPeak_st(modCodeStr_st, filepathList) %>%
@@ -275,12 +279,12 @@ import_obs_wksToPeak_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_rr_st-obs_rr_cty)
-      select(season, fips, fips_st, obs_rr_cty, obs_rr_st, obs_diff_stCty)
+      select(season, fips, fips_st, latitude, longitude, obs_rr_cty, obs_rr_st, obs_diff_stCty)
 
   } else{ # data without offset adjustment
     ctyDat <- import_obs_wksToPeak(filepathList) %>%
       rename(obs_y_cty = obs_y) %>%
-      select(season, fips, obs_y_cty) %>%
+      select(season, fips, latitude, longitude,  obs_y_cty) %>%
       mutate(fips_st = substring(fips, 1, 2))
   
     stDat <- import_obs_wksToPeak_st(filepathList) %>%
@@ -289,8 +293,7 @@ import_obs_wksToPeak_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_y_st-obs_y_cty) %>%
-      select(season, fips, fips_st, obs_y_cty, obs_y_st, obs_diff_stCty)
-
+      select(season, fips, fips_st, latitude, longitude, obs_y_cty, obs_y_st, obs_diff_stCty)
   }
   
   return(fullObsDat) 
@@ -329,7 +332,7 @@ import_obs_wksToPeak_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_rr_reg-obs_rr_cty) %>%
-          select(season, fips, fips_st, regionID, obs_rr_cty, obs_rr_reg, obs_diff_regCty)
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_rr_cty, obs_rr_reg, obs_diff_regCty)
     
     } else{ # data without offset adjustment
         ctyDat <- import_obs_wksToPeak(filepathList) %>%
@@ -344,8 +347,7 @@ import_obs_wksToPeak_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_y_reg-obs_y_cty) %>%
-          select(season, fips, fips_st, regionID, obs_y_cty, obs_y_reg, obs_diff_regCty)
-
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty)
     }
     
     return(fullObsDat)
@@ -354,12 +356,15 @@ import_obs_wksToPeak_ctyReg <- function(offset_l, filepathList){
 import_obs_iliEarly <- function(filepathList){
   print(match.call())
   # import observed data for ili in early flu season at county level
-  # acts as a wrapper for cleanR_iliEarly_shift1_cty
+  # acts as a wrapper for cleanR_iliEarly_irDt_shift1_cty
   
   # import observed and expected ili in early flu season
-  obsDat <- cleanR_iliEarly_shift1_cty(filepathList) %>%
+  inDat <- cleanR_iliEarly_irDt_shift1_cty(filepathList) %>%
         mutate(obs_y = y1, E = E) %>%
         select(season, fips, obs_y, E)
+  # add lat/lon coords
+  coordDat <- read_csv(filepathList$path_latlon_cty, col_types = "_c__dd")
+  obsDat <- left_join(inDat, coordDat, by = c("fips"))
   
   return(obsDat)
 }
@@ -367,10 +372,10 @@ import_obs_iliEarly <- function(filepathList){
 import_obs_iliEarly_st <- function(filepathList){
   print(match.call())
   # import observed data for ili in early flu season at state level
-  # acts as a wrapper for cleanR_iliEarly_shift1_st
+  # acts as a wrapper for cleanR_iliEarly_irDt_shift1_st
   
   # import observed and expected ili peak
-  obsDat <- cleanR_iliEarly_shift1_st(filepathList) %>%
+  obsDat <- cleanR_iliEarly_irDt_shift1_st(filepathList) %>%
     mutate(obs_y = y1, E = E) %>%
     select(season, fips_st, obs_y, E)
   
@@ -386,7 +391,7 @@ import_obs_iliEarly_ctySt <- function(offset_l, filepathList){
     ctyDat <- import_obs_iliEarly(filepathList) %>%
       rename(obs_y_cty = obs_y) %>%
       mutate(obs_rr_cty = obs_y_cty/E) %>%
-      select(season, fips, obs_rr_cty, obs_y_cty) %>%
+      select(season, fips, latitude, longitude, obs_rr_cty, obs_y_cty) %>%
       mutate(fips_st = substring(fips, 1, 2))
   
     stDat <- import_obs_iliEarly_st(filepathList) %>%
@@ -401,7 +406,7 @@ import_obs_iliEarly_ctySt <- function(offset_l, filepathList){
   } else{ # data without offset adjustment
     ctyDat <- import_obs_iliEarly(filepathList) %>%
       rename(obs_y_cty = obs_y) %>%
-      select(season, fips, obs_y_cty) %>%
+      select(season, fips, latitude, longitude, obs_y_cty) %>%
       mutate(fips_st = substring(fips, 1, 2))
   
     stDat <- import_obs_iliEarly_st(filepathList) %>%
@@ -410,7 +415,7 @@ import_obs_iliEarly_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_y_st-obs_y_cty) %>%
-      select(season, fips, fips_st, obs_y_cty, obs_y_st, obs_diff_stCty)
+      select(season, fips, fips_st, latitude, longitude, obs_y_cty, obs_y_st, obs_diff_stCty)
 
   }
   
@@ -423,7 +428,7 @@ import_obs_iliEarly_reg <- function(filepathList){
     # acts as a wrapper for cleanR_iliEarly_shift1_reg
 
     # import observed and expected ili in early season
-    obsDat <- cleanR_iliEarly_shift1_reg(filepathList) %>%
+    obsDat <- cleanR_iliEarly_irDt_shift1_reg(filepathList) %>%
         mutate(obs_y = y1, E = E) %>%
         select(season, regionID, obs_y, E)
     
@@ -465,7 +470,7 @@ import_obs_iliEarly_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_y_reg-obs_y_cty) %>%
-          select(season, fips, fips_st, regionID, obs_y_cty, obs_y_reg, obs_diff_regCty)
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty)
 
     }
     
@@ -475,12 +480,15 @@ import_obs_iliEarly_ctyReg <- function(offset_l, filepathList){
 import_obs_iliPeak <- function(filepathList){
   print(match.call())
   # import observed data for peak ili at county level
-  # acts as a wrapper for cleanR_iliPeak_shift1_cty
+  # acts as a wrapper for cleanR_iliPeak_irDt_shift1_cty
   
   # import observed and expected ili in early flu season
-  obsDat <- cleanR_iliPeak_shift1_cty(filepathList) %>%
+  inDat <- cleanR_iliPeak_irDt_shift1_cty(filepathList) %>%
         mutate(obs_y = y1, E = E) %>%
         select(season, fips, obs_y, E)
+  # add lat/lon coords
+  coordDat <- read_csv(filepathList$path_latlon_cty, col_types = "_c__dd")
+  obsDat <- left_join(inDat, coordDat, by = c("fips"))
   
   return(obsDat)
 }
@@ -488,10 +496,10 @@ import_obs_iliPeak <- function(filepathList){
 import_obs_iliPeak_st <- function(filepathList){
   print(match.call())
   # import observed data for ili peak at state level
-  # acts as a wrapper for cleanR_iliPeak_shift1_st
+  # acts as a wrapper for cleanR_iliPeak_irDt_shift1_st
   
   # import observed and expected ili peak
-  obsDat <- cleanR_iliPeak_shift1_st(filepathList) %>%
+  obsDat <- cleanR_iliPeak_irDt_shift1_st(filepathList) %>%
     mutate(obs_y = y1, E = E) %>%
     select(season, fips_st, obs_y, E)
   
@@ -504,10 +512,10 @@ import_obs_iliPeak_ctySt <- function(offset_l, filepathList){
 
   # import county and state data for models with offset
   if (offset_l){
-    ctyDat <- import_obs_iliPeak( filepathList) %>%
+    ctyDat <- import_obs_iliPeak(filepathList) %>%
       rename(obs_y_cty = obs_y) %>%
       mutate(obs_rr_cty = obs_y_cty/E) %>%
-      select(season, fips, obs_rr_cty, obs_y_cty) %>%
+      select(season, fips, latitude, longitude, obs_rr_cty, obs_y_cty) %>%
       mutate(fips_st = substring(fips, 1, 2))
   
     stDat <- import_obs_iliPeak_st(filepathList) %>%
@@ -517,11 +525,11 @@ import_obs_iliPeak_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_rr_st-obs_rr_cty) %>%
-      select(season, fips, fips_st, obs_rr_cty, obs_rr_st, obs_diff_stCty)
+      select(season, fips, fips_st, latitude, longitude, obs_rr_cty, obs_rr_st, obs_diff_stCty)
 
   } else{ # data without offset adjustment
     ctyDat <- import_obs_iliPeak(filepathList) %>%
-      select(season, fips, obs_y) %>%
+      select(season, fips, latitude, longitude,obs_y) %>%
       rename(obs_y_cty = obs_y) %>%
       mutate(fips_st = substring(fips, 1, 2))
   
@@ -531,7 +539,7 @@ import_obs_iliPeak_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_y_st-obs_y_cty) %>%
-      select(season, fips, fips_st, obs_y_cty, obs_y_st, obs_diff_stCty)
+      select(season, fips, fips_st, latitude, longitude, obs_y_cty, obs_y_st, obs_diff_stCty)
 
   }
   
@@ -544,7 +552,7 @@ import_obs_iliPeak_reg <- function(filepathList){
     # acts as a wrapper for cleanR_iliPeak_shift1_reg
 
     # import observed and expected peak ili
-    obsDat <- cleanR_iliPeak_shift1_reg(filepathList) %>%
+    obsDat <- cleanR_iliPeak_irDt_shift1_reg(filepathList) %>%
         mutate(obs_y = y1, E = E) %>%
         select(season, regionID, obs_y, E)
     
@@ -571,7 +579,7 @@ import_obs_iliPeak_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_rr_reg-obs_rr_cty) %>%
-          select(season, fips, fips_st, regionID, obs_rr_cty, obs_rr_reg, obs_diff_regCty)
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_rr_cty, obs_rr_reg, obs_diff_regCty)
     
     } else{ # data without offset adjustment
         ctyDat <- import_obs_iliPeak(filepathList) %>%
@@ -586,11 +594,20 @@ import_obs_iliPeak_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_y_reg-obs_y_cty) %>%
-          select(season, fips, fips_st, regionID, obs_y_cty, obs_y_reg, obs_diff_regCty)
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty)
 
     }
     
     return(fullObsDat)
+}
+################################
+
+#### data processing ################################
+merge_obs_ctyStReg <- function(ctyStDat, ctyRegDat){
+  print(match.call())
+
+  fullDat <- full_join(ctyStDat, ctyRegDat %>% select(-fips_st, -contains("_cty")), by = c("season", "fips"))
+  return(fullDat)
 }
 ################################
 
