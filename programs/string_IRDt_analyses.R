@@ -19,9 +19,9 @@ source("explore_loess_fits_IR.R")
 source("write_periodicReg_fits_irDt_Octfit.R")
 source("write_fullIndic_periodicReg_irDt.R")
 source("explore_periodicReg_fits_irDt.R")
-# source("write_relativeDiseaseBurden_irDt.R")
-# source("explore_dbMetricsDistribution_irDt.R")
-# source("explore_periodicReg_inSeasonFits_irDt.R")
+source("write_relativeDiseaseBurden_irDt.R")
+source("explore_dbMetricsDistribution_irDt.R")
+source("explore_periodicReg_inSeasonFits_irDt.R")
 
 # zip to county conversion functions
 source("source_clean_response_functions_cty.R")
@@ -30,8 +30,35 @@ source("source_clean_response_functions_cty.R")
 # determines the lower threshold for consecutive weeks above the epidemic threshold
 # source("explore_fluSeasonDefinition_ilinDt.R") 
 
+#### custom functions ####################################
+scaleRename <- function(sp.scale, dataset){
+  if (sp.scale == 'zip3'){
+    dataset2 <- dataset %>% rename(zip3 = scale)
+  } else if (sp.scale == 'state'){
+    dataset2 <- dataset %>% rename(state = scale)
+  } else if (sp.scale == 'county'){
+    dataset2 <- dataset %>% rename(fips = scale)
+  } else if (sp.scale == 'region'){
+    dataset2 <- dataset %>% rename(region = scale)
+  } else if (sp.scale == 'national'){
+    dataset2 <- dataset %>% rename(national = scale)
+  }
+  return(dataset2)
+}
+###################
+# return maximum number of consecutive T values in x
+rle.func <- function(x){
+  rle.results = rle(x)
+  return(max(0, rle.results$lengths[which(rle.results$values)]))
+}
+###################
+substr.Right <- function(x, numchar){
+  return(substr(x, nchar(x)-(numchar-1), nchar(x)))
+}
+
+
 #### set these! ####################################
-spatial.scale <- "national"
+spatial.scale <- "county"
 agegroups <- "_totAge" # _totAge, _child, _adult
 span.list <- seq(0.4, 0.42, by=0.1)
 deg <- 2
@@ -74,8 +101,8 @@ for (span in span.list){
   do.call(write_periodicReg_fits_irDt_Octfit, c(params))
   do.call(write_fullIndic_periodicReg_irDt, c(params))
   do.call(explore_periodicReg_fits_irDt, c(params))
-  # do.call(write_relativeDiseaseBurden_irDt, c(params))
-  # do.call(explore_dbMetricsDistribution_ilinDt, c(params))
-  # do.call(explore_periodicReg_inSeasonFits_ilinDt, c(params))
+  do.call(write_relativeDiseaseBurden_irDt, c(params))
+  do.call(explore_dbMetricsDistribution_irDt, c(params))
+  do.call(explore_periodicReg_inSeasonFits_irDt, c(params))
 }
 

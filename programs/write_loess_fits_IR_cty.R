@@ -26,10 +26,10 @@ write_loess_fits_IR <- function(span.var, degree.var, spatial){
   source("source_clean_response_functions_cty.R")
   
   #### set these! ################################
-#     # uncomment when running script separately
-#     spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = "_totAge", ageToggle = "") 
-#     span.var <- 0.4 # 0.4, 0.6
-#     degree.var <- 2
+  # # uncomment when running script separately
+  # spatial <- list(scale = "county", stringcode = "County", stringabbr = "_cty", serv = "_totServ", servToggle = "", age = "_totAge", ageToggle = "") 
+  # span.var <- 0.4 # 0.4, 0.6
+  # degree.var <- 2
   code.str <- sprintf('_span%s_degree%s', span.var, degree.var)
   
   #### import data ####################################
@@ -41,24 +41,26 @@ write_loess_fits_IR <- function(span.var, degree.var, spatial){
   
   # import zip3 data
   zipILI_df <- read_csv(sprintf('ilicPropByallZip3_allWeekly%s%s.csv', spatial$serv, spatial$age), col_types = list(zip3 = col_character(), ili = col_double(), viz = col_double(), iliProp = col_double(), pop = col_double(), cov_z.y = col_double(), alpha_z.y = col_double(), cov_below5 = col_logical())) %>%
-    select(week, Thu.week, year, month, flu.week, t, fit.week, zip3, ili, viz, iliProp, pop) 
+    select(week, Thu.week, year, month, flu.week, t, fit.week, zip3, ili, viz, iliProp, pop) %>%
+    mutate(vizn = viz/pop) %>%
+    mutate(ilin = ili/pop) 
   
   #### data cleaning ####################################
   # use population-weighted proportions to convert zip3 ILIn data to county
   ctyILI_df <- left_join(zipILI_df, cw, by = "zip3") %>%
     group_by(fips, Thu.week) %>% 
-    summarise(week = first(week), year = first(year), month = first(month), flu.week = first(flu.week), t = first(t), fit.week = first(fit.week), ili = weighted.mean(ili, proportion, na.rm = TRUE), viz = weighted.mean(viz, proportion, na.rm = TRUE), iliProp = weighted.mean(iliProp, proportion, na.rm = TRUE)) %>%
+    summarise(week = first(week), year = first(year), month = first(month), flu.week = first(flu.week), t = first(t), fit.week = first(fit.week), iliProp = weighted.mean(iliProp, proportion, na.rm = TRUE), vizn = weighted.mean(vizn, proportion, na.rm = TRUE), ilin = weighted.mean(ilin, proportion, na.rm = TRUE)) %>% # 10/20/17: weighted mean for ili and viz to cty scale is incorrect, so rm
     ungroup
   
   # merge with county pop data, re-create incl.lm (pop != NA)
   ilic_df2 <- left_join(ctyILI_df, pop_data, by = c("fips", "year")) %>%
-    select(week, Thu.week, year, month, flu.week, t, fit.week, fips, iliProp, pop, ili, viz) %>%
-    mutate(IR = iliProp*pop/100000) %>%
+    select(week, Thu.week, year, month, flu.week, t, fit.week, fips, iliProp, pop, vizn, ilin) %>%
+    mutate(IR = iliProp*100) %>%
     mutate(incl.lm = ifelse(is.na(pop) | is.na(iliProp), FALSE, TRUE)) %>%
     rename(scale = fips) %>%
-    filter(!is.na(scale)) #%>% # it appears that there are 496 scale NAs that are generated
-#     mutate(ili = ifelse(ili < 1, 0, ili)) %>% # 8/17/16 `dataprocessing_backcalculateILI_ili1'
-#     mutate(ILIn = ili/pop*100000)
+    mutate(viz = vizn * pop) %>%
+    mutate(ili = ilin * pop) %>%
+    filter(!is.na(scale)) 
   
 #   # 8/17/16 `dataprocessing_backcalculateILI_ili1'
 #   # change incl.lm to FALSE for counties with more than 300 weeks where ili=0

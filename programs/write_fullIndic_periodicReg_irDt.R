@@ -80,7 +80,7 @@ write_fullIndic_periodicReg_irDt <- function(span.var, degree.var, spatial){
       rename(scale = state)
     num.weeks <- 2 # see explore_fluSeasonDefinition_ilinDt.R
   } else if (spatial$scale == 'county'){
-    data <- read_csv(file=sprintf('periodicReg_%sall%sMods_irDt%s%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, spatial$ageToggle, code.str), col_types=list(fips = col_character(), ili = col_double(), viz = col_double(), pop = col_double(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ir.dt = col_double(), iliProp = col_double())) %>%
+    data <- read_csv(file=sprintf('periodicReg_%sall%sMods_irDt%s%s%s%s.csv', code, spatial$stringcode, code2, spatial$servToggle, spatial$ageToggle, code.str), col_types=list(fips = col_character(), pop = col_double(), .fitted = col_double(), .se.fit = col_double(), .fittedLoess = col_double(), .se.fitLoess = col_double(), ir.dt = col_double(), iliProp = col_double())) %>%
       rename(scale = fips)
     num.weeks <- 2 # 8/19/16 reduced because incl.analysis excludes counties that are too noisy anyways # see explore_fluSeasonDefinition_ilinDt.R
   } else if (spatial$scale == 'region'){

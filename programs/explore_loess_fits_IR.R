@@ -36,7 +36,7 @@ explore_loess_fits_IR <- function(span.var, degree.var, spatial){
     data <- read_csv(file=sprintf('loess%s_all%sMods_IR.csv', code.str, spatial$stringcode), col_types=list(state = col_character(), ili = col_integer(), pop = col_integer(), viz = col_double(), .fitted = col_double(), .se.fit = col_double(), ir.dt = col_double(), IR = col_double())) %>%
       rename(scale = state)
   } else if (spatial$scale == 'county'){
-    data <- read_csv(file=sprintf('loess%s_all%sMods_IR%s%s.csv', code.str, spatial$stringcode, spatial$servToggle, spatial$ageToggle), col_types=list(fips = col_character(), ili = col_double(), pop = col_integer(), viz = col_double(), .fitted = col_double(), .se.fit = col_double(), ir.dt = col_double(), IR = col_double())) %>%
+    data <- read_csv(file=sprintf('loess%s_all%sMods_IR%s%s.csv', code.str, spatial$stringcode, spatial$servToggle, spatial$ageToggle), col_types=list(fips = col_character(), pop = col_integer(), .fitted = col_double(), .se.fit = col_double(), ir.dt = col_double(), IR = col_double())) %>%
       rename(scale = fips)
   } else if (spatial$scale == 'region'){
     data <- read_csv(file=sprintf('loess%s_all%sMods_IR%s%s.csv', code.str, spatial$stringcode, spatial$servToggle, spatial$ageToggle), col_types=list(region = col_character(), ili = col_double(), pop = col_integer(), viz = col_double(), .fitted = col_double(), .se.fit = col_double(), ir.dt = col_double(), IR = col_double())) %>%

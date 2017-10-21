@@ -32,10 +32,7 @@ write_loess_fits_IR <- function(span.var, degree.var, spatial){
   
   #### import data ####################################
   setwd('../R_export')
-  if (spatial$scale == 'zip3'){
-    ilic_df <- read_csv(sprintf('ilicPropByall%s_allWeekly%s_totAge.csv', spatial$stringcode, spatial$serv), col_types = list(zip3 = col_character(), ili = col_double(), viz = col_double(), iliProp = col_double(), pop = col_double(), cov_z.y = col_double(), alpha_z.y = col_double(), IR = col_double(), cov_below5 = col_logical())) %>%
-      rename(scale = zip3)
-  } else if (spatial$scale == 'state'){
+  if (spatial$scale == 'state'){
     ilic_df <- read_csv(sprintf('ilicPropByall%s_allWeekly_totServ_totAge.csv', spatial$stringcode), col_types = list(state = col_character(), ili = col_double(), viz = col_double(), iliProp = col_double(), pop = col_double(), cov_z.y = col_double(), alpha_z.y = col_double(), IR = col_double(), cov_below5 = col_logical())) %>%
       rename(scale = state)
   } else if (spatial$scale == 'region'){
