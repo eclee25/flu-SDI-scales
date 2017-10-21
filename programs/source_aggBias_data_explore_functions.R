@@ -8,6 +8,7 @@
 
 require(tidyverse)
 require(lazyeval)
+require(ncf)
 setwd(dirname(sys.frame(1)$ofile))
 source("source_import_modeldata.R")
 
@@ -63,6 +64,52 @@ pairedTest_aggBias_timingMagnitude <- function(obs_early, obs_peak){
 
 }
 ################################
+lisa_aggBias_timingMagnitude <- function(obsData){
+  print(match.call())
+  # examine local indicators of spatial autocorrelation for aggregation bias for wksToEpi, wksToPeak, iliEarly, and iliPeak measures, works for both ctySt and ctyReg levels
+  
+
+  # lisa()
+
+  fullDat <- full_join(dat1, dat2, by = c("season", "fips")) %>%
+    mutate(aggBiasDiff = peakBias - earlyBias) %>%
+    mutate(abs_peakBias = abs(peakBias), abs_earlyBias = abs(earlyBias)) %>%
+    mutate(absAggBiasDiff = abs_peakBias - abs_earlyBias)
+  fullDat2 <- fullDat %>%
+    gather(measure, value, earlyBias:absAggBiasDiff)
+
+  # check that the difference between the measures follows a normal distribution, thus making it appropriate for a paired T-test 
+  histPlot <- hist(fullDat$aggBiasDiff, bins = 100)
+  absHistPlot <- hist(fullDat$absAggBiasDiff, bins = 100)
+
+
+  # plot overlapping histogram for the two distributions
+  dbPlot <- ggplot(fullDat2 %>%
+    filter(measure %in% c("earlyBias", "peakBias")), aes(x = value)) +
+    geom_freqpoly(aes(y = ..density.., colour = measure), bins = 50, na.rm=TRUE) +
+    theme_bw() +
+    theme(legend.position = "bottom")
+  print(dbPlot)
+
+  absDbPlot <- ggplot(fullDat2 %>%
+    filter(measure %in% c("abs_earlyBias", "abs_peakBias")), aes(x = value)) +
+    geom_freqpoly(aes(y = ..density.., colour = measure), bins = 50, na.rm=TRUE) +
+    theme_bw() +
+    theme(legend.position = "bottom")
+  print(absDbPlot)
+
+  # perform paired t-test
+  ttest <- t.test(fullDat$earlyBias, fullDat$peakBias, paired = TRUE)
+  print(ttest)
+
+  absTtest <- t.test(fullDat$abs_earlyBias, fullDat$abs_peakBias, paired = TRUE)
+  print(absTtest)
+
+  return(list(histPlot=histPlot, absHistPlot=absHistPlot, dbPlot=dbPlot, absDbPlot=absDbPlot, ttest=ttest, absTtest=absTtest))
+
+}
+################################
+
 
 
 #### scatter plotting functions ################################
@@ -119,9 +166,10 @@ choro_obs_aggBias_avgSeason <- function(importDat, pltFormats, breaks){
       group_by(fips) %>%
       summarise(obs_aggBias = mean(obs_aggBias, na.rm = TRUE))
 
-    # # check breaks for aggBias
-    # print(hist(prepDat$obs_aggBias))
-    # print(summary(prepDat))
+    # check breaks for aggBias
+    print(paste(dbCode, scaleDiff, "----------"))
+    print(hist(prepDat$obs_aggBias))
+    print(summary(prepDat))
 
     # breaks have 8 values
     pltFormats$breaks <- breaks
@@ -137,7 +185,100 @@ choro_obs_aggBias_avgSeason <- function(importDat, pltFormats, breaks){
     choro_aggBias_oneSeason(pltDat, pltFormats)
 
 }
+################################
+choro_obs_aggBias_oneSeason_wrapper <- function(importDat, pltFormats, breaks, manualPalette){
+    print(match.call())
+
+    # set up plot formatting
+    dbCode <- pltFormats$dbCode; scaleDiff <- pltFormats$scaleDiff
+    pltFormats$breaks <- breaks
+    pltFormats$manualPalette <- manualPalette
+
+    # rename variables
+    prepDat <- importDat %>%
+        rename_("obs_aggBias" = pltFormats$pltVar) 
+
+    # # check breaks for aggBias
+    # print(hist(prepDat$obs_aggBias))
+    # print(summary(prepDat))
+   
+    plotDat <- prepDat %>%
+    mutate(obs_diff = cut(obs_aggBias, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) 
+    factorlvls <- levels(plotDat$obs_aggBias)
+
+    seasLs <- plotDat %>% distinct(season) %>% unlist
+    for (s in seasLs){
+
+        pltFormats$exportFname <- paste0(string_exportFig_aggBias_data_folder(), dbCode, "/choro_obs_aggBias_", scaleDiff, "_", dbCode, "_S", s, ".png")
+        pltDat <- plotDat %>% filter(season == s)
+
+        choro_aggBias_oneSeason(pltDat, pltFormats)
+    }
+}
+
 #################################
+
+
+#### internal plotting functions ################################
+choro_aggBias_oneSeason <- function(pltDat, pltFormats){
+    print(match.call())
+
+    # assign plot formats
+    manualPalette <- pltFormats$manualPalette
+    exportFname <- pltFormats$exportFname
+    h <- pltFormats$h; w <- pltFormats$w; dp <- 300
+
+    # import county mapping info
+    ctyMap <- import_county_geomMap()
+    
+    # plot
+    choro <- ggplot() +
+      geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
+      geom_map(data = pltDat, map = ctyMap, aes(fill = obs_diff, map_id = fips), color = "grey25", size = 0.025) +
+      scale_fill_manual(name = "Error", values = manualPalette, na.value = "grey60", drop = FALSE) +
+      expand_limits(x = ctyMap$long, y = ctyMap$lat) +
+      theme_minimal() +
+      theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
+    
+    ggsave(exportFname, choro, height = h, width = w, dpi = dp)
+}
+################################
+
+#### data export functions ################################
+write_st_aggBias_mean <- function(importDat, dataFormats){
+  # mean data aggregation bias for states
+  print(match.call())
+
+  writeData <- importDat %>%
+    rename_("obs_aggBias" = dataFormats$pltVar) %>%
+    group_by(fips_st) %>%
+    summarise(obs_aggBias = mean(obs_aggBias, na.rm = TRUE)) %>%
+    mutate(obs_aggBiasMag = abs(obs_aggBias))
+
+  print(summary(writeData))
+
+  write_csv(writeData, dataFormats$exportPath)
+}
+#################################
+write_cty_aggBias_mean <- function(importDat, dataFormats){
+  # mean data aggregation bias for counties
+  print(match.call())
+
+  writeData <- importDat %>%
+    rename_("obs_aggBias" = dataFormats$pltVar) %>%
+    group_by(fips) %>%
+    summarise(obs_aggBias = mean(obs_aggBias, na.rm = TRUE)) %>%
+    mutate(obs_aggBiasMag = abs(obs_aggBias))
+
+  print(summary(writeData))
+
+  write_csv(writeData, dataFormats$exportPath)
+}
+#################################
+
+
+#### OBSOLETE? ################################
+################################
 choro_obs_aggBias_stCty_wksToEpi_oneSeason <- function(obs_wksToEpi_ctySt, pltFormats){
     print(match.call())
 
@@ -359,58 +500,3 @@ choro_obs_aggBias_regCty_iliPeak_oneSeason <- function(obs_iliPeak_ctyReg, pltFo
     }
 }
 ################################
-
-#### internal plotting functions ################################
-choro_aggBias_oneSeason <- function(pltDat, pltFormats){
-    print(match.call())
-
-    # assign plot formats
-    manualPalette <- pltFormats$manualPalette
-    exportFname <- pltFormats$exportFname
-    h <- pltFormats$h; w <- pltFormats$w; dp <- 300
-
-    # import county mapping info
-    ctyMap <- import_county_geomMap()
-    
-    # plot
-    choro <- ggplot() +
-      geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
-      geom_map(data = pltDat, map = ctyMap, aes(fill = obs_diff, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_manual(name = "Error", values = manualPalette, na.value = "grey60", drop = FALSE) +
-      expand_limits(x = ctyMap$long, y = ctyMap$lat) +
-      theme_minimal() +
-      theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
-    
-    ggsave(exportFname, choro, height = h, width = w, dpi = dp)
-}
-################################
-
-#### data export functions ################################
-write_st_aggBias <- function(importDat, dataFormats){
-  print(match.call())
-
-  writeData <- importDat %>%
-    rename_("obs_aggBias" = dataFormats$pltVar) %>%
-    group_by(fips_st) %>%
-    summarise(obs_aggBias = mean(obs_aggBias, na.rm = TRUE)) %>%
-    mutate(obs_aggBiasMag = abs(obs_aggBias))
-
-  print(summary(writeData))
-
-  write_csv(writeData, dataFormats$exportPath)
-}
-#################################
-write_cty_aggBias <- function(importDat, dataFormats){
-  print(match.call())
-
-  writeData <- importDat %>%
-    rename_("obs_aggBias" = dataFormats$pltVar) %>%
-    group_by(fips) %>%
-    summarise(obs_aggBias = mean(obs_aggBias, na.rm = TRUE)) %>%
-    mutate(obs_aggBiasMag = abs(obs_aggBias))
-
-  write_csv(writeData, dataFormats$exportPath)
-}
-#################################
-
-
