@@ -2,7 +2,7 @@
 ## Name: Elizabeth Lee
 ## Date: 9/8/17
 ## Function: write ilic data at region level: ilic_{z, w} = ili_{z, w} / alpha_{z, y} / effPhysCov_{z, y}
-# IR data: IR = iliProp * pop/100000
+# IR data: IR = iliProp * 100000/pop
 ## iliProp = proportion of visits due to ILI
 ## ilic --> number of ili cases in state s in week w, correcting for constant care-seeking rates across states and scaling up for physician coverage; scaling up assumes that the ili/physician ratio is the same for the reported and unreported cases
 ## alpha_{z, y} = (viz_{z, y}/numPhys_{z, y}) / (\bar{viz_y}/\bar{phys_y}) --> correction for general care-seeking behavior
@@ -86,7 +86,8 @@ merge_gather_df <- full_join(ili_gather_df, viz_gather_df, by = c("Thu.week", "z
 iliGather_reg <- left_join(merge_gather_df, reg_cw2, by="zip3") %>% 
   filter(!is.na(region)) %>% 
   group_by(Thu.week, region) %>%
-  summarise(week = first(week), year = first(year), month = first(month), flu.week = first(flu.week), t = first(t), fit.week = first(fit.week), ili = sum(ili, na.rm=T), viz = sum(viz, na.rm=T), iliProp = sum(iliProp, na.rm=T)) %>%
+  summarise(week = first(week), year = first(year), month = first(month), flu.week = first(flu.week), t = first(t), fit.week = first(fit.week), ili = sum(ili, na.rm=T), viz = sum(viz, na.rm=T)) %>%
+  mutate(iliProp = ili/viz) %>%
   ungroup %>%
   select(week, Thu.week, year, month, flu.week, t, fit.week, region, ili, viz, iliProp)
 
@@ -129,7 +130,7 @@ iliDat2 <- iliDat %>%
   left_join(alphaDat, by = c("region", "year")) %>%
   mutate(incl.lm = ifelse(is.na(pop)|is.na(iliProp), FALSE, TRUE)) %>%
   mutate(ILIc = ili/alpha_z.y/cov_z.y) %>%
-  mutate(IR = iliProp * pop/100000) %>%
+  mutate(IR = iliProp * 100) %>%
   arrange(region, Thu.week) %>%
   full_join(regionDf, by = c("region")) %>%
   mutate(region = paste0("R", region))
@@ -159,7 +160,7 @@ ggsave("iliProp_region_ts.png", eda.ilirate, width = w, height = h, dpi = dp)
 #### write Data to file ####################################
 setwd("../../R_export")
 write_csv(iliDat2, path = 'ilicPropByallRegion_allWeekly_totServ_totAge.csv')
-# exported 10/1/17
+# exported 10/18/17
 
 write_csv(alphaDat_Full2, path = 'vizPhysRatio_regionYear_corrections.csv') # should be the same as write_ILIc_data.R so don't need to write it again
 

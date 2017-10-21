@@ -2,7 +2,7 @@
 ## Name: Elizabeth Lee
 ## Date: 10/1/17
 ## Function: write ilic data at state level: ilic_{z, w} = ili_{z, w} / alpha_{z, y} / effPhysCov_{z, y}
-# IR data: IR = iliProp * pop/100000
+# IR data: IR = iliProp * 100000/pop
 ## Filenames: physician_coverage/
 ## iliProp = proportion of visits due to ILI
 ## ilic --> number of ili cases in state s in week w, correcting for constant care-seeking rates across states and scaling up for physician coverage; scaling up assumes that the ili/physician ratio is the same for the reported and unreported cases
@@ -77,7 +77,8 @@ merge_gather_df <- full_join(ili_gather_df, viz_gather_df, by = c("Thu.week", "z
 # 1) join state crosswalk to cleaned data3; 2) drop data where state is NA or 0; 3) drop season
 iliGather_st <- left_join(merge_gather_df, state_cw2, by="zip3") %>% filter(!is.na(st_FIPS) & st_FIPS != "00") %>% 
   group_by(Thu.week, STATE) %>%
-  summarise(week = first(week), year = first(year), month = first(month), flu.week = first(flu.week), t = first(t), fit.week = first(fit.week), ili = sum(ili, na.rm=T), viz = sum(viz, na.rm=T), iliProp = sum(iliProp, na.rm=T), st_FIPS = first(st_FIPS)) %>%
+  summarise(week = first(week), year = first(year), month = first(month), flu.week = first(flu.week), t = first(t), fit.week = first(fit.week), ili = sum(ili, na.rm=T), viz = sum(viz, na.rm=T), st_FIPS = first(st_FIPS)) %>%
+  mutate(iliProp = ili/viz) %>%
   ungroup %>%
   select(week, Thu.week, year, month, flu.week, t, fit.week, STATE, st_FIPS, ili, viz, iliProp)
 
@@ -121,7 +122,7 @@ alphaDat <- alphaDat_Full2 %>% select(state, year, cov_z.y, alpha_z.y, cov_below
 ilicDat <- left_join(iliDat, alphaDat, by = c("state", "year")) %>%
   mutate(incl.lm = ifelse(is.na(pop)|is.na(iliProp), FALSE, TRUE)) %>% 
   mutate(ILIc = ili/alpha_z.y/cov_z.y) %>%
-  mutate(IR = iliProp * pop/100000) %>%
+  mutate(IR = iliProp * 100) %>%
   rename(fips_st = st_FIPS) %>%
   select(week, Thu.week, year, month, flu.week, t, fit.week, fips_st, state, ili, pop, incl.lm, cov_z.y, alpha_z.y, cov_below5, ILIc, viz, iliProp, IR) # rearrange columns
 
@@ -149,7 +150,7 @@ ggsave("iliProp_state_ts.png", eda.ilirate, width = w, height = h, dpi = dp)
 setwd("../../R_export")
 # write.csv(alphaDat_Full2, file = 'vizPhysRatio_stateYear_corrections.csv', row.names=F) # should be the same as write_ILIc_data.R so don't need to write it again
 write_csv(ilicDat, path = 'ilicPropByallState_allWeekly_totServ_totAge.csv')
-# exported 10/1/17
+# exported 10/18/17
 
 
 

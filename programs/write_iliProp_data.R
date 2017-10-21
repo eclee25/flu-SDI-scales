@@ -4,7 +4,7 @@
 ## Function: write ilic & iliProp data: iliProp_{z, w} = ili_{z, w} / visits_{z, w}
 # ilic_{z, w} = ili_{z, w} / alpha_{z, y} / effPhysCov_{z, y}
 # iliProp = proportion of visits due to ILI
-# IR data: IR = iliProp * pop/100000
+# IR data: IR = iliProp * 100000/pop
 
 ## Filenames: physician_coverage/DX_Coverage_by_Flu_Season_20150620.csv; Py_export/iliByallZip_allWeekly_totServ_totAge.csv
 ## Data Source: IMS Health ili dataset and physician coverage dataset
@@ -205,13 +205,13 @@ fullDat2 <- fullDat %>%
 # create ilic metric
 ilicDat <- left_join(fullDat2, alphaDat, by = c("zip3", "year")) %>%
   mutate(ILIc = ili/alpha_z.y/cov_z.y) %>%
-  mutate(IR = iliProp * pop/100000) %>%
+  mutate(IR = iliProp * 100) %>%
   select(week, Thu.week, year, month, flu.week, t, fit.week, zip3, ili, pop, incl.lm, cov_z.y, alpha_z.y, cov_below5, ILIc, viz, iliProp, IR) # rearrange columns
 
 #### write Data to file ####################################
 # write_csv(alphaDat_Full2, path = 'vizPhysRatio_zipYear_corrections.csv') # should be the same as write_ILIc_data.R so don't need to write it again
 write_csv(ilicDat, path = sprintf('ilicPropByallZip3_allWeekly_totServ_%s.csv', agegroup))
-# exported 10/1/17
+# exported 10/18/17
 
 
 

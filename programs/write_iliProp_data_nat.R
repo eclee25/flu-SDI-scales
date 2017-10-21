@@ -67,13 +67,14 @@ merge_gather_df <- full_join(ili_gather_df, viz_gather_df, by = c("Thu.week", "z
 iliGather_nat <- merge_gather_df %>% 
   mutate(national = "N1") %>%
   group_by(Thu.week, national) %>%
-  summarise(week = first(week), year = first(year), month = first(month), flu.week = first(flu.week), t = first(t), fit.week = first(fit.week), ili = sum(ili, na.rm=T), viz = sum(viz, na.rm=T), iliProp = sum(iliProp, na.rm=T)) %>%
+  summarise(week = first(week), year = first(year), month = first(month), flu.week = first(flu.week), t = first(t), fit.week = first(fit.week), ili = sum(ili, na.rm=T), viz = sum(viz, na.rm=T)) %>%
+  mutate(iliProp = ili/viz) %>%
   ungroup %>%
   select(week, Thu.week, year, month, flu.week, t, fit.week, national, ili, viz, iliProp)
 
 # merge ili & pop data
 iliDat <- left_join(iliGather_nat, nat_pop, by = c('year')) %>%
-  mutate(IR = iliProp * pop/100000)
+  mutate(IR = iliProp * 100)
 
 #### EDA: national-level data ####################################
 dir.create("../graph_outputs/explore_allILI_nat_ts", showWarnings = FALSE)
@@ -93,7 +94,7 @@ iliDat2 <- iliDat %>% mutate(incl.lm = TRUE) %>%
 #### write Data to file ####################################
 setwd("../../R_export")
 write.csv(iliDat2, file = 'iliPropByallNational_allWeekly_totServ_totAge.csv', row.names=F)
-# exported 10/1/17
+# exported 10/18/17
 
 
 
