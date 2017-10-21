@@ -16,7 +16,7 @@ rm(list = ls())
 require(tidyverse); require(DBI); require(RMySQL) # clean_data_functions dependencies
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
+dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
 
 #### SOURCE: clean and import model data #################################
 setwd(dirname(sys.frame(1)$ofile))
@@ -150,8 +150,7 @@ process_respData <- function(yData){
 #################################
 write_pooledData <- function(processedData, exportPath){
   writeData <- processedData %>%
-    rename(contribCty = counted) %>%
-    select(-st)
+    rename(contribCty = counted) 
   write_csv(writeData, exportPath) 
 }
 #################################
@@ -162,34 +161,34 @@ write_pooledData <- function(processedData, exportPath){
 wksToEpi <- cleanR_wksToEpi_cty(path_list)
 wksToEpi_pooled <- process_pooledData(wksToEpi)
 wksToEpi_pooled_cty <- process_pooledData_cty(wksToEpi)
-pltFormats_wksToEpi <- list(dbCode = "wksToEpi", ylabScatter = "Variance in epidemic onset", ylabBoxplot = "Weeks to epidemic onset")
+pltFormats_wksToEpi <- list(dbCode = "irDt_wksToEpi", ylabScatter = "Variance in epidemic onset", ylabBoxplot = "Weeks to epidemic onset")
 
 wksToPeak <- cleanR_wksToPeak_cty(path_list)
 wksToPeak_pooled <- process_pooledData(wksToPeak)
 wksToPeak_pooled_cty <- process_pooledData_cty(wksToPeak)
-pltFormats_wksToPeak <- list(dbCode = "wksToPeak", ylabScatter = "Variance in peak timing", ylabBoxplot = "Weeks to peak")
+pltFormats_wksToPeak <- list(dbCode = "irDt_wksToPeak", ylabScatter = "Variance in peak timing", ylabBoxplot = "Weeks to peak")
 
-iliEarly <- cleanR_iliEarly_shift1_cty(path_list)
+iliEarly <- cleanR_iliEarly_irDt_shift1_cty(path_list)
 iliEarly_pooled <- process_pooledData(iliEarly)
 iliEarly_pooled_cty <- process_pooledData_cty(iliEarly)
-pltFormats_iliEarly <- list(dbCode = "iliEarly", ylabScatter = "Variance in early seasonal intensity", ylabBoxplot = "Early seasonal intensity")
+pltFormats_iliEarly <- list(dbCode = "irDt_iliEarly", ylabScatter = "Variance in early seasonal intensity", ylabBoxplot = "Early seasonal intensity")
 
-iliPeak <- cleanR_iliPeak_shift1_cty(path_list)
+iliPeak <- cleanR_iliPeak_irDt_shift1_cty(path_list)
 iliPeak_pooled <- process_pooledData(iliPeak)
 iliPeak_pooled_cty <- process_pooledData_cty(iliPeak)
-pltFormats_iliPeak <- list(dbCode = "iliPeak", ylabScatter = "Variance in peak seasonal intensity", ylabBoxplot = "Peak seasonal intensity")
+pltFormats_iliPeak <- list(dbCode = "irDt_iliPeak", ylabScatter = "Variance in peak seasonal intensity", ylabBoxplot = "Peak seasonal intensity")
 
 #### write pooled data ####
 # state level
-write_pooledData(wksToEpi_pooled, paste0(path_exportData, "/dbVariance_st_wksToEpi.csv"))
-write_pooledData(wksToPeak_pooled, paste0(path_exportData, "/dbVariance_st_wksToPeak.csv"))
-write_pooledData(iliEarly_pooled, paste0(path_exportData, "/dbVariance_st_iliEarly.csv"))
-write_pooledData(iliPeak_pooled, paste0(path_exportData, "/dbVariance_st_iliPeak.csv"))
+write_pooledData(wksToEpi_pooled, paste0(path_exportData, "/dbVariance_st_irDt_wksToEpi.csv"))
+write_pooledData(wksToPeak_pooled, paste0(path_exportData, "/dbVariance_st_irDt_wksToPeak.csv"))
+write_pooledData(iliEarly_pooled, paste0(path_exportData, "/dbVariance_st_irDt_iliEarly.csv"))
+write_pooledData(iliPeak_pooled, paste0(path_exportData, "/dbVariance_st_irDt_iliPeak.csv"))
 # county level
-write_pooledData(wksToEpi_pooled_cty, paste0(path_exportData, "/dbVariance_cty_wksToEpi.csv"))
-write_pooledData(wksToPeak_pooled_cty, paste0(path_exportData, "/dbVariance_cty_wksToPeak.csv"))
-write_pooledData(iliEarly_pooled_cty, paste0(path_exportData, "/dbVariance_cty_iliEarly.csv"))
-write_pooledData(iliPeak_pooled_cty, paste0(path_exportData, "/dbVariance_cty_iliPeak.csv"))
+write_pooledData(wksToEpi_pooled_cty, paste0(path_exportData, "/dbVariance_cty_irDt_wksToEpi.csv"))
+write_pooledData(wksToPeak_pooled_cty, paste0(path_exportData, "/dbVariance_cty_irDt_wksToPeak.csv"))
+write_pooledData(iliEarly_pooled_cty, paste0(path_exportData, "/dbVariance_cty_irDt_iliEarly.csv"))
+write_pooledData(iliPeak_pooled_cty, paste0(path_exportData, "/dbVariance_cty_irDt_iliPeak.csv"))
 
 #### plot variance across states ####
 # wks to epi
