@@ -73,7 +73,7 @@ model8h_iliEarly_v7 <- function(filepathList){
   
   #### import data ####
   # IMS Health based tables
-  mod_cty_df <- cleanR_iliEarly_shift1_cty(filepathList)
+  mod_cty_df <- cleanR_iliEarly_irDt_shift1_cty(filepathList)
   imsCov_cty_df <- cleanO_imsCoverage_cty()
   imsCareseek_cty_df <- cleanO_imsCareseekTot_cty() # 1/5/17 visitsPerPop from sdi flu data
   # all county tables
@@ -167,7 +167,7 @@ model8b_iliPeak_v7 <- function(filepathList){
   
   #### import data ####
   # IMS Health based tables
-  mod_cty_df <- cleanR_iliPeak_shift1_cty(filepathList)
+  mod_cty_df <- cleanR_iliPeak_irDt_shift1_cty(filepathList)
   imsCov_cty_df <- cleanO_imsCoverage_cty()
   imsCareseek_cty_df <- cleanO_imsCareseekTot_cty() # 1/5/17 visitsPerPop from sdi flu data
   # all county tables

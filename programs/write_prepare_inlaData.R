@@ -17,7 +17,7 @@ require(DBI); require(RMySQL) # clean_data_functions dependencies
 require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
+dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 s <- 999 # all seasons code for spatiotemporal analysis = 999
 
@@ -74,15 +74,15 @@ path_dataExport <- paste0(getwd(), "/../R_export/inlaModelData_import/")
 #### county level data ####
 mod_8fV7 <- model8f_wksToEpi_v7(path_list) 
 mod_8iV7 <- model8i_wksToPeak_v7(path_list)
-# mod_8hV7 <- model8h_iliEarly_v7(path_list)
-# mod_8bV7 <- model8b_iliPeak_v7(path_list)
+mod_8hV7 <- model8h_iliEarly_v7(path_list)
+mod_8bV7 <- model8b_iliPeak_v7(path_list)
 
-write_csv(mod_8fV7, paste0(path_dataExport, "inlaImport_model8f_wksToEpi_v7.csv"))
-write_csv(mod_8iV7, paste0(path_dataExport, "inlaImport_model8i_wksToPeak_v7.csv"))
-# write_csv(mod_8hV7, paste0(path_dataExport, "inlaImport_model8h_iliEarly_v7.csv"))
-# write_csv(mod_8bV7, paste0(path_dataExport, "inlaImport_model8b_iliPeak_v7.csv"))
+write_csv(mod_8fV7, paste0(path_dataExport, "inlaImport_model8f_wksToEpi_irDt_v7.csv"))
+write_csv(mod_8iV7, paste0(path_dataExport, "inlaImport_model8i_wksToPeak_irDt_v7.csv"))
+write_csv(mod_8hV7, paste0(path_dataExport, "inlaImport_model8h_iliEarly_irDt_v7.csv"))
+write_csv(mod_8bV7, paste0(path_dataExport, "inlaImport_model8b_iliPeak_irDt_v7.csv"))
 
-#### state level data ####
-mod_10fV2 <- model10f_wksToEpi_v2(path_list)
+# #### state level data ####
+# mod_10fV2 <- model10f_wksToEpi_v2(path_list)
 
-write_csv(mod_10fV2, paste0(path_dataExport, "inlaImport_model10f_wksToEpi_v2.csv"))
+# write_csv(mod_10fV2, paste0(path_dataExport, "inlaImport_model10f_wksToEpi_v2.csv"))

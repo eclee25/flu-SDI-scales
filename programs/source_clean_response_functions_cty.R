@@ -314,7 +314,7 @@ cleanX_priorBurden_cty <- function(filepathList){
   print(match.call())
   
   # grab disease burden metric (e.g., ilinDt): match "ili" 1+ times
-  dbCode <- grep("ili+", strsplit(filepathList$path_response_cty, "_")[[1]], value=T)
+  dbCode <- grep("irDt+", strsplit(filepathList$path_response_cty, "_")[[1]], value=T)
 
   # grab total pop response, not adult or child one
   total_path_response_cty <- gsub("_child", "", gsub("_adult", "", filepathList$path_response_cty))
