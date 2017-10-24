@@ -72,15 +72,15 @@ path_dataExport <- paste0(getwd(), "/../R_export/inlaModelData_import/")
 
 #### MAIN #################################
 #### county level data ####
-mod_8fV7 <- model8f_wksToEpi_v7(path_list) 
-mod_8iV7 <- model8i_wksToPeak_v7(path_list)
+# mod_8fV7 <- model8f_wksToEpi_v7(path_list) 
+# mod_8iV7 <- model8i_wksToPeak_v7(path_list)
 mod_8hV7 <- model8h_iliEarly_v7(path_list)
 mod_8bV7 <- model8b_iliPeak_v7(path_list)
 
-write_csv(mod_8fV7, paste0(path_dataExport, "inlaImport_model8f_wksToEpi_irDt_v7.csv"))
-write_csv(mod_8iV7, paste0(path_dataExport, "inlaImport_model8i_wksToPeak_irDt_v7.csv"))
-write_csv(mod_8hV7, paste0(path_dataExport, "inlaImport_model8h_iliEarly_irDt_v7.csv"))
-write_csv(mod_8bV7, paste0(path_dataExport, "inlaImport_model8b_iliPeak_irDt_v7.csv"))
+# write_csv(mod_8fV7, paste0(path_dataExport, "inlaImport_model8f_wksToEpi_irDt_v7.csv"))
+# write_csv(mod_8iV7, paste0(path_dataExport, "inlaImport_model8i_wksToPeak_irDt_v7.csv"))
+write_csv(mod_8hV7, paste0(path_dataExport, "inlaImport_model8h_iliEarly_irDt_log_v7.csv"))
+write_csv(mod_8bV7, paste0(path_dataExport, "inlaImport_model8b_iliPeak_irDt_log_v7.csv"))
 
 # #### state level data ####
 # mod_10fV2 <- model10f_wksToEpi_v2(path_list)
