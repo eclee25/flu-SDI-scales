@@ -30,10 +30,10 @@ seasons <- c(3:9)
 # modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 # modCodeStrLs <- paste0("8f_wksToEpi_v", 1:2, "-2")
-modCodeStrLs <- c("8h_iliEarly_v2-20", "8b_iliPeak_v2-20")
+modCodeStrLs <- c("8f_wksToEpi_v2-22", "8i_wksToPeak_v2-22")
 
-likString <- "normal"; likStrings <- c(likString)
-source("source_calculate_residuals.R") # calculate_residuals function (source_calculate_residuals_shift1.R for iliSum; source_calculate_residuals.R for epiDur, wksToEpi)
+likString <- "nbinomial"; likStrings <- c(likString)
+source("source_calculate_residuals_shift1.R") # calculate_residuals function for y1 response
 
 #### IMPORT FILEPATHS #################################
 setwd('../reference_data')
@@ -79,7 +79,7 @@ for (i in 1:length(modCodeStrLs)){
   }
 
   ### model fit ###
-  if ("gamma" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
+  if ("nbinomial" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
 
     # scatter: predicted vs. observed data (yhat - nonzero) + 95%CI vs. y nonzero observed
     path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
@@ -138,37 +138,37 @@ for (i in 1:length(modCodeStrLs)){
 
   }
 
-  #### diagnostics by season #################################
-  for (s in seasons){
-    print(paste("Season", s, "-----------------"))
-
-    #### nonzero model figures ####
-    if ("gamma" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
-      path_csvImport_fittedNz <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s.csv", likString, modCodeStr))
-      mod_nz_import <- read_csv(path_csvImport_fittedNz, col_types = cols(fips = col_character(), ID = col_character(), y1 = col_double())) %>%
-        filter(season == s)
-      mod_nz_fitted <- calculate_residuals(mod_nz_import, TRUE) # 2nd arg: nonzeronOnly
-
-      if (nrow(mod_nz_fitted %>% filter(!is.na(y1))) > 0){
-        # choropleth: observed values (y_nonzero) - Magnitude of non-zero epidemic
-        path_plotExport_yobs_nz <- paste0(path_plotExport, sprintf("/choro_yObs_%s_S%s.png", modCodeStr, s))
-        plot_countyChoro(path_plotExport_yobs_nz, mod_nz_fitted, "y1", "tier", TRUE)
-
-        # choropleth: fitted values (yhat_i) - Magnitude of non-zero epidemic
-        path_plotExport_yhat_nz <- paste0(path_plotExport, sprintf("/choro_yHat_%s_S%s.png", modCodeStr, s))
-        plot_countyChoro(path_plotExport_yhat_nz, mod_nz_fitted, "mean", "tier", FALSE)
-
- 
-        # choropleth: standardized residuals
-        path_plotExport_resid_nz <- paste0(path_plotExport, sprintf("/choro_yResid_%s_S%s.png", modCodeStr, s))
-        plot_countyChoro(path_plotExport_resid_nz, mod_nz_fitted, "yhat_resid", "tier", FALSE)
-
-     
-      }
-
-    }
-
-  }
+  # #### diagnostics by season #################################
+  # for (s in seasons){
+  #   print(paste("Season", s, "-----------------"))
+  # 
+  #   #### nonzero model figures ####
+  #   if ("nbinomial" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
+  #     path_csvImport_fittedNz <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s.csv", likString, modCodeStr))
+  #     mod_nz_import <- read_csv(path_csvImport_fittedNz, col_types = cols(fips = col_character(), ID = col_character(), y1 = col_double())) %>%
+  #       filter(season == s)
+  #     mod_nz_fitted <- calculate_residuals(mod_nz_import, TRUE) # 2nd arg: nonzeronOnly
+  # 
+  #     if (nrow(mod_nz_fitted %>% filter(!is.na(y1))) > 0){
+  #       # choropleth: observed values (y_nonzero) - Magnitude of non-zero epidemic
+  #       path_plotExport_yobs_nz <- paste0(path_plotExport, sprintf("/choro_yObs_%s_S%s.png", modCodeStr, s))
+  #       plot_countyChoro(path_plotExport_yobs_nz, mod_nz_fitted, "y1", "tier", TRUE)
+  # 
+  #       # choropleth: fitted values (yhat_i) - Magnitude of non-zero epidemic
+  #       path_plotExport_yhat_nz <- paste0(path_plotExport, sprintf("/choro_yHat_%s_S%s.png", modCodeStr, s))
+  #       plot_countyChoro(path_plotExport_yhat_nz, mod_nz_fitted, "mean", "tier", FALSE)
+  # 
+  # 
+  #       # choropleth: standardized residuals
+  #       path_plotExport_resid_nz <- paste0(path_plotExport, sprintf("/choro_yResid_%s_S%s.png", modCodeStr, s))
+  #       plot_countyChoro(path_plotExport_resid_nz, mod_nz_fitted, "yhat_resid", "tier", FALSE)
+  # 
+  #    
+  #     }
+  # 
+  #   }
+  # 
+  # }
 
 }
 

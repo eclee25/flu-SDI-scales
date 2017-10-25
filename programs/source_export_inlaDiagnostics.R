@@ -56,7 +56,7 @@ importPlot_diag_scatter_predictors_spatiotemporal <- function(path_csvExport, pa
   #### clean data ####
   # calculate yhat residuals for gamma model only
   if (grepl("gamma", likelihoodString) | grepl("poisson", likelihoodString)){
-    plotDat <- calculate_residuals(plotDat, TRUE)
+    plotDat <- calculate_residuals(plotDat)
   }
   # list of varnames
   varnames <- c(grep("[XO]_", names(plotDat), value = TRUE), "pop")
@@ -137,7 +137,7 @@ importPlot_diag_scatter_ctyerrors_spatiotemporal <- function(path_csvExport, pat
   }
 
   #### clean fitted data ####
-  fitDat2 <- calculate_residuals(fitDat, TRUE)
+  fitDat2 <- calculate_residuals(fitDat)
   fitDat_clean <- fitDat2 %>%
     rename(fit_mn = mean, fit_sd = sd, fit_LB = LB, fit_UB = UB) %>%
     select(season, fips, fit_mn, fit_sd, fit_LB, fit_UB, y, y1, yhat_resid, yhat_rawresid)
@@ -232,7 +232,7 @@ importPlot_diag_scatter_errors_spatiotemporal <- function(path_csvExport, path_p
   }
 
   #### clean fitted data ####
-  fitDat2 <- calculate_residuals(fitDat, TRUE)
+  fitDat2 <- calculate_residuals(fitDat)
   fitDat_clean <- fitDat2 %>%
     rename(fit_mn = mean, fit_sd = sd, fit_LB = LB, fit_UB = UB) %>%
     select(season, fips, fit_mn, fit_sd, fit_LB, fit_UB, y, y1, yhat_resid, yhat_rawresid)
@@ -368,7 +368,7 @@ importPlot_diag_data_distribution <- function(path_csvExport, path_plotExport_di
   #### clean data ####
   # calculate yhat residuals for gamma model only
   if (grepl("gamma", likelihoodString) | grepl("poisson", likelihoodString)){
-    plotDat <- calculate_residuals(plotDat, TRUE)
+    plotDat <- calculate_residuals(plotDat)
   }
   # list of varnames
   varnames <- grep("[XO]_", names(plotDat), value = TRUE)
@@ -439,7 +439,7 @@ import_diag_data_residuals <- function(path_csvExport, likelihoodString){
     #### clean data ####
     # calculate yhat residuals for nonzero model only
     if (likelihoodString %in% c("gamma", "normal", "poisson")){
-    fullDat <- calculate_residuals(fullDat, TRUE)
+    fullDat <- calculate_residuals(fullDat)
     }
 
     return(fullDat)
@@ -479,7 +479,7 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
   #### clean data ####
   # calculate yhat residuals for nonzero model only
   if (likelihoodString %in% c("gamma", "normal", "poisson")){
-    plotDat <- calculate_residuals(plotDat, TRUE)
+    plotDat <- calculate_residuals(plotDat)
   }
   
   # calculate spearman's rho correlations
@@ -555,7 +555,7 @@ plot_diag_scatter_hurdle_spatiotemporal_aggBias <- function(path_csvExport, path
   #### clean data ####
   # calculate yhat residuals for nonzero model only
   if (likelihoodString %in% c("gamma", "normal", "poisson")){
-    plotDat <- calculate_residuals(plotDat, TRUE)
+    plotDat <- calculate_residuals(plotDat)
   }
   
   # calculate spearman's rho correlations
@@ -631,7 +631,7 @@ plot_diag_scatter_st_spatiotemporal <- function(path_csvExport, path_plotExport_
   #### clean data ####
   # calculate yhat residuals for nonzero model only
   if (likelihoodString %in% c("gamma", "normal", "poisson")){
-    plotDat <- calculate_residuals(plotDat, TRUE)
+    plotDat <- calculate_residuals(plotDat)
   }
   
   # calculate spearman's rho correlations
