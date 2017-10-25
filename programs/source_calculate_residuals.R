@@ -3,21 +3,14 @@
 
 ################################
 
-calculate_residuals <- function(fitDat, nonzeroOnly){
+calculate_residuals <- function(fitDat){
   # calculations that depend on fitted values for non-zero values: raw residuals, std residuals, 95% CI for fitted values
   print(match.call())
 
-  if(nonzeroOnly){
-    returnDat <- fitDat %>%
-      mutate(yhat_resid = (y-mean)/sd) %>%
-      mutate(yhat_rawresid = (y-mean)) %>%
-      mutate(LB = q_025, UB = q_975)
-    } else{
-    returnDat <- fitDat %>%
-      mutate(yhat_resid = (y-mean)/sd) %>%
-      mutate(yhat_rawresid = (y-mean)) %>%
-      mutate(LB = q_025, UB = q_975)
-    }
+  returnDat <- fitDat %>%
+    mutate(yhat_resid = (y-mean)/sd) %>%
+    mutate(yhat_rawresid = (y-mean)) %>%
+    mutate(LB = q_025, UB = q_975)
   
   return(returnDat)
 }
