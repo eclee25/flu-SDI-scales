@@ -144,7 +144,7 @@ model8h_iliEarly_v7 <- function(filepathList){
     mutate(X_latitude = centerStandardize(lat)) %>%
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
-    mutate(logE = log(E), y1 = log(log(y1))) %>% # model response y1 = log(y+1) y values
+    mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1) y values
     select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -anomHumidity, -avg_pm, -perc_hh_1p) %>%
     filter(season %in% 3:9) %>%
     mutate(ID = seq_along(fips))
@@ -238,7 +238,7 @@ model8b_iliPeak_v7 <- function(filepathList){
     mutate(X_latitude = centerStandardize(lat)) %>%
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
-    mutate(logE = log(E), y1 = log(log(y1))) %>% # model response y1 = log(y+1) y values
+    mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = log(y+1) y values
     select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -anomHumidity, -avg_pm, -perc_hh_1p) %>%
     filter(season %in% 3:9) %>%
     mutate(ID = seq_along(fips))
@@ -332,7 +332,7 @@ model8f_wksToEpi_v7 <- function(filepathList){
     mutate(X_latitude = centerStandardize(lat)) %>%
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
-    mutate(logE = log(E), y1 = y1) %>% # model response y1 = nonzero y values
+    mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = nonzero y values
     select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -anomHumidity, -avg_pm, -perc_hh_1p) %>%
     filter(season %in% 3:9) %>%
     mutate(ID = seq_along(fips))
@@ -426,7 +426,7 @@ model8i_wksToPeak_v7 <- function(filepathList){
     mutate(X_latitude = centerStandardize(lat)) %>%
     filter(fips_st %in% continentalOnly) %>%
     filter(!is.na(graphIdx_st)) %>% # rm data not in graph
-    mutate(logE = log(E), y1 = y1) %>% # model response y1 = nonzero y values
+    mutate(logE = log(E), y1 = log(y1)) %>% # model response y1 = nonzero y values
     select(-stateID, -adjProviderCoverage, -visitsPerPopT, -insured, -poverty, -child, -adult, -hospitalAccess, -popDensity, -housDensity, -infantAnyVax, -elderlyAnyVax, -prop_H3_a, -prop_b_all, -protectionPrevSeason, -humidity, -anomHumidity, -avg_pm, -perc_hh_1p) %>%
     filter(season %in% 3:9) %>%
     mutate(ID = seq_along(fips))

@@ -66,23 +66,51 @@ path_list <- list(path_abbr_st = path_abbr_st,
                    path_fullIndic_st = path_fullIndic_st)
 
 #### EXPORT FILEPATHS #################################
+# export data
 setwd(dirname(sys.frame(1)$ofile))
 dir.create("../R_export/inlaModelData_import", showWarnings = FALSE)
 path_dataExport <- paste0(getwd(), "/../R_export/inlaModelData_import/")
 
+# export figures
+setwd(dirname(sys.frame(1)$ofile))
+dir.create("../graph_outputs/inlaModelData_import", showWarnings = FALSE)
+path_graphExport <- paste0(getwd(), "/../graph_outputs/explore_inlaModelData_import/")
+
 #### MAIN #################################
 #### county level data ####
-# mod_8fV7 <- model8f_wksToEpi_v7(path_list) 
+mod_8fV7 <- model8f_wksToEpi_v7(path_list) 
 # mod_8iV7 <- model8i_wksToPeak_v7(path_list)
-mod_8hV7 <- model8h_iliEarly_v7(path_list)
-mod_8bV7 <- model8b_iliPeak_v7(path_list)
+# mod_8hV7 <- model8h_iliEarly_v7(path_list)
+# mod_8bV7 <- model8b_iliPeak_v7(path_list)
 
-# write_csv(mod_8fV7, paste0(path_dataExport, "inlaImport_model8f_wksToEpi_irDt_v7.csv"))
-# write_csv(mod_8iV7, paste0(path_dataExport, "inlaImport_model8i_wksToPeak_irDt_v7.csv"))
-write_csv(mod_8hV7, paste0(path_dataExport, "inlaImport_model8h_iliEarly_irDt_log_v7.csv"))
-write_csv(mod_8bV7, paste0(path_dataExport, "inlaImport_model8b_iliPeak_irDt_log_v7.csv"))
+# fnames
+fname_8f <- "inlaImport_model8f_wksToEpi_irDt_log_v7"
+fname_8i <- "inlaImport_model8i_wksToPeak_irDt_log_v7"
+fname_8h <- "inlaImport_model8h_iliEarly_irDt_v7"
+fname_8b <- "inlaImport_model8b_iliPeak_irDt_v7"
+
+write_csv(mod_8fV7, paste0(path_dataExport, fname_8f, ".csv"))
+# write_csv(mod_8iV7, paste0(path_dataExport, fname_8i, ".csv"))
+# write_csv(mod_8hV7, paste0(path_dataExport, fname_8h, ".csv"))
+# write_csv(mod_8bV7, paste0(path_dataExport, fname_8b, ".csv"))
 
 # #### state level data ####
 # mod_10fV2 <- model10f_wksToEpi_v2(path_list)
 
 # write_csv(mod_10fV2, paste0(path_dataExport, "inlaImport_model10f_wksToEpi_v2.csv"))
+
+#### plot response data ####
+plot_response <- function(inlaData, fname){
+  dbPlot <- ggplot(inlaData, aes(x = y1, group = season)) +
+    geom_histogram(aes(y = ..density..)) +
+    geom_density() +
+    facet_wrap(~season, scales = "free")
+  ggsave(fname, dbPlot, width = 6, height = 4, dpi = 300)
+}
+
+plot_response(mod_8fV7, paste0(path_graphExport, fname_8f, ".png"))
+plot_response(mod_8iV7, paste0(path_graphExport, fname_8i, ".png"))
+# plot_response(mod_8hV7, paste0(path_graphExport, fname_8h, ".png"))
+# plot_response(mod_8bV7, paste0(path_graphExport, fname_8b, ".png"))
+
+
