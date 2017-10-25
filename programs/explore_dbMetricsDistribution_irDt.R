@@ -19,7 +19,7 @@ explore_dbMetricsDistribution_irDt <- function(span.var, degree.var, spatial){
   setwd(dirname(sys.frame(1)$ofile))
   
   #### set these! ####################################
-  code <-"" # linear time trend term
+  code <-"" # linear time trend
   code2 <- "_Octfit" # fit = Apr to Oct and fluseason = Oct to Apr
   
   ## uncomment when running script separately
