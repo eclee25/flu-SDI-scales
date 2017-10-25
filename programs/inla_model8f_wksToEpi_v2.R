@@ -15,14 +15,14 @@ rm(list = ls())
 require(tidyverse); require(DBI); require(RMySQL) # clean_data_functions dependencies
 require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
 require(INLA) # main dependencies
-require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
+require(RColorBrewer) # export_inlaData_st dependencies
 
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "8f_wksToEpi_v2-12"
+dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
+modCodeStr <- "8f_wksToEpi_v2-22"
 rdmFx_RV <- "phi"
-likString <- "poisson"
+likString <- "nbinomial"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 s <- 999 # all seasons code for spatiotemporal analysis = 999
 
@@ -35,7 +35,7 @@ source("source_export_inlaData_hurdle.R") # data export functions for hurdle mod
 source("source_pp_checks.R") # cpo individual level
 
 #### FILEPATHS #################################
-file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8f_wksToEpi_v7.csv")
+file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8f_wksToEpi_irDt_v7.csv")
 path_adjMxExport_cty <- paste0(getwd(), "/../reference_data/UScounty_shapefiles/US_county_adjacency.graph")
 
 #### MAIN #################################
@@ -50,8 +50,6 @@ formula <- Y ~ -1 +
   f(regionID_nonzero, model = "iid") +
   f(season_nonzero, model = "iid") +
   intercept_nonzero + O_imscoverage_nonzero + O_careseek_nonzero + O_insured_nonzero + X_poverty_nonzero + X_child_nonzero + X_adult_nonzero + X_hospaccess_nonzero + X_popdensity_nonzero + X_housdensity_nonzero + X_vaxcovI_nonzero + X_vaxcovE_nonzero + X_H3A_nonzero + X_B_nonzero + X_priorImmunity_nonzero + X_anomHumidity_nonzero + X_pollution_nonzero + X_singlePersonHH_nonzero + X_latitude_nonzero
-
-  # + X_sourceLocDist_nonzero + X_humidity_nonzero
 
 #### export formatting ####
 # diagnostic plot export directories
@@ -71,14 +69,15 @@ path_csvExport <- getwd()
 modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
 
 mod <- inla(formula,
-            family = "poisson",
+            family = "nbinomial",
             data = modData_hurdle,
             control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
             control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
             control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE),
             control.inla = list(correct = TRUE, correct.factor = 10, diagonal = 0, tolerance = 1e-8), # http://www.r-inla.org/events/newfeaturesinr-inlaapril2015
             verbose = TRUE,
-            keep = TRUE, debug = TRUE)
+            # keep = TRUE, 
+            debug = TRUE)
 
 
 #### model summary outputs ################################

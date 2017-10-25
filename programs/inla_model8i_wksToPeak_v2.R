@@ -19,10 +19,10 @@ require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
-modCodeStr <- "8i_wksToPeak_v2-1"
+dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
+modCodeStr <- "8i_wksToPeak_v2-22"
 rdmFx_RV <- "phi"
-likString <- "poisson"
+likString <- "nbinomial"
 dig <- 4 # number of digits in the number of elements at this spatial scale (~3000 counties -> 4 digits)
 s <- 999 # all seasons code for spatiotemporal analysis = 999
 
@@ -35,7 +35,7 @@ source("source_export_inlaData_hurdle.R") # data export functions for hurdle mod
 source("source_pp_checks.R") # cpo individual level
 
 #### FILEPATHS #################################
-file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8i_wksToPeak_v7.csv")
+file_dataImport <- paste0(getwd(), "/../R_export/inlaModelData_import/inlaImport_model8i_wksToPeak_irDt_v7.csv")
 path_adjMxExport_cty <- paste0(getwd(), "/../reference_data/UScounty_shapefiles/US_county_adjacency.graph")
 
 #### MAIN #################################
@@ -71,7 +71,7 @@ path_csvExport <- getwd()
 modData_hurdle <- convert_hurdleModel_nz_spatiotemporal(modData_full)
 
 mod <- inla(formula,
-            family = "poisson",
+            family = "nbinomial",
             data = modData_hurdle,
             control.fixed = list(mean = 0, prec = 1/100), # set prior parameters for regression coefficients
             control.predictor = list(compute = TRUE, link = rep(1, nrow(modData_full))),
