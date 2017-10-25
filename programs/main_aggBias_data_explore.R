@@ -12,7 +12,7 @@ source("source_aggBias_data_explore_functions.R")
 
 #### set these! ###############################
 dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
-modules <- c("choro", "choroAvg") # "statistics", "lisa", "scatterplot", "choro", "choroAvg", "dataExport"
+modules <- c("lisa") # "statistics", "lisa", "scatterplot", "choro", "choroAvg", "dataExport"
 
 ###############################
 ## PATHS ##
@@ -67,15 +67,22 @@ if("statistics" %in% modules){
 }
 
 if("lisa" %in% modules){
-  lisa_obs_wksToEpi_ctySt <- lisa_aggBias_timingMagnitude(obs_wksToEpi_ctySt)
-  lisa_obs_wksToPeak_ctySt <- lisa_aggBias_timingMagnitude(obs_wksToPeak_ctySt)
-  lisa_obs_iliEarly_ctySt <- lisa_aggBias_timingMagnitude(obs_iliEarly_ctySt)
-  lisa_obs_iliPeak_ctySt <- lisa_aggBias_timingMagnitude(obs_iliPeak_ctySt)
+  plotFormatsDf <- tbl_df(data.frame(
+    dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
+    scaleDiff = rep(c("stCty", "regCty"), 4), 
+    neighSize = 25,
+    w = 6, 
+    h = 4)) %>%
+    mutate(pltVar = paste0("obs_diff_", scaleDiff))
 
-  lisa_obs_wksToEpi_ctyReg <- lisa_aggBias_timingMagnitude(obs_wksToEpi_ctyReg)
-  lisa_obs_wksToPeak_ctyReg <- lisa_aggBias_timingMagnitude(obs_wksToPeak_ctyReg)
-  lisa_obs_iliEarly_ctyReg <- lisa_aggBias_timingMagnitude(obs_iliEarly_ctyReg)
-  lisa_obs_iliPeak_ctyReg <- lisa_aggBias_timingMagnitude(obs_iliPeak_ctyReg)  
+  lisa_obs_wksToEpi_ctySt <- lisa_aggBias_timingMagnitude_oneSeason(obs_wksToEpi_ctySt, as.list(plotFormatsDf[1,]))
+  # lisa_obs_wksToEpi_ctyReg <- lisa_aggBias_timingMagnitude_oneSeason(obs_wksToEpi_ctyReg, as.list(plotFormatsDf[2,]))
+  # lisa_obs_wksToPeak_ctySt <- lisa_aggBias_timingMagnitude_oneSeason(obs_wksToPeak_ctySt, as.list(plotFormatsDf[3,]))
+  # lisa_obs_wksToPeak_ctyReg <- lisa_aggBias_timingMagnitude_oneSeason(obs_wksToPeak_ctyReg, as.list(plotFormatsDf[4,]))
+  # lisa_obs_iliEarly_ctySt <- lisa_aggBias_timingMagnitude_oneSeason(obs_iliEarly_ctySt, as.list(plotFormatsDf[5,]))
+  # lisa_obs_iliEarly_ctyReg <- lisa_aggBias_timingMagnitude_oneSeason(obs_iliEarly_ctyReg, as.list(plotFormatsDf[6,]))
+  # lisa_obs_iliPeak_ctySt <- lisa_aggBias_timingMagnitude_oneSeason(obs_iliPeak_ctySt, as.list(plotFormatsDf[7,]))
+  # lisa_obs_iliPeak_ctyReg <- lisa_aggBias_timingMagnitude_oneSeason(obs_iliPeak_ctyReg, as.list(plotFormatsDf[8,]))
 }
 
 #### plots ############################

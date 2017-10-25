@@ -64,49 +64,34 @@ pairedTest_aggBias_timingMagnitude <- function(obs_early, obs_peak){
 
 }
 ################################
-lisa_aggBias_timingMagnitude <- function(obsData){
+lisa_aggBias_timingMagnitude_oneSeason <- function(importDat, pltFormats){
   print(match.call())
   # examine local indicators of spatial autocorrelation for aggregation bias for wksToEpi, wksToPeak, iliEarly, and iliPeak measures, works for both ctySt and ctyReg levels
   
+  dbCode <- pltFormats$dbCode; scaleDiff <- pltFormats$scaleDiff
+  w <- pltFormats$w; h <- pltFormats$h
+  neighSize <- pltFormats$neighSize
 
-  # lisa()
+  # import aggregation bias
+  prepDat <- importDat %>%
+    rename_("obs_aggBias" = pltFormats$pltVar) 
+  seasLs <- prepDat %>% distinct(season) %>% unlist
+  
+  lisa_bySeason <- list()
+  for (s in seasLs){
+    prepDat2 <- prepDat %>% filter(season == s)
+    lisaOut <- lisa(x = prepDat2$longitude, y = prepDat2$latitude, z = prepDat2$obs_aggBias, neigh = neighSize, latlon = TRUE, resamp = 100)
+    lisa_bySeason[[paste0("S", s)]] <- lisaOut
 
-  fullDat <- full_join(dat1, dat2, by = c("season", "fips")) %>%
-    mutate(aggBiasDiff = peakBias - earlyBias) %>%
-    mutate(abs_peakBias = abs(peakBias), abs_earlyBias = abs(earlyBias)) %>%
-    mutate(absAggBiasDiff = abs_peakBias - abs_earlyBias)
-  fullDat2 <- fullDat %>%
-    gather(measure, value, earlyBias:absAggBiasDiff)
+    exportFname <- paste0(string_exportFig_aggBias_data_folder(), dbCode, "/lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_S", s, ".png")
+    png(exportFname, res = 300, w = w, h = h, units = "in")
+    plot.lisa(lisaOut)
+    dev.off()
+  }
 
-  # check that the difference between the measures follows a normal distribution, thus making it appropriate for a paired T-test 
-  histPlot <- hist(fullDat$aggBiasDiff, bins = 100)
-  absHistPlot <- hist(fullDat$absAggBiasDiff, bins = 100)
+  # do.call
 
-
-  # plot overlapping histogram for the two distributions
-  dbPlot <- ggplot(fullDat2 %>%
-    filter(measure %in% c("earlyBias", "peakBias")), aes(x = value)) +
-    geom_freqpoly(aes(y = ..density.., colour = measure), bins = 50, na.rm=TRUE) +
-    theme_bw() +
-    theme(legend.position = "bottom")
-  print(dbPlot)
-
-  absDbPlot <- ggplot(fullDat2 %>%
-    filter(measure %in% c("abs_earlyBias", "abs_peakBias")), aes(x = value)) +
-    geom_freqpoly(aes(y = ..density.., colour = measure), bins = 50, na.rm=TRUE) +
-    theme_bw() +
-    theme(legend.position = "bottom")
-  print(absDbPlot)
-
-  # perform paired t-test
-  ttest <- t.test(fullDat$earlyBias, fullDat$peakBias, paired = TRUE)
-  print(ttest)
-
-  absTtest <- t.test(fullDat$abs_earlyBias, fullDat$abs_peakBias, paired = TRUE)
-  print(absTtest)
-
-  return(list(histPlot=histPlot, absHistPlot=absHistPlot, dbPlot=dbPlot, absDbPlot=absDbPlot, ttest=ttest, absTtest=absTtest))
-
+  return(lisa_bySeason)
 }
 ################################
 
