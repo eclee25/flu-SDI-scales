@@ -71,6 +71,8 @@ lisa_aggBias_timingMagnitude_oneSeason <- function(importDat, pltFormats){
   dbCode <- pltFormats$dbCode; scaleDiff <- pltFormats$scaleDiff
   w <- pltFormats$w; h <- pltFormats$h
   neighSize <- pltFormats$neighSize
+  resamp <- pltFormats$resamp
+
 
   # import aggregation bias
   prepDat <- importDat %>%
@@ -80,7 +82,7 @@ lisa_aggBias_timingMagnitude_oneSeason <- function(importDat, pltFormats){
   lisa_bySeason <- list()
   for (s in seasLs){
     prepDat2 <- prepDat %>% filter(season == s)
-    lisaOut <- lisa(x = prepDat2$longitude, y = prepDat2$latitude, z = prepDat2$obs_aggBias, neigh = neighSize, latlon = TRUE, resamp = 100)
+    lisaOut <- lisa(x = prepDat2$longitude, y = prepDat2$latitude, z = prepDat2$obs_aggBias, neigh = neighSize, latlon = TRUE, resamp = resamp)
     lisa_bySeason[[paste0("S", s)]] <- lisaOut
 
     exportFname <- paste0(string_exportFig_aggBias_data_folder(), dbCode, "/lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_S", s, ".png")
@@ -89,11 +91,37 @@ lisa_aggBias_timingMagnitude_oneSeason <- function(importDat, pltFormats){
     dev.off()
   }
 
-  # do.call
-
   return(lisa_bySeason)
 }
 ################################
+lisa_aggBias_timingMagnitude_allSeasons <- function(importDat, pltFormats){
+  print(match.call())
+  # examine local indicators of spatial autocorrelation for aggregation bias for wksToEpi, wksToPeak, iliEarly, and iliPeak measures, works for both ctySt and ctyReg levels
+  
+  dbCode <- pltFormats$dbCode; scaleDiff <- pltFormats$scaleDiff
+  w <- pltFormats$w; h <- pltFormats$h
+  neighSize <- pltFormats$neighSize # km
+  resamp <- pltFormats$resamp
+
+  # import aggregation bias
+  prepDat <- importDat %>%
+    rename_("obs_aggBias" = pltFormats$pltVar) %>%
+    mutate(season = paste0("S", season)) %>%
+    select(season, fips, latitude, longitude, obs_aggBias) %>%
+    spread(season, obs_aggBias)
+
+  statMx <- as.matrix(prepDat %>% select(num_range("S", 3:9)))
+
+  # calculate lisas across alls easons
+  lisaOut <- lisa.nc(x = prepDat$longitude, y = prepDat$latitude, z = statMx, neigh = neighSize, latlon = TRUE, resamp = resamp, na.rm = TRUE)
+
+  exportFname <- paste0(string_exportFig_aggBias_data_folder(), dbCode, "/lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_allSeas.png")
+  png(exportFname, res = 300, w = w, h = h, units = "in")
+  plot.lisa.nc(lisaOut)
+  dev.off()
+
+  return(lisaOut)
+}
 
 
 
