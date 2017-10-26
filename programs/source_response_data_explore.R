@@ -17,7 +17,8 @@ correlogStat_obs_allSeasons <- function(prepDat, datFormats){
   print(match.call())
 
   # data formatting
-  datFormats$statVar <- ifelse(datFormats$offset_l, "obs_rr_cty", "obs_y_cty")
+  dataScale <- datFormats$dataScale
+  datFormats$statVar <- ifelse(datFormats$offset_l, paste0("obs_rr_", dataScale), paste0("obs_y_", dataScale))
   incrementKm <- datFormats$incrementKm
   resamp <- datFormats$resamp
 
@@ -42,7 +43,7 @@ correlogStat_obs_allSeasons <- function(prepDat, datFormats){
   # seems like increment has the unit km: https://stat.ethz.ch/pipermail/r-sig-geo/2010-October/009506.html
 
   # plot and export correlogram
-  exportFname <- paste0(exportPath, "/", dataProcess, "_", measure, "/correlog_obs_", dataProcess, "_", measure, "_cty.png")
+  exportFname <- paste0(exportPath, "/", dataProcess, "_", measure, "/correlog_obs_", dataProcess, "_", measure, "_", dataScale, "_resamp", resamp, ".png")
 
   png(exportFname, units = "in", width = w, height = h, res = dp)
   plot.correlogMod(correlogOut, datFormats)
