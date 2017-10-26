@@ -17,7 +17,7 @@ correlogStat_obs_allSeasons <- function(prepDat, datFormats){
   print(match.call())
 
   # data formatting
-  statVar <- ifelse(datFormats$offset_l, "obs_rr_cty", "obs_y_cty")
+  datFormats$statVar <- ifelse(datFormats$offset_l, "obs_rr_cty", "obs_y_cty")
   incrementKm <- datFormats$incrementKm
   resamp <- datFormats$resamp
 
@@ -29,7 +29,7 @@ correlogStat_obs_allSeasons <- function(prepDat, datFormats){
 
   # clean data
   statDat <- prepDat %>%
-    rename_("statVar" = statVar) %>%
+    rename_("statVar" = datFormats$statVar) %>%
     mutate(season = paste0("S", season)) %>%
     select(season, fips, latitude, longitude, statVar) %>%
     spread(season, statVar)
@@ -42,7 +42,7 @@ correlogStat_obs_allSeasons <- function(prepDat, datFormats){
   # seems like increment has the unit km: https://stat.ethz.ch/pipermail/r-sig-geo/2010-October/009506.html
 
   # plot and export correlogram
-  exportFname <- paste0(exportPath, "/correlog_obs_", dataProcess, "_", measure, "_cty.png")
+  exportFname <- paste0(exportPath, "/", dataProcess, "_", measure, "/correlog_obs_", dataProcess, "_", measure, "_cty.png")
 
   png(exportFname, units = "in", width = w, height = h, res = dp)
   plot.correlogMod(correlogOut, datFormats)
@@ -57,11 +57,12 @@ plot.correlogMod <- function (x, datFormats){
     plot(obj$mean.of.class, obj$correlation, ylab = "correlation", 
         xlab = "distance (mean-of-class, km)")
     lines(obj$mean.of.class, obj$correlation)
+    abline(h = 0, color = "red")
     if (!is.null(obj$p)) {
         points(obj$mean.of.class[obj$p < 0.025], obj$correlation[obj$p < 
             0.025], pch = 21, bg = "black")
     }
-    title(paste("Correlogram", datFormats$statVar))
+    title(paste("Correlogram:", datFormats$statVar))
 }
 
 #### FIGURES ################################
@@ -109,7 +110,7 @@ choro_obs_db_oneSeason <- function(prepDat, pltFormats){
 
   
   plotChoro <- function(x){
-    exportFname <- paste0(exportPath, "/choro_obs_", dataProcess, "_", measure, "_", dataScale, "_S", x, ".png")
+    exportFname <- paste0(exportPath, "/", dataProcess, "_", measure, "/choro_obs_", dataProcess, "_", measure, "_", dataScale, "_S", x, ".png")
     pltDat <- plotDat %>% filter(season == x)
 
     # import county mapping info
@@ -173,7 +174,7 @@ choro_obs_db_avgSeason <- function(inDat, pltFormats){
     mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE)) 
   print(levels(pltDat$bin))
  
-  exportFname <- paste0(exportPath, "/choro_obs_", dataProcess, "_", measure, "_", dataScale, "_avg.png")
+  exportFname <- paste0(exportPath, "/", dataProcess, "_", measure, "/choro_obs_", dataProcess, "_", measure, "_", dataScale, "_avg.png")
 
   # import county mapping info
   ctyMap <- import_county_geomMap()

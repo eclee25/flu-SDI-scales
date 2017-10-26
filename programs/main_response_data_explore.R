@@ -71,22 +71,22 @@ iliPeak <- merge_obs_ctyStReg(iliPeak_ctySt, iliPeak_ctyReg)
 format_wksToEpi <- list(w = w, h = h, measure = "wksToEpi", dataProcess = "irDt", legendStep = 5, offset_l = FALSE, exportPath = exportPath, dataScale = "cty", incrementKm = incrementKm, resamp = resamp)
 # do.call(choro_obs_db_oneSeason, list(wksToEpi, format_wksToEpi))
 # do.call(choro_obs_db_avgSeason, list(wksToEpi, format_wksToEpi))
-do.call(correlogStat_obs_allSeasons, list(wksToEpi, format_wksToEpi))
+correlog_wksToEpi_cty <- do.call(correlogStat_obs_allSeasons, list(wksToEpi, format_wksToEpi))
 
 format_wksToPeak <- list(w = w, h = h, measure = "wksToPeak", dataProcess = "irDt", legendStep = 4, offset_l = FALSE, exportPath = exportPath, dataScale = "cty", incrementKm = incrementKm, resamp = resamp)
 # do.call(choro_obs_db_oneSeason, list(wksToPeak, format_wksToPeak))
 # do.call(choro_obs_db_avgSeason, list(wksToPeak, format_wksToPeak))
-do.call(correlogStat_obs_allSeasons, list(wksToPeak, format_wksToPeak))
+correlog_wksToPeak_cty <- do.call(correlogStat_obs_allSeasons, list(wksToPeak, format_wksToPeak))
 
 format_iliEarly <- list(w = w, h = h, measure = "iliEarly", dataProcess = "irDt", legendStep = 0.5, offset_l = FALSE, exportPath = exportPath, dataScale = "cty", incrementKm = incrementKm, resamp = resamp)
 # do.call(choro_obs_db_oneSeason, list(iliEarly, format_iliEarly))
 # do.call(choro_obs_db_avgSeason, list(iliEarly, format_iliEarly))
-do.call(correlogStat_obs_allSeasons, list(iliEarly, format_iliEarly))
+correlog_iliEarly_cty <- do.call(correlogStat_obs_allSeasons, list(iliEarly, format_iliEarly))
 
 format_iliPeak <- list(w = w, h = h, measure = "iliPeak", dataProcess = "irDt", legendStep = 0.5, offset_l = FALSE, exportPath = exportPath, dataScale = "cty", incrementKm = incrementKm, resamp = resamp)
 # do.call(choro_obs_db_oneSeason, list(iliPeak, format_iliPeak))
 # do.call(choro_obs_db_avgSeason, list(iliPeak, format_iliPeak))
-do.call(correlogStat_obs_allSeasons, list(iliPeak, format_iliPeak))
+correlog_iliPeak_cty <- do.call(correlogStat_obs_allSeasons, list(iliPeak, format_iliPeak))
 
 # #### state data figures ####
 # format_wksToEpi <- list(w = w, h = h, measure = "wksToEpi", dataProcess = "irDt", legendStep = 5, offset_l = FALSE, exportPath = exportPath, dataScale = "st")
