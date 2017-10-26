@@ -55,7 +55,7 @@ importPlot_diag_scatter_predictors_spatiotemporal <- function(path_csvExport, pa
   
   #### clean data ####
   # calculate yhat residuals for gamma model only
-  if (grepl("gamma", likelihoodString) | grepl("poisson", likelihoodString)){
+  if (grepl("normal", likelihoodString) | grepl("poisson", likelihoodString) | grepl("nbinomial", likelihoodString)){
     plotDat <- calculate_residuals(plotDat)
   }
   # list of varnames
@@ -367,7 +367,7 @@ importPlot_diag_data_distribution <- function(path_csvExport, path_plotExport_di
   
   #### clean data ####
   # calculate yhat residuals for gamma model only
-  if (grepl("gamma", likelihoodString) | grepl("poisson", likelihoodString)){
+  if (grepl("normal", likelihoodString) | grepl("poisson", likelihoodString) | grepl("nbinomial", likelihoodString)){
     plotDat <- calculate_residuals(plotDat)
   }
   # list of varnames
@@ -438,7 +438,7 @@ import_diag_data_residuals <- function(path_csvExport, likelihoodString){
 
     #### clean data ####
     # calculate yhat residuals for nonzero model only
-    if (likelihoodString %in% c("gamma", "normal", "poisson")){
+    if (likelihoodString %in% c("nbinomial", "normal", "poisson")){
     fullDat <- calculate_residuals(fullDat)
     }
 
@@ -478,7 +478,7 @@ plot_diag_scatter_hurdle_spatiotemporal <- function(path_csvExport, path_plotExp
   
   #### clean data ####
   # calculate yhat residuals for nonzero model only
-  if (likelihoodString %in% c("gamma", "normal", "poisson")){
+  if (likelihoodString %in% c("nbinomial", "normal", "poisson")){
     plotDat <- calculate_residuals(plotDat)
   }
   
@@ -554,7 +554,7 @@ plot_diag_scatter_hurdle_spatiotemporal_aggBias <- function(path_csvExport, path
   
   #### clean data ####
   # calculate yhat residuals for nonzero model only
-  if (likelihoodString %in% c("gamma", "normal", "poisson")){
+  if (likelihoodString %in% c("nbinomial", "normal", "poisson")){
     plotDat <- calculate_residuals(plotDat)
   }
   
@@ -630,7 +630,7 @@ plot_diag_scatter_st_spatiotemporal <- function(path_csvExport, path_plotExport_
   
   #### clean data ####
   # calculate yhat residuals for nonzero model only
-  if (likelihoodString %in% c("gamma", "normal", "poisson")){
+  if (likelihoodString %in% c("nbinomial", "normal", "poisson")){
     plotDat <- calculate_residuals(plotDat)
   }
   
