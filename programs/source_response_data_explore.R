@@ -57,12 +57,12 @@ plot.correlogMod <- function (x, datFormats){
     plot(obj$mean.of.class, obj$correlation, ylab = "correlation", 
         xlab = "distance (mean-of-class, km)")
     lines(obj$mean.of.class, obj$correlation)
-    abline(h = 0, color = "red")
+    abline(h = 0, col = "red")
     if (!is.null(obj$p)) {
         points(obj$mean.of.class[obj$p < 0.025], obj$correlation[obj$p < 
             0.025], pch = 21, bg = "black")
     }
-    title(paste("Correlogram:", datFormats$statVar))
+    title(paste("Correlogram:", datFormats$dataProcess, datFormats$measure))
 }
 
 #### FIGURES ################################

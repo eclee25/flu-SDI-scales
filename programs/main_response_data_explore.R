@@ -12,7 +12,7 @@ source("source_response_data_explore.R")
 dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
 w <- 5.5; h = 4
 offset <- FALSE
-incrementKm <- 10; resamp <- 10
+incrementKm <- 10; resamp <- 25
 
 ####################################
 # paths
