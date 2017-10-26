@@ -203,7 +203,8 @@ import_obs_wksToEpi_ctyReg <- function(offset_l, filepathList){
             rename(obs_y_cty = obs_y) %>%
             mutate(fips_st = substring(fips, 1, 2))
 
-        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1)
+        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1) %>%
+          filter(!(fips_st %in% c("02", "15")))
 
         regDat <- import_obs_wksToEpi_reg(filepathList) %>%
             left_join(reg_cw, by = c("regionID")) %>%
@@ -219,7 +220,8 @@ import_obs_wksToEpi_ctyReg <- function(offset_l, filepathList){
             rename(obs_y_cty = obs_y) %>%
             mutate(fips_st = substring(fips, 1, 2))
 
-        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1)
+        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1) %>%
+          filter(!(fips_st %in% c("02", "15")))
 
         regDat <- import_obs_wksToEpi_reg(filepathList) %>%
             left_join(reg_cw, by = c("regionID")) %>%
@@ -327,7 +329,8 @@ import_obs_wksToPeak_ctyReg <- function(offset_l, filepathList){
             rename(obs_y_cty = obs_y) %>%
             mutate(fips_st = substring(fips, 1, 2))
 
-        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1)
+        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1) %>%
+          filter(!(fips_st %in% c("02", "15")))
 
         regDat <- import_obs_wksToPeak_reg(filepathList) %>%
             left_join(reg_cw, by = c("regionID")) %>%
@@ -343,7 +346,8 @@ import_obs_wksToPeak_ctyReg <- function(offset_l, filepathList){
             rename(obs_y_cty = obs_y) %>%
             mutate(fips_st = substring(fips, 1, 2))
 
-        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1)
+        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1) %>%
+          filter(!(fips_st %in% c("02", "15")))
 
         regDat <- import_obs_wksToPeak_reg(filepathList) %>%
             left_join(reg_cw, by = c("regionID")) %>%
@@ -452,7 +456,8 @@ import_obs_iliEarly_ctyReg <- function(offset_l, filepathList){
             rename(obs_y_cty = obs_y) %>%
             mutate(fips_st = substring(fips, 1, 2))
 
-        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1)
+        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1) %>%
+          filter(!(fips_st %in% c("02", "15")))
 
         regDat <- import_obs_iliEarly_reg(filepathList) %>%
             left_join(reg_cw, by = c("regionID")) %>%
@@ -468,7 +473,8 @@ import_obs_iliEarly_ctyReg <- function(offset_l, filepathList){
             rename(obs_y_cty = obs_y) %>%
             mutate(fips_st = substring(fips, 1, 2))
 
-        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1)
+        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1) %>%
+          filter(!(fips_st %in% c("02", "15")))
 
         regDat <- import_obs_iliEarly_reg(filepathList) %>%
             left_join(reg_cw, by = c("regionID")) %>%
@@ -578,7 +584,8 @@ import_obs_iliPeak_ctyReg <- function(offset_l, filepathList){
             rename(obs_y_cty = obs_y) %>%
             mutate(fips_st = substring(fips, 1, 2))
 
-        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1)
+        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1) %>%
+          filter(!(fips_st %in% c("02", "15")))
 
         regDat <- import_obs_iliPeak_reg(filepathList) %>%
             left_join(reg_cw, by = c("regionID")) %>%
@@ -594,7 +601,8 @@ import_obs_iliPeak_ctyReg <- function(offset_l, filepathList){
             rename(obs_y_cty = obs_y) %>%
             mutate(fips_st = substring(fips, 1, 2))
 
-        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1)
+        reg_cw <- read_csv(filepathList$path_region_cw, col_types = "c__i", col_names = c("fips_st", "regionID"), skip = 1) %>%
+          filter(!(fips_st %in% c("02", "15")))
 
         regDat <- import_obs_iliPeak_reg(filepathList) %>%
             left_join(reg_cw, by = c("regionID")) %>%
@@ -614,7 +622,7 @@ import_obs_iliPeak_ctyReg <- function(offset_l, filepathList){
 merge_obs_ctyStReg <- function(ctyStDat, ctyRegDat){
   print(match.call())
 
-  fullDat <- full_join(ctyStDat, ctyRegDat %>% select(-fips_st, -contains("_cty")), by = c("season", "fips"))
+  fullDat <- full_join(ctyStDat, ctyRegDat %>% select(-fips_st, -contains("_cty"), -latitude, -longitude), by = c("season", "fips"))
   return(fullDat)
 }
 ################################
