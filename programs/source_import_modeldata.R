@@ -15,6 +15,81 @@ source("source_clean_response_functions_st.R") # functions to clean response (st
 source("source_clean_response_functions_reg.R") # functions to clean response (reg)
 
 #### group observed and fitted model data ################################
+import_obs_allMeasures_cty <- function(filepathList){
+  print(match.call())
+
+  # import all 4 disease burden measures
+  wksToEpiDat <- cleanR_wksToEpi_cty(filepathList) %>%
+    mutate(y_wksToEpi = y1) %>%
+    select(season, fips, y_wksToEpi)
+  wksToPeakDat <- cleanR_wksToPeak_cty(filepathList) %>%
+    mutate(y_wksToPeak = y1) %>%
+    select(season, fips, y_wksToPeak)
+  iliEarlyDat <- cleanR_iliEarly_irDt_shift1_cty(filepathList) %>%
+    mutate(rr_iliEarly = y1/E) %>%
+    select(season, fips, rr_iliEarly)
+  iliPeakDat <- cleanR_iliPeak_irDt_shift1_cty(filepathList) %>%
+    mutate(rr_iliPeak = y1/E) %>%
+    select(season, fips, rr_iliPeak)
+
+  # add lat/lon coords
+  coordDat <- read_csv(filepathList$path_latlon_cty, col_types = "_c__dd")
+
+  obsDat <- full_join(wksToEpiDat, wksToPeakDat, by = c("season", "fips")) %>%
+    full_join(iliEarlyDat, by = c("season", "fips")) %>%
+    full_join(iliPeakDat, by = c("season", "fips")) %>%
+    left_join(coordDat, by = c("fips")) %>%
+    filter(!(substring(fips, 1, 2) %in% c("02", "15")))
+
+  return(obsDat)
+}
+################################
+import_obs_aggBias_allMeasures <- function(filepathList, dataFormats){
+  print(match.call())
+
+  offset <- dataFormats$offset_l
+  bigscale <- dataFormats$bigscale
+
+  if(bigscale == "st"){
+    wksToEpiDat <- import_obs_wksToEpi_ctySt(offset, filepathList) %>%
+      rename(bias_wksToEpi = obs_diff_stCty) %>%
+      select(season, fips, fips_st, latitude, longitude, bias_wksToEpi)
+    wksToPeakDat <- import_obs_wksToPeak_ctySt(offset, filepathList) %>%
+      rename(bias_wksToPeak = obs_diff_stCty) %>%
+      select(season, fips, bias_wksToPeak)
+    iliEarlyDat <- import_obs_iliEarly_ctySt(offset, filepathList) %>%
+      rename(bias_iliEarly = obs_diff_stCty) %>%
+      select(season, fips, bias_iliEarly)
+    iliPeakDat <- import_obs_iliPeak_ctySt(offset, filepathList) %>%
+      rename(bias_iliPeak = obs_diff_stCty) %>%
+      select(season, fips, bias_iliPeak)
+  } else if(bigscale == "reg"){
+    wksToEpiDat <- import_obs_wksToEpi_ctyReg(offset, filepathList) %>%
+      rename(bias_wksToEpi = obs_diff_regCty) %>%
+      select(season, fips, fips_st, latitude, longitude, bias_wksToEpi)
+    wksToPeakDat <- import_obs_wksToPeak_ctyReg(offset, filepathList) %>%
+      rename(bias_wksToPeak = obs_diff_regCty) %>%
+      select(season, fips, bias_wksToPeak)
+    iliEarlyDat <- import_obs_iliEarly_ctyReg(offset, filepathList) %>%
+      rename(bias_iliEarly = obs_diff_regCty) %>%
+      select(season, fips, bias_iliEarly)
+    iliPeakDat <- import_obs_iliPeak_ctyReg(offset, filepathList) %>%
+      rename(bias_iliPeak = obs_diff_regCty) %>%
+      select(season, fips, bias_iliPeak)
+  }
+
+  # add lat/lon coords
+  coordDat <- read_csv(filepathList$path_latlon_cty, col_types = "_c__dd")
+
+  obsDat <- full_join(wksToEpiDat, wksToPeakDat, by = c("season", "fips")) %>%
+    full_join(iliEarlyDat, by = c("season", "fips")) %>%
+    full_join(iliPeakDat, by = c("season", "fips")) %>%
+    left_join(coordDat, by = c("fips")) %>%
+    filter(!(substring(fips, 1, 2) %in% c("02", "15")))
+
+  return(obsDat)
+}
+################################
 
 #### wks.to.epi ################################
 import_obsFit_wksToEpi <- function(modCodeStr, filepathList){
@@ -665,83 +740,4 @@ import_county_geomMap <- function(){
     select(-polyname)
   
   return(county_geomMap)
-}
-
-#### obsolete functions? ################################
-################################
-string_exportFig_subsampleAggBias_folder <- function(){
-  return(paste0(dirname(sys.frame(1)$ofile), "/../graph_outputs/subsampleAggBias_explore/"))
-}
-################################
-import_obsFit_seasIntensityRR <- function(modCodeStr, filepathList){
-  print(match.call())
-  
-  # import fitted data (on the scale of log(y))
-  outDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
-    rename(fit_logy = mean, fit_sd = sd) %>%
-    select(modCodeStr, season, fips, fit_logy, fit_sd)
-  
-  # import observed and expected log seasIntensity (shift1)
-  if (grepl("2009p", modCodeStr)){
-    inDat <- cleanR_iliSum_2009p_shift1_cty(filepathList) %>%
-        mutate(obs_logy = log(y1), logE = log(E)) %>%
-        mutate(season = 10) %>%
-        select(season, fips, obs_logy, logE)
-  } else{
-    inDat <- cleanR_iliSum_shift1_cty(filepathList) %>%
-        mutate(obs_logy = log(y1), logE = log(E)) %>%
-        select(season, fips, obs_logy, logE)
-  }
-  
-  # prepare data for plotting breaks
-  obsFitDat <- left_join(outDat, inDat, by = c("season", "fips")) %>%
-    mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) %>%
-    mutate(resid = (obs_logy - fit_logy)/fit_sd)
-  
-  return(obsFitDat)
-}
-################################
-import_obsFit_seasIntensityRR_st <- function(modCodeStr, filepathList){
-  print(match.call())
-  # import observed and fitted data for seasonal intensity state models
-  
-  # import fitted data
-  outDat <- read_csv(string_fit_fname(modCodeStr), col_types = "c_d_c_dd______") %>%
-    rename(fit_logy = mean, fit_sd = sd) %>%
-    select(modCodeStr, season, fips_st, fit_logy, fit_sd)
-  
-  # import observed data
-  inDat <- cleanR_iliSum_shift1_st(filepathList) %>%
-    mutate(obs_logy = log(y1), logE = log(E)) %>%
-    select(season, fips_st, obs_logy, logE)
-  
-  # prepare data for plotting breaks
-  obsFitDat <- left_join(outDat, inDat, by = c("season", "fips_st")) %>%
-    mutate(obs_rr = obs_logy-logE, fit_rr = fit_logy-logE) %>%
-    mutate(resid = (obs_logy - fit_logy)/fit_sd)
-  
-  return(obsFitDat)
-}
-################################
-import_fit_aggBias_seasIntensityRR <- function(modCodeStr_cty, modCodeStr_st, filepathList){
-  print(match.call())
-  # import fitted values for county and state seasonal intensity models
-
-  # import county data
-  ctyDat <- import_obsFit_seasIntensityRR(modCodeStr_cty, filepathList) %>%
-    rename(fit_rr_cty = fit_rr, fit_logy_cty = fit_logy) %>%
-    select(season, fips, fit_rr_cty, fit_logy_cty) %>%
-    mutate(fips_st = substring(fips, 1, 2))
-  
-  # import state data
-  stDat <- import_obsFit_seasIntensityRR_st(modCodeStr_st, filepathList) %>%
-    rename(fit_rr_st = fit_rr, fit_logy_st = fit_logy) %>%
-    select(season, fips_st, fit_rr_st, fit_logy_st)
-  
-  fullFitDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
-    mutate(fit_rrDiff_stCty = fit_rr_st-fit_rr_cty) %>%
-    mutate(fit_logyRatio_stCty = fit_logy_st-fit_logy_cty) %>%
-    select(season, fips, fips_st, fit_rr_cty, fit_logy_cty, fit_rr_st, fit_logy_st, fit_rrDiff_stCty, fit_logyRatio_stCty)
-  
-  return(fullFitDat) 
 }
