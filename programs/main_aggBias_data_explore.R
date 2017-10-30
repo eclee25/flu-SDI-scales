@@ -12,7 +12,7 @@ source("source_aggBias_data_explore_functions.R")
 
 #### set these! ###############################
 dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
-modules <- c("lisa_allSeasons") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "dataExport"
+modules <- c("correlog_allSeasons") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "dataExport", "correlog_allSeasons"
 
 ###############################
 ## PATHS ##
@@ -66,6 +66,21 @@ if("statistics" %in% modules){
   # list(histPlot=histPlot, absHistPlot=absHistPlot, dbPlot=dbPlot, absDbPlot=absDbPlot, ttest=ttest, absTtest=absTtest)
 }
 
+if("correlog_allSeasons" %in% modules){
+  staticFormats <- list(w = 6, h = 4, dataProcess = "irDt", incrementKm = 10, resamp = 25)
+  dynFormatLs <- data.frame(dataProcess = staticFormats$dataProcess, measure = c(rep("wksToEpi", 2), rep("wksToPeak", 2), rep("iliEarly", 2), rep("iliPeak", 2)), scaleDiff = rep(c("stCty", "regCty"), 4)) 
+  dynFormats <- split(dynFormatLs, seq(nrow(dynFormatLs)))
+
+  correlogStat_aggBias_allSeasons(obs_wksToEpi_ctySt, staticFormats, dynFormats[[1]])
+  correlogStat_aggBias_allSeasons(obs_wksToEpi_ctyReg, staticFormats, dynFormats[[2]])
+  correlogStat_aggBias_allSeasons(obs_wksToPeak_ctySt, staticFormats, dynFormats[[3]])
+  correlogStat_aggBias_allSeasons(obs_wksToPeak_ctyReg, staticFormats, dynFormats[[4]])
+  correlogStat_aggBias_allSeasons(obs_iliEarly_ctySt, staticFormats, dynFormats[[5]])
+  correlogStat_aggBias_allSeasons(obs_iliEarly_ctyReg, staticFormats, dynFormats[[6]])
+  correlogStat_aggBias_allSeasons(obs_iliPeak_ctySt, staticFormats, dynFormats[[7]])
+  correlogStat_aggBias_allSeasons(obs_iliPeak_ctyReg, staticFormats, dynFormats[[8]])
+}
+
 if("lisa_oneSeason" %in% modules){
   plotFormatsDf <- tbl_df(data.frame(
     dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
@@ -90,8 +105,8 @@ if("lisa_allSeasons" %in% modules){
   plotFormatsDf <- tbl_df(data.frame(
     dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
     scaleDiff = rep(c("stCty", "regCty"), 4), 
-    neighSize = 80, # km units
-    resamp = 10,
+    neighSize = 1000, # km units
+    resamp = 100,
     w = 6, 
     h = 4)) %>%
     mutate(pltVar = paste0("obs_diff_", scaleDiff))

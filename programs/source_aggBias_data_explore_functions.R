@@ -122,8 +122,59 @@ lisa_aggBias_timingMagnitude_allSeasons <- function(importDat, pltFormats){
 
   return(lisaOut)
 }
+################################
+correlogStat_aggBias_allSeasons <- function(prepDat, staticFormats, dynFormats){
+  print(match.call())
 
+  # data formatting
+  scaleDiff <- dynFormats$scaleDiff
+  dynFormats$statVar <- paste0("obs_diff_", scaleDiff)
+  incrementKm <- staticFormats$incrementKm
+  resamp <- staticFormats$resamp
 
+  # plot formatting
+  measure <- dynFormats$measure
+  dataProcess <- staticFormats$dataProcess
+  w <- staticFormats$w; h <- staticFormats$h; dp <- 300
+
+  # clean data
+  statDat <- prepDat %>%
+    rename_("statVar" = dynFormats$statVar) %>%
+    mutate(season = paste0("S", season)) %>%
+    select(season, fips, latitude, longitude, statVar) %>%
+    spread(season, statVar)
+
+  # columns represent data over time
+  statMx <- as.matrix(statDat %>% select(num_range("S", 3:9)))
+
+  # calculate correlogram
+  correlogOut <- correlog(x = statDat$longitude, y = statDat$latitude, z = statMx, na.rm = TRUE, increment = incrementKm, resamp = resamp, latlon = TRUE)
+  # seems like increment has the unit km: https://stat.ethz.ch/pipermail/r-sig-geo/2010-October/009506.html
+
+  # plot and export correlogram
+  exportFname <- paste0(string_exportFig_aggBias_data_folder(), dataProcess, "_", measure, "/correlog_aggBias_", dataProcess, "_", measure, "_", scaleDiff, "_resamp", resamp, ".png")
+
+  pltFormats <- list(dataProcess = dataProcess, measure = measure, scaleDiff = scaleDiff)
+  png(exportFname, units = "in", width = w, height = h, res = dp)
+  plot.correlogMod(correlogOut, pltFormats)
+  dev.off()
+
+  return(correlogOut)
+}
+
+################################
+plot.correlogMod <- function (x, datFormats){
+    obj <- x
+    plot(obj$mean.of.class, obj$correlation, ylab = "correlation", 
+        xlab = "distance (mean-of-class, km)")
+    lines(obj$mean.of.class, obj$correlation)
+    abline(h = 0, col = "red")
+    if (!is.null(obj$p)) {
+        points(obj$mean.of.class[obj$p < 0.025], obj$correlation[obj$p < 
+            0.025], pch = 21, bg = "black")
+    }
+    title(paste("Correlogram:", datFormats$dataProcess, datFormats$measure, "aggBias", datFormats$scaleDiff))
+}
 
 #### scatter plotting functions ################################
 scatter_obsCompare_aggBias_timingMagnitude <- function(obs_measure_aggBias, staticFormats, dynFormats){
@@ -248,7 +299,7 @@ choro_aggBias_oneSeason <- function(pltDat, pltFormats){
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = obs_diff, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_manual(name = "Error", values = manualPalette, na.value = "grey60", drop = FALSE) +
+      scale_fill_manual(name = "Aggregation Bias", values = manualPalette, na.value = "grey60", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")
