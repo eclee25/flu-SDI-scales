@@ -54,16 +54,67 @@ pairedTest_aggBias_timingMagnitude <- function(obs_early, obs_peak){
   print(absDbPlot)
 
   # perform paired t-test
-  ttest <- t.test(fullDat$earlyBias, fullDat$peakBias, paired = TRUE)
+  ttest <- t.test(fullDat$peakBias, fullDat$earlyBias, paired = TRUE) # difference is measured as input 1 - input 2, this is how we calculated difference in INLA
   print(ttest)
 
-  absTtest <- t.test(fullDat$abs_earlyBias, fullDat$abs_peakBias, paired = TRUE)
+  absTtest <- t.test(fullDat$abs_peakBias, fullDat$abs_earlyBias, paired = TRUE)
   print(absTtest)
 
   return(list(histPlot=histPlot, absHistPlot=absHistPlot, dbPlot=dbPlot, absDbPlot=absDbPlot, ttest=ttest, absTtest=absTtest))
 
 }
 ################################
+pairedTest_aggBias_spatialScales <- function(obs_st, obs_reg){
+  print(match.call())
+  # compare aggregation bias for region bias-state bias, works for all disease burden measures
+
+  # import data
+  dat1 <- obs_st %>%
+    select(season, fips, fips_st, contains("obs_diff")) 
+  names(dat1)[4] <- "stBias"
+
+  dat2 <- obs_reg %>%
+    select(season, fips, contains("obs_diff")) 
+  names(dat2)[3] <- "regBias"
+
+  fullDat <- full_join(dat1, dat2, by = c("season", "fips")) %>%
+    mutate(aggBiasDiff = regBias - stBias) %>%
+    mutate(abs_regBias = abs(regBias), abs_stBias = abs(stBias)) %>%
+    mutate(absAggBiasDiff = abs_regBias - abs_stBias)
+  fullDat2 <- fullDat %>%
+    gather(measure, value, stBias:absAggBiasDiff)
+
+  # check that the difference between the measures follows a normal distribution, thus making it appropriate for a paired T-test 
+  histPlot <- hist(fullDat$aggBiasDiff, bins = 100)
+  absHistPlot <- hist(fullDat$absAggBiasDiff, bins = 100)
+
+
+  # plot overlapping histogram for the two distributions
+  dbPlot <- ggplot(fullDat2 %>%
+    filter(measure %in% c("stBias", "regBias")), aes(x = value)) +
+    geom_freqpoly(aes(y = ..density.., colour = measure), bins = 50, na.rm=TRUE) +
+    theme_bw() +
+    theme(legend.position = "bottom")
+  print(dbPlot)
+
+  absDbPlot <- ggplot(fullDat2 %>%
+    filter(measure %in% c("abs_stBias", "abs_regBias")), aes(x = value)) +
+    geom_freqpoly(aes(y = ..density.., colour = measure), bins = 50, na.rm=TRUE) +
+    theme_bw() +
+    theme(legend.position = "bottom")
+  print(absDbPlot)
+
+  # perform paired t-test
+  ttest <- t.test(fullDat$regBias, fullDat$stBias, paired = TRUE) # difference is measured as input 1 - input 2, this is how we calculated difference in INLA
+  print(ttest)
+
+  absTtest <- t.test(fullDat$abs_regBias, fullDat$abs_stBias, paired = TRUE)
+  print(absTtest)
+
+  return(list(histPlot=histPlot, absHistPlot=absHistPlot, dbPlot=dbPlot, absDbPlot=absDbPlot, ttest=ttest, absTtest=absTtest))
+}
+################################
+
 lisa_aggBias_timingMagnitude_oneSeason <- function(importDat, pltFormats){
   print(match.call())
   # examine local indicators of spatial autocorrelation for aggregation bias for wksToEpi, wksToPeak, iliEarly, and iliPeak measures, works for both ctySt and ctyReg levels

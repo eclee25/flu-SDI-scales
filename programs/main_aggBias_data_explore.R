@@ -12,7 +12,7 @@ source("source_aggBias_data_explore_functions.R")
 
 #### set these! ###############################
 dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
-modules <- c("correlog_allSeasons") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "dataExport", "correlog_allSeasons"
+modules <- c("statistics") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "dataExport", "correlog_allSeasons"
 
 ###############################
 ## PATHS ##
@@ -59,10 +59,17 @@ obs_iliPeak_ctyReg <- do.call(import_obs_iliPeak_ctyReg, c(dataParams))
 
 #### statistics ############################
 if("statistics" %in% modules){
+  # early and peak comparisons
   timeSt <- pairedTest_aggBias_timingMagnitude(obs_wksToEpi_ctySt, obs_wksToPeak_ctySt)
   timeReg <- pairedTest_aggBias_timingMagnitude(obs_wksToEpi_ctyReg, obs_wksToPeak_ctyReg)
   magSt <- pairedTest_aggBias_timingMagnitude(obs_iliEarly_ctySt, obs_iliPeak_ctySt)
   magReg <- pairedTest_aggBias_timingMagnitude(obs_iliEarly_ctyReg, obs_iliPeak_ctyReg)
+
+  # scale comparisons
+  wksToEpiScale <- pairedTest_aggBias_spatialScales(obs_wksToEpi_ctySt, obs_wksToEpi_ctyReg)
+  wksToPeakScale <- pairedTest_aggBias_spatialScales(obs_wksToPeak_ctySt, obs_wksToPeak_ctyReg)
+  iliEarlyScale <- pairedTest_aggBias_spatialScales(obs_iliEarly_ctySt, obs_iliEarly_ctyReg)
+  iliPeakScale <- pairedTest_aggBias_spatialScales(obs_iliPeak_ctySt, obs_iliPeak_ctyReg)
   # list(histPlot=histPlot, absHistPlot=absHistPlot, dbPlot=dbPlot, absDbPlot=absDbPlot, ttest=ttest, absTtest=absTtest)
 }
 
