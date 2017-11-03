@@ -30,7 +30,7 @@ seasons <- c(3:9)
 # modCodeStrLs <- paste0("8a_iliSum_v2-6_R", labLs)
 
 # modCodeStrLs <- paste0("8f_wksToEpi_v", 1:2, "-2")
-modCodeStrLs <- c("8b_iliPeak_v2-22")
+modCodeStrLs <- c("8h_iliEarly_v2-22")
 
 likString <- "normal"; likStrings <- c(likString)
 source("source_calculate_residuals_shift1.R") # calculate_residuals function for y1 response
