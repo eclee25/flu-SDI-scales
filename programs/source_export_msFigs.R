@@ -1,7 +1,7 @@
 require(tidyverse)
 require(ggthemes)
 setwd(dirname(sys.frame(1)$ofile))
-source("source_import_model_data.R")
+source("source_import_modeldata.R")
 ################################################################
 
 #### filepath functions ################################
@@ -21,7 +21,7 @@ choro_obs_timingMeasures_oneSeason <- function(obsAllMeasuresDat, pltFormats){
   # plot formatting
   w <- pltFormats$w; h <- pltFormats$h; dp <- 300
   if (is.null(pltFormats$legendStep)){
-    legendStep <- 1
+    legendStep <- 4
   } else{
     legendStep <- pltFormats$legendStep
   }
@@ -56,10 +56,10 @@ choro_obs_timingMeasures_oneSeason <- function(obsAllMeasuresDat, pltFormats){
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_brewer(name = "Weeks from Week 40", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+      scale_fill_brewer(name = "Weeks from\nWeek 40", palette = "RdPu", na.value = "grey60", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
-      theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") + 
+      theme(text = element_text(size = 9), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.key.size = unit(.35, "cm"), legend.margin = margin(t = 0, r = 0, b = 2, l = 0, unit = "pt"), plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.title = element_text(size = 8)) +
       facet_wrap(~fig)
     
     ggsave(exportFname, choro, height = h, width = w, dpi = dp)
@@ -75,19 +75,21 @@ choro_obs_magnitudeMeasures_oneSeason <- function(obsAllMeasuresDat, pltFormats)
   # plot formatting
   w <- pltFormats$w; h <- pltFormats$h; dp <- 300
   if (is.null(pltFormats$legendStep)){
-    legendStep <- 1
+    legendStep <- 0.5
   } else{
     legendStep <- pltFormats$legendStep
   }
   
   # set breaks based on distribution of observed data
-  allObs <- c(obsAllMeasuresDat$rr_iliEarly, obsAllMeasuresDat$rr_iliPeak)
+  obsAllMeasuresDat2 <- obsAllMeasuresDat %>%
+    mutate(log_rr_iliEarly_shift1 = log(rr_iliEarly+1), log_rr_iliPeak_shift1 = log(rr_iliPeak+1))
+  allObs <- c(obsAllMeasuresDat2$log_rr_iliEarly_shift1, obsAllMeasuresDat2$log_rr_iliPeak_shift1)
   breaks <- seq(floor(min(allObs, na.rm = TRUE)), ceiling(max(allObs, na.rm = TRUE)), by = legendStep)
 
-  prepDat <- obsAllMeasuresDat %>%
+  prepDat <- obsAllMeasuresDat2 %>%
     select(season, fips, contains("rr_")) %>%
-     mutate(iliEarly = cut(rr_iliEarly, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) %>%
-    mutate(iliPeak = cut(rr_iliPeak, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE))
+    mutate(iliEarly = cut(log_rr_iliEarly_shift1, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) %>%
+    mutate(iliPeak = cut(log_rr_iliPeak_shift1, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE))
   factorlvls <- levels(prepDat$iliEarly)
   
   plotDat <- prepDat %>%
@@ -110,10 +112,10 @@ choro_obs_magnitudeMeasures_oneSeason <- function(obsAllMeasuresDat, pltFormats)
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_brewer(name = "ILI Intensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+      scale_fill_brewer(name = "Log Intensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
-      theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") + 
+      theme(text = element_text(size = 9), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.key.size = unit(.35, "cm"), legend.margin = margin(t = 0, r = 0, b = 2, l = 0, unit = "pt"), plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.title = element_text(size = 8)) +
       facet_wrap(~fig)
     
     ggsave(exportFname, choro, height = h, width = w, dpi = dp)
@@ -128,26 +130,22 @@ choro_obs_aggBias_allMeasures_oneSeason <- function(obsBiasAllMeasuresDat, pltFo
   
   # plot formatting
   w <- pltFormats$w; h <- pltFormats$h; dp <- 300
-  if (is.null(pltFormats$legendStep)){
-    legendStep <- 1
-  } else{
-    legendStep <- pltFormats$legendStep
-  }
-  
-  # set breaks based on distribution of observed data
-  allObs <- c(obsBiasAllMeasuresDat$rr_iliEarly, obsBiasAllMeasuresDat$rr_iliPeak)
-  breaks <- seq(floor(min(allObs, na.rm = TRUE)), ceiling(max(allObs, na.rm = TRUE)), by = legendStep)
+  manualPalette <- c("#10456a", "#1c73b1", "#67add4", "#cacaca", "#69a761", "#2f8e41", "#09622a") # 3 blue - grey - 3 green
+  breaks <- c(-22, -10, -5, -1, 1, 5, 10, 22) # set manually
 
-  prepDat <- obsAllMeasuresDat %>%
-    select(season, fips, contains("rr_")) %>%
-     mutate(iliEarly = cut(rr_iliEarly, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) %>%
-    mutate(iliPeak = cut(rr_iliPeak, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE))
+  # clean data
+  prepDat <- obsBiasAllMeasuresDat %>%
+    select(season, fips, contains("bias_")) %>%
+    mutate(wksToEpi = cut(bias_wksToEpi, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) %>%
+    mutate(wksToPeak = cut(bias_wksToPeak, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) %>%
+    mutate(iliEarly = cut(bias_iliEarly, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) %>%
+    mutate(iliPeak = cut(bias_iliPeak, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE))
   factorlvls <- levels(prepDat$iliEarly)
   
   plotDat <- prepDat %>%
-    select(season, fips, iliEarly, iliPeak) %>%
-    gather(fig, bin, iliEarly:iliPeak) %>%
-    mutate(fig = factor(fig, levels = c("iliEarly", "iliPeak"), labels = c("Early Season", "Peak Season"))) %>%
+    select(season, fips, wksToEpi, wksToPeak, iliEarly, iliPeak) %>%
+    gather(fig, bin, wksToEpi:iliPeak) %>%
+    mutate(fig = factor(fig, levels = c("wksToEpi", "wksToPeak", "iliEarly", "iliPeak"), labels = c("Onset Timing", "Peak Timing", "Early Season", "Peak Season"))) %>%
     mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE)) 
   print(levels(plotDat$bin))
  
@@ -159,16 +157,16 @@ choro_obs_aggBias_allMeasures_oneSeason <- function(obsBiasAllMeasuresDat, pltFo
 
     # import county mapping info
     ctyMap <- import_county_geomMap()
-    
+
     # plot
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_brewer(name = "ILI Intensity", palette = "OrRd", na.value = "grey60", drop = FALSE) +
+      scale_fill_manual(name = "Aggregation Bias", values = manualPalette, na.value = "grey60", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
-      theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom") + 
-      facet_wrap(~fig)
+      theme(text = element_text(size = 9), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.key.size = unit(.35, "cm"), legend.margin = margin(t = 0, r = 0, b = 2, l = 0, unit = "pt"), plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.title = element_text(size = 8)) +
+      facet_wrap(~fig, nrow = 1)
     
     ggsave(exportFname, choro, height = h, width = w, dpi = dp)
      
