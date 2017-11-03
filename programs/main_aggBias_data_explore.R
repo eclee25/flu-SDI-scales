@@ -12,7 +12,7 @@ source("source_aggBias_data_explore_functions.R")
 
 #### set these! ###############################
 dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
-modules <- c("statistics") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "dataExport", "correlog_allSeasons"
+modules <- c("dataExport") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "dataExport", "correlog_allSeasons"
 
 ###############################
 ## PATHS ##
@@ -92,7 +92,7 @@ if("lisa_oneSeason" %in% modules){
   plotFormatsDf <- tbl_df(data.frame(
     dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
     scaleDiff = rep(c("stCty", "regCty"), 4), 
-    neighSize = 80, # km units
+    neighSize = 160, # km units
     resamp = 100,
     w = 6, 
     h = 4)) %>%
@@ -267,15 +267,17 @@ if("dataExport" %in% modules){
   dataFormats <- tbl_df(data.frame(
     dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
     pltVar = "obs_diff_stCty")) %>%
-    mutate(exportPath = paste0(path_exportData1, "/aggBias_", rep(c("st_", "cty_"), 4), dbCode, ".csv")) 
+    mutate(exportPath = paste0(path_exportData1, "/aggBiasDiff_yVariance_", rep(c("st_", "cty_"), 4), dbCode, ".csv")) 
 
-  write_st_aggBias_mean(obs_wksToEpi_ctySt, as.list(dataFormats[1,]))
-  write_cty_aggBias_mean(obs_wksToEpi_ctySt, as.list(dataFormats[2,]))
-  write_st_aggBias_mean(obs_wksToPeak_ctySt, as.list(dataFormats[3,]))
-  write_cty_aggBias_mean(obs_wksToPeak_ctySt, as.list(dataFormats[4,]))
-  write_st_aggBias_mean(obs_iliEarly_ctySt, as.list(dataFormats[5,]))
-  write_cty_aggBias_mean(obs_iliEarly_ctySt, as.list(dataFormats[6,]))
-  write_st_aggBias_mean(obs_iliPeak_ctySt, as.list(dataFormats[7,]))
-  write_cty_aggBias_mean(obs_iliPeak_ctySt, as.list(dataFormats[8,]))
+  write_st_aggBias_yVariance_mean(obs_wksToEpi_ctySt, as.list(dataFormats[1,]))
+  # write_cty_aggBias_mean(obs_wksToEpi_ctySt, as.list(dataFormats[2,]))
+  write_st_aggBias_yVariance_mean(obs_wksToPeak_ctySt, as.list(dataFormats[3,]))
+  # write_cty_aggBias_mean(obs_wksToPeak_ctySt, as.list(dataFormats[4,]))
+  write_st_aggBias_yVariance_mean(obs_iliEarly_ctySt, as.list(dataFormats[5,]))
+  # write_cty_aggBias_mean(obs_iliEarly_ctySt, as.list(dataFormats[6,]))
+  write_st_aggBias_yVariance_mean(obs_iliPeak_ctySt, as.list(dataFormats[7,]))
+  # write_cty_aggBias_mean(obs_iliPeak_ctySt, as.list(dataFormats[8,]))
+
+  # cty aggBias doesn't answer the correct question
 
 }

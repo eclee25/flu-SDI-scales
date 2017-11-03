@@ -360,15 +360,14 @@ choro_aggBias_oneSeason <- function(pltDat, pltFormats){
 ################################
 
 #### data export functions ################################
-write_st_aggBias_mean <- function(importDat, dataFormats){
+write_st_aggBias_yVariance_mean <- function(importDat, dataFormats){
   # mean data aggregation bias for states
   print(match.call())
 
   writeData <- importDat %>%
     rename_("obs_aggBias" = dataFormats$pltVar) %>%
-    group_by(fips_st) %>%
-    summarise(obs_aggBias = mean(obs_aggBias, na.rm = TRUE)) %>%
-    mutate(obs_aggBiasMag = abs(obs_aggBias))
+    group_by(season, fips_st) %>%
+    summarise(obs_aggBias = mean(obs_aggBias, na.rm = TRUE), obs_yVariance = var(obs_y_cty, na.rm = TRUE)) 
 
   print(summary(writeData))
 
