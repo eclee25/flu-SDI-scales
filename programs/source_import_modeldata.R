@@ -78,13 +78,9 @@ import_obs_aggBias_allMeasures <- function(filepathList, dataFormats){
       select(season, fips, bias_iliPeak)
   }
 
-  # add lat/lon coords
-  coordDat <- read_csv(filepathList$path_latlon_cty, col_types = "_c__dd")
-
   obsDat <- full_join(wksToEpiDat, wksToPeakDat, by = c("season", "fips")) %>%
     full_join(iliEarlyDat, by = c("season", "fips")) %>%
     full_join(iliPeakDat, by = c("season", "fips")) %>%
-    left_join(coordDat, by = c("fips")) %>%
     filter(!(substring(fips, 1, 2) %in% c("02", "15")))
 
   return(obsDat)
@@ -234,7 +230,8 @@ import_obs_wksToEpi_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_rr_st-obs_rr_cty) %>%
-      select(season, fips, fips_st, latitude, longitude, obs_rr_cty, obs_rr_st, obs_diff_stCty) 
+      mutate(obs_ratio_stCty = obs_y_st/obs_y_cty) %>%
+      select(season, fips, fips_st, latitude, longitude, obs_rr_cty, obs_rr_st, obs_diff_stCty, obs_ratio_stCty) 
 
   } else{ # data without offset adjustment
     ctyDat <- import_obs_wksToEpi(filepathList) %>%
@@ -248,7 +245,8 @@ import_obs_wksToEpi_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_y_st-obs_y_cty) %>%
-      select(season, fips, fips_st, latitude, longitude,  obs_y_cty, obs_y_st, obs_diff_stCty) 
+      mutate(obs_ratio_stCty = obs_y_st/obs_y_cty) %>%
+      select(season, fips, fips_st, latitude, longitude,  obs_y_cty, obs_y_st, obs_diff_stCty, obs_ratio_stCty) 
   }
   
   return(fullObsDat) 
@@ -288,7 +286,8 @@ import_obs_wksToEpi_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_rr_reg-obs_rr_cty) %>%
-          select(season, fips, fips_st, regionID, latitude, longitude, obs_rr_cty, obs_rr_reg, obs_diff_regCty)
+          mutate(obs_ratio_regCty = obs_rr_reg/obs_rr_cty) %>%
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_rr_cty, obs_rr_reg, obs_diff_regCty, obs_ratio_regCty)
     
     } else{ # data without offset adjustment
         ctyDat <- import_obs_wksToEpi(filepathList) %>%
@@ -304,7 +303,8 @@ import_obs_wksToEpi_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_y_reg-obs_y_cty) %>%
-          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty)
+          mutate(obs_ratio_regCty = obs_y_reg/obs_y_cty) %>%
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty, obs_ratio_regCty)
     }
     
     return(fullObsDat)
@@ -359,8 +359,9 @@ import_obs_wksToPeak_ctySt <- function(offset_l, filepathList){
       select(season, fips_st, obs_rr_st, obs_y_st)
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
-      mutate(obs_diff_stCty = obs_rr_st-obs_rr_cty)
-      select(season, fips, fips_st, latitude, longitude, obs_rr_cty, obs_rr_st, obs_diff_stCty)
+      mutate(obs_diff_stCty = obs_rr_st-obs_rr_cty) %>%
+      mutate(obs_ratio_stCty = obs_rr_st/obs_rr_cty) %>%
+      select(season, fips, fips_st, latitude, longitude, obs_rr_cty, obs_rr_st, obs_diff_stCty, obs_ratio_stCty)
 
   } else{ # data without offset adjustment
     ctyDat <- import_obs_wksToPeak(filepathList) %>%
@@ -374,7 +375,8 @@ import_obs_wksToPeak_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_y_st-obs_y_cty) %>%
-      select(season, fips, fips_st, latitude, longitude, obs_y_cty, obs_y_st, obs_diff_stCty)
+      mutate(obs_ratio_stCty = obs_y_st/obs_y_cty) %>%
+      select(season, fips, fips_st, latitude, longitude, obs_y_cty, obs_y_st, obs_diff_stCty, obs_ratio_stCty)
   }
   
   return(fullObsDat) 
@@ -414,7 +416,8 @@ import_obs_wksToPeak_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_rr_reg-obs_rr_cty) %>%
-          select(season, fips, fips_st, regionID, latitude, longitude, obs_rr_cty, obs_rr_reg, obs_diff_regCty)
+          mutate(obs_ratio_regCty = obs_rr_reg/obs_rr_cty) %>%
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_rr_cty, obs_rr_reg, obs_diff_regCty, obs_ratio_regCty)
     
     } else{ # data without offset adjustment
         ctyDat <- import_obs_wksToPeak(filepathList) %>%
@@ -430,7 +433,8 @@ import_obs_wksToPeak_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_y_reg-obs_y_cty) %>%
-          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty)
+          mutate(obs_ratio_regCty = obs_y_reg/obs_y_cty) %>%
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty, obs_ratio_regCty)
     }
     
     return(fullObsDat)
@@ -486,7 +490,8 @@ import_obs_iliEarly_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_rr_st-obs_rr_cty) %>%
-      select(season, fips, fips_st, obs_rr_cty, obs_rr_st, obs_diff_stCty)
+      mutate(obs_ratio_stCty = obs_rr_st/obs_rr_cty) %>%
+      select(season, fips, fips_st, obs_rr_cty, obs_rr_st, obs_diff_stCty, obs_ratio_stCty)
 
   } else{ # data without offset adjustment
     ctyDat <- import_obs_iliEarly(filepathList) %>%
@@ -500,7 +505,8 @@ import_obs_iliEarly_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_y_st-obs_y_cty) %>%
-      select(season, fips, fips_st, latitude, longitude, obs_y_cty, obs_y_st, obs_diff_stCty)
+      mutate(obs_ratio_stCty = obs_y_st/obs_y_cty) %>%
+      select(season, fips, fips_st, latitude, longitude, obs_y_cty, obs_y_st, obs_diff_stCty, obs_ratio_stCty)
 
   }
   
@@ -541,7 +547,8 @@ import_obs_iliEarly_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_rr_reg-obs_rr_cty) %>%
-          select(season, fips, fips_st, regionID, obs_rr_cty, obs_rr_reg, obs_diff_regCty)
+          mutate(obs_ratio_regCty = obs_rr_reg/obs_rr_cty) %>%
+          select(season, fips, fips_st, regionID, obs_rr_cty, obs_rr_reg, obs_diff_regCty, obs_ratio_regCty)
     
     } else{ # data without offset adjustment
         ctyDat <- import_obs_iliEarly(filepathList) %>%
@@ -557,7 +564,8 @@ import_obs_iliEarly_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_y_reg-obs_y_cty) %>%
-          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty)
+          mutate(obs_ratio_regCty = obs_y_reg/obs_y_cty) %>%
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty, obs_ratio_regCty)
 
     }
     
@@ -614,7 +622,8 @@ import_obs_iliPeak_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_rr_st-obs_rr_cty) %>%
-      select(season, fips, fips_st, latitude, longitude, obs_rr_cty, obs_rr_st, obs_diff_stCty)
+      mutate(obs_ratio_stCty = obs_rr_st/obs_rr_cty) %>%
+      select(season, fips, fips_st, latitude, longitude, obs_rr_cty, obs_rr_st, obs_diff_stCty, obs_ratio_stCty)
 
   } else{ # data without offset adjustment
     ctyDat <- import_obs_iliPeak(filepathList) %>%
@@ -628,7 +637,8 @@ import_obs_iliPeak_ctySt <- function(offset_l, filepathList){
 
     fullObsDat <- full_join(ctyDat, stDat, by = c("season", "fips_st")) %>%
       mutate(obs_diff_stCty = obs_y_st-obs_y_cty) %>%
-      select(season, fips, fips_st, latitude, longitude, obs_y_cty, obs_y_st, obs_diff_stCty)
+      mutate(obs_ratio_stCty = obs_y_st/obs_y_cty) %>%
+      select(season, fips, fips_st, latitude, longitude, obs_y_cty, obs_y_st, obs_diff_stCty, obs_ratio_stCty)
 
   }
   
@@ -669,7 +679,8 @@ import_obs_iliPeak_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_rr_reg-obs_rr_cty) %>%
-          select(season, fips, fips_st, regionID, latitude, longitude, obs_rr_cty, obs_rr_reg, obs_diff_regCty)
+          mutate(obs_ratio_regCty = obs_rr_reg/obs_rr_cty) %>%
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_rr_cty, obs_rr_reg, obs_diff_regCty, obs_ratio_regCty)
     
     } else{ # data without offset adjustment
         ctyDat <- import_obs_iliPeak(filepathList) %>%
@@ -685,7 +696,8 @@ import_obs_iliPeak_ctyReg <- function(offset_l, filepathList){
 
         fullObsDat <- full_join(ctyDat, regDat, by = c("season", "fips_st")) %>%
           mutate(obs_diff_regCty = obs_y_reg-obs_y_cty) %>%
-          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty)
+          mutate(obs_ratio_regCty = obs_y_reg/obs_y_cty) %>%
+          select(season, fips, fips_st, regionID, latitude, longitude, obs_y_cty, obs_y_reg, obs_diff_regCty, obs_ratio_regCty)
 
     }
     
