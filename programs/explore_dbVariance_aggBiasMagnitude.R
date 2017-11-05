@@ -45,18 +45,38 @@ test_aggBiasMag_yVar <- function(measureDat){
   return(testresultsDf)
 }
 ################################
-plot_st_function <- function(plotDat){
+plot_st_function <- function(inDat){
+  plotDat <- left_join(inDat, season_labels(), by = c("season")) %>%
+    left_join(measure_labels(), by = c("measure"))
+
   plotSt <- ggplot(plotDat, aes(x = obs_yVariance, y = obs_aggBiasMag)) +
     geom_point() + 
-    scale_x_continuous(paste("Within-State Variance in", plotDat$measure[1])) +
-    scale_y_continuous("State-County Aggregation Bias Magnitude") +
+    scale_x_continuous(paste("Within-state variance in", plotDat$measureLab[1])) +
+    scale_y_continuous("Magnitude of state-county aggregation bias") +
     theme_bw() +
     theme(axis.text =element_text(size = 10)) +
-    facet_wrap(~season, scales = "free")
+    facet_wrap(~seasLabs, scales = "free")
   
   ggsave(paste0("../../graph_outputs/explore_dbVariance_aggBiasMagnitude/explore_dbVariance_aggBiasMagnitude_", biasType, "_", plotDat$measure[1], ".png"), plotSt, dpi = 300, width = 6, height = 4)
   return(plotSt)
 } 
+################################
+season_labels <- function(){
+  seasonLabelsDf <- data.frame(season = 3:9, seasLabs = c("2002-03", "2003-04", "2004-05", "2005-06", "2006-07", "2007-08", "2008-09"), stringsAsFactors = FALSE)
+  return(seasonLabelsDf)
+}
+#### cleaning functions ################################
+measure_labels <- function(){
+  measureLabelsDf <- data.frame(
+    measure = c("iliEarly", "iliPeak", "wksToEpi", "wksToPeak"), 
+    measureLab = c("Early Intensity", "Peak Intensity", "Onset Timing", "Peak Timing"),
+    measureType = c(rep("Intensity", 2), rep("Timing", 2)),
+    measureTiming = rep(c("Early", "Peak"), 2)) %>%
+    mutate(measureType = factor(measureType, levels = c("Timing", "Intensity"))) %>%
+    mutate(measureTiming = factor(measureTiming, levels = c("Early", "Peak"))) 
+
+  return(measureLabelsDf)
+}
 
 #### MAIN ################################
 #### import data ##################################
