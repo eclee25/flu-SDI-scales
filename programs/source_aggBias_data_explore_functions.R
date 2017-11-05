@@ -135,6 +135,10 @@ lisa_aggBias_timingMagnitude_oneSeason <- function(importDat, pltFormats){
     prepDat2 <- prepDat %>% filter(season == s)
     lisaOut <- lisa(x = prepDat2$longitude, y = prepDat2$latitude, z = prepDat2$obs_aggBias, neigh = neighSize, latlon = TRUE, resamp = resamp)
     lisa_bySeason[[paste0("S", s)]] <- lisaOut
+    
+    lisaDfOut <- data.frame(season = s, fips = prepDat2$fips, correlation = lisaOut$correlation, p = lisaOut$p, mean = lisaOut$mean, dmean = lisaOut$dmean, n = lisaOut$n, obs_aggBias = lisaOut$z)
+    exportName <- paste0(string_exportDat_aggBias_data_folder(), "lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_S", s, ".csv")
+    write_csv(lisaDfOut, exportName)
 
     exportFname <- paste0(string_exportFig_aggBias_data_folder(), dbCode, "/lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_S", s, ".png")
     png(exportFname, res = 300, w = w, h = h, units = "in")
@@ -165,6 +169,10 @@ lisa_aggBias_timingMagnitude_allSeasons <- function(importDat, pltFormats){
 
   # calculate lisas across alls easons
   lisaOut <- lisa.nc(x = prepDat$longitude, y = prepDat$latitude, z = statMx, neigh = neighSize, latlon = TRUE, resamp = resamp, na.rm = TRUE)
+
+  lisaDfOut <- data.frame(fips = prepDat$fips, correlation = lisaOut$correlation, p = lisaOut$p, mean = lisaOut$mean, dmean = lisaOut$dmean, n = lisaOut$n, z = lisaOut$z)
+  exportName <- paste0(string_exportDat_aggBias_data_folder(), "lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_allSeas.csv")
+  write_csv(lisaDfOut, exportName)
 
   exportFname <- paste0(string_exportFig_aggBias_data_folder(), dbCode, "/lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_allSeas.png")
   png(exportFname, res = 300, w = w, h = h, units = "in")
