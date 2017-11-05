@@ -49,22 +49,29 @@ setwd(dirname(sys.frame(1)$ofile))
 #### IMPORT DATA ####
 datFormats_st <- list(offset_l = FALSE, bigscale = "st")
 datFormats_reg <- list(offset_l = FALSE, bigscale = "reg")
+datFormats_correlog <- list(dataScale = "cty")
 
-obsDat <- import_obs_allMeasures_cty(path_list)
-aggBiasDat_st <- import_obs_aggBias_allMeasures(path_list, datFormats_st)
-aggBiasDat_reg <- import_obs_aggBias_allMeasures(path_list, datFormats_reg)
+
+# obsDat <- import_obs_allMeasures_cty(path_list)
+# aggBiasDat_st <- import_obs_aggBias_allMeasures(path_list, datFormats_st)
+# aggBiasDat_reg <- import_obs_aggBias_allMeasures(path_list, datFormats_reg)
+correlogDat <- import_obs_correlog(datFormats_correlog) %>%
+  left_join(measure_labels(), by = "measure")
 
 
 #### FIGURE 1 ########################################################
 #### ALLMEASURES - CHOROS - ONE SEASON ####
-choro_obs_formats <- list(w = 3, h = 1.8, legendStep = 4)
-choro_obs_timingMeasures_oneSeason(obsDat, choro_obs_formats)
-choro_obs_formats <- list(w = 3, h = 1.8, legendStep = 0.5)
-choro_obs_magnitudeMeasures_oneSeason(obsDat, choro_obs_formats)
+# choro_obs_formats <- list(w = 3, h = 1.8, legendStep = 4)
+# choro_obs_timingMeasures_oneSeason(obsDat, choro_obs_formats)
+# choro_obs_formats <- list(w = 3, h = 1.8, legendStep = 0.5)
+# choro_obs_magnitudeMeasures_oneSeason(obsDat, choro_obs_formats)
 
-#### ALLMEASURES - AggBias - CHOROS - ONE SEASON ####
-choro_aggBias_formats <- list(w = 6, h = 1.8)
-choro_obs_aggBias_allMeasures_oneSeason(aggBiasDat_st, choro_aggBias_formats)
+# #### ALLMEASURES - AggBias - CHOROS - ONE SEASON ####
+# choro_aggBias_formats <- list(w = 6, h = 1.8)
+# choro_obs_aggBias_allMeasures_oneSeason(aggBiasDat_st, choro_aggBias_formats)
 
 
 #### FIGURE  ########################################################
+#### ALLMEASURES - CORRELOGRAMS - ONE SEASON ####
+correlog_obs_formats <- list(w = 6, h = 3, dataScale = "cty")
+correlog_obs_allMeasures(correlogDat, correlog_obs_formats)

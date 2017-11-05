@@ -13,6 +13,24 @@ string_refData_folder <- function(){
     return(paste0(dirname(sys.frame(1)$ofile), "/../reference_data/"))
 }
 
+#### cleaning functions ################################
+measure_labels <- function(){
+  measureLabelsDf <- data.frame(
+    measure = c("iliEarly", "iliPeak", "wksToEpi", "wksToPeak"), 
+    measureLab = c("Early Intensity", "Peak Intensity", "Onset Timing", "Peak Timing"),
+    measureType = c(rep("Intensity", 2), rep("Timing", 2)),
+    measureTiming = rep(c("Early", "Peak"), 2)) %>%
+    mutate(measureType = factor(measureType, levels = c("Timing", "Intensity"))) %>%
+    mutate(measureTiming = factor(measureTiming, levels = c("Early", "Peak"))) 
+
+  return(measureLabelsDf)
+}
+################################
+season_labels <- function(){
+  seasonLabelsDf <- data.frame(season = 3:9, seasLabs = c("2002-03", "2003-04", "2004-05", "2005-06", "2006-07", "2007-08", "2008-09"), stringsAsFactors = FALSE)
+  return(seasonLabelsDf)
+}
+
 #### plotting functions ################################
 choro_obs_timingMeasures_oneSeason <- function(obsAllMeasuresDat, pltFormats){
   # plot choropleths for observed timing measures by season
@@ -174,3 +192,26 @@ choro_obs_aggBias_allMeasures_oneSeason <- function(obsBiasAllMeasuresDat, pltFo
   
 }
 ################################
+correlog_obs_allMeasures <- function(correlogDat, pltFormats){
+  print(match.call())
+  # correlograms with two panels, one for timing and one for intensity measures
+  # 11/3 Could add more resamples and indicators for statistical significance
+
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  dataScale <- pltFormats$dataScale
+  exportFname <- paste0(string_msFig_folder(), "correlog_obs_allMeasures_", dataScale, ".png")
+
+  correlogPlot <- ggplot(correlogDat, aes(x = meanOfClass, y = correlation)) +
+    geom_point(aes(colour = measureTiming), alpha = 0.35) +
+    geom_hline(yintercept = 0) +
+    geom_vline(aes(xintercept = xIntercept, colour = measureTiming)) +
+    scale_colour_tableau() +
+    scale_x_continuous("Mean Distance within Class (km)") +
+    scale_y_continuous("Correlation") +
+    theme_bw() +
+    theme(text = element_text(size = 12), legend.position = "bottom", legend.title = element_blank()) +
+    facet_wrap(~measureType)
+  
+  ggsave(exportFname, correlogPlot, width = w, height = h, dpi = dp)
+
+}
