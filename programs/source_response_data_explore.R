@@ -49,6 +49,12 @@ correlogStat_obs_allSeasons <- function(prepDat, datFormats){
   plot.correlogMod(correlogOut, datFormats)
   dev.off()
 
+  # write correlogram data
+  exportDatname <- paste0(string_exportDat_response_data_folder(), "correlog_obs_", dataProcess, "_", measure, "_", dataScale, "_resamp", resamp, ".csv")
+
+  exportCorrelog <- data.frame(dataProcess = dataProcess, measure = measure, dataScale = dataScale, xIntercept = correlogOut$x.intercept, correlation = correlogOut$correlation, meanOfClass = correlogOut$mean.of.class, numPairs = correlogOut$n, pValue = correlogOut$p)
+  write_csv(exportCorrelog, exportDatname)
+
   return(correlogOut)
 }
 
