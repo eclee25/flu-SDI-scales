@@ -22,18 +22,20 @@ identify_aggBias_hotSpots <- function(datFormats){
   # import data
   seasons <- 3:9
   lisaDat <- map_df(seasons, function(s){
-    lisaDat_seas <- read_csv(paste0(string_exportDat_aggBias_data_folder(), "lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_S", s, ".csv")) %>%
-      mutate(obs_aggBiasMag = abs(obs_aggBiasMag))
+    lisaDat_seas <- read_csv(paste0(string_exportDat_aggBias_data_folder(), "lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_S", s, ".csv"), col_types = "icddddid") %>%
+      mutate(obs_aggBiasMag = abs(obs_aggBias))
     return(lisaDat_seas)
     })
 
   # identify lisa hotspots with a large magnitude of aggregation bias
-  thresh <- quantile(lisaDat$obs_aggBiasMag, probs = quant_aggBias_threshold)
-  hotspotDat <- lisaDat %>%
+  biasThresh <- quantile(lisaDat$obs_aggBiasMag, probs = quant_aggBias_threshold, na.rm = TRUE)
+  corrThreshDf <- lisaDat %>%
     group_by(season) %>%
-    filter(mean > mean(mean, na.rm = TRUE)) %>%
-    ungroup %>%
-    filter(obs_aggBiasMag > thresh)
+    summarise(corrThresh = median(correlation, na.rm = TRUE))
+
+  hotspotDat <- full_join(lisaDat, corrThreshDf, by = c("season")) %>%
+    filter(correlation > corrThresh) %>%
+    filter(obs_aggBiasMag > biasThresh)
 
   write_csv(hotspotDat, paste0(string_msResults_folder(), "aggBias_hotSpots_", scaleDiff, "_", dbCode, "_neighSize", neighSize, ".csv"))
 
@@ -49,7 +51,8 @@ dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
 hotspotFormatsDf <- tbl_df(data.frame(
     dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
     scaleDiff = rep(c("stCty", "regCty"), 4), 
-    neighSize = 160)) %>%
+    neighSize = 160,
+    quant_aggBias_threshold = 0.99)) %>%
     mutate(pltVar = paste0("obs_diff_", scaleDiff))
 hotspotLs = list()
 for (i in 1:nrow(hotspotFormatsDf)){
