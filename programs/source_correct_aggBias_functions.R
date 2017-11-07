@@ -1,4 +1,5 @@
 require(tidyverse)
+require(pROC)
 setwd(dirname(sys.frame(1)$ofile))
 
 
@@ -161,10 +162,13 @@ identify_sensitive_specific <- function(fullDat){
   
   plotDat <- fullDat2 %>%
     group_by(quantLvl) %>%
-    summarise(sensitive = sum(sensitive), specific = sum(specific), n = n()) %>%
-    mutate(sensitivity = sensitive/n) %>%
-    mutate(specificity = specific/n) %>%
-    mutate(falsePR = 1-specificity)
+    summarise(sensitive = sum(sensitive), specific = sum(specific), truePos = sum(trueClassif), trueNeg = sum(!trueClassif), tot = n()) %>%
+    mutate(sensitivity = ifelse(truePos == 0, 0, sensitive/truePos)) %>%
+    mutate(specificity = specific/trueNeg) %>%
+    mutate(fpr = 1 - specificity) %>%
+    mutate(fnr = 1 - sensitivity)
 
   return(plotDat)
 }
+################################
+

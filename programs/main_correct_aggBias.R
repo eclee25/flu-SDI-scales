@@ -74,12 +74,18 @@ testClassif_st <- create_classifier_data_st(proxyDat)
 fullClassif_cty <- full_join(trueClassif_cty, testClassif_cty, by = c("season", "fips", "quantLvl"))
 fullClassif_st <- full_join(trueClassif_st, testClassif_st, by = c("season", "fips", "quantLvl"))
 
+ctyROC <- roc(as.numeric(trueClassif) ~ as.numeric(testClassif), data = fullClassif_cty, 
+  auc = TRUE, na.rm = TRUE, plot = TRUE)
+stROC <- roc(as.numeric(trueClassif) ~ as.numeric(testClassif), data = fullClassif_st, auc = TRUE, na.rm = TRUE, plot = TRUE)
 
 #### CALCULATE SENSITIVITY AND SPECIFICITY, PREPARE PLOT DATA ####
 plotDat_cty <- identify_sensitive_specific(fullClassif_cty)
 plotDat_st <- identify_sensitive_specific(fullClassif_st)
 
-#### PREPARE PLOT DATA ####
+#### PLOT DATA ####
+fname <- paste0(getwd(), "/../graph_outputs/correct_aggBias/rocCty_", gsub("X_", "", coefName), "_", modCodeStr, ".png")
 
-plot(plotDat_cty$falsePR, plotDat_cty$sensitivity) 
-plot(plotDat_st$falsePR, plotDat_st$sensitivity)
+png(filename = fname, units = "in", width = 4, height = 4, res = 300)
+plot(plotDat_cty$fpr, plotDat_cty$sensitivity, xlab = "False Positive Rate (1-Specificity)", ylab = "Sensitivity", main = "") 
+dev.off()
+# plot(plotDat_st$fpr, plotDat_st$sensitivity, xlab = "False Positive Rate", ylab = "Sensitivity")
