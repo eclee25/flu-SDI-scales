@@ -201,7 +201,8 @@ correlog_obs_allMeasures <- function(correlogDat, pltFormats){
   dataScale <- pltFormats$dataScale
   exportFname <- paste0(string_msFig_folder(), "correlog_obs_allMeasures_", dataScale, ".png")
 
-  correlogPlot <- ggplot(correlogDat, aes(x = meanOfClass, y = correlation)) +
+  correlogPlot <- ggplot(correlogDat %>% filter(pValue < .01), 
+    aes(x = meanOfClass, y = correlation)) +
     geom_point(aes(colour = measureTiming), alpha = 0.35) +
     geom_hline(yintercept = 0) +
     geom_vline(aes(xintercept = xIntercept, colour = measureTiming)) +

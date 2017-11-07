@@ -49,7 +49,7 @@ setwd(dirname(sys.frame(1)$ofile))
 #### IMPORT DATA ####
 datFormats_st <- list(offset_l = FALSE, bigscale = "st")
 datFormats_reg <- list(offset_l = FALSE, bigscale = "reg")
-datFormats_correlog <- list(dataScale = "cty")
+datFormats_correlog <- list(dataScale = "cty", resamp = 500)
 
 
 # obsDat <- import_obs_allMeasures_cty(path_list)

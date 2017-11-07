@@ -90,8 +90,9 @@ import_obs_correlog <- function(datFormats){
   print(match.call())
 
   dataScale <- datFormats$dataScale
+  resamp <- datFormats$resamp
 
-  fnames <- list.files(string_exportDat_response_data_folder(), pattern = dataScale, full.names = TRUE)
+  fnames <- list.files(string_exportDat_response_data_folder(), pattern = paste0(dataScale, "_resamp", resamp), full.names = TRUE)
   correlogDat <- map_df(fnames, function(x){
     inDat <- read_csv(x)
     })
@@ -739,6 +740,10 @@ string_exportFig_aggBias_model_folder <- function(){
 ################################
 string_exportFig_aggBias_data_folder <- function(){
   return(paste0(dirname(sys.frame(1)$ofile), "/../graph_outputs/aggBias_data_explore/"))
+}
+################################
+string_msResults_folder <- function(){
+    return(paste0(dirname(sys.frame(1)$ofile), "/../R_export/msResults/"))
 }
 ################################
 string_exportDat_response_data_folder <- function(){
