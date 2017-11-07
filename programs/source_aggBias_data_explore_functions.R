@@ -11,6 +11,7 @@ require(lazyeval)
 require(ncf)
 setwd(dirname(sys.frame(1)$ofile))
 source("source_import_modeldata.R")
+source("source_export_msResults.R")
 
 #### statistics functions ################################
 pairedTest_aggBias_timingMagnitude <- function(obs_early, obs_peak){
@@ -309,6 +310,36 @@ choro_obs_aggBias_avgSeason <- function(importDat, pltFormats, breaks){
 
 }
 ################################
+choro_obs_aggBias_hotspots_avgSeason <- function(pltFormats, breaks){
+    print(match.call())
+
+    dbCode <- pltFormats$dbCode; scaleDiff <- pltFormats$scaleDiff
+
+    fname <- list.files(string_msResults_folder(), pattern = paste("aggBias_hotSpots_allSeas_", scaleDiff, dbCode, sep = "_"), full.names = TRUE)
+
+    # import aggregation bias
+    prepDat <- read_csv(fname)
+
+    # check breaks for aggBias
+    print(paste(dbCode, scaleDiff, "----------"))
+    print(hist(prepDat$obs_aggBias))
+    print(summary(prepDat))
+
+    # breaks have 8 values
+    pltFormats$breaks <- breaks
+    pltFormats$manualPalette <- c("#10456a", "#1c73b1", "#67add4", "#cacaca", "#69a761", "#2f8e41", "#09622a") # 3 blue - grey - 3 green
+
+    pltDat <- prepDat %>%
+      mutate(obs_diff = cut(obs_aggBias, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) 
+    
+    factorlvls <- levels(pltDat$obs_aggBias)
+
+    pltFormats$exportFname <- paste0(string_exportFig_aggBias_data_folder(), dbCode, "/choro_obs_aggBias_hotspots_", scaleDiff, "_", dbCode, "_allSeas.png")
+
+    choro_aggBias_oneSeason(pltDat, pltFormats)
+
+}
+################################
 choro_obs_aggBias_oneSeason_wrapper <- function(importDat, pltFormats, breaks, manualPalette){
     print(match.call())
 
@@ -339,6 +370,36 @@ choro_obs_aggBias_oneSeason_wrapper <- function(importDat, pltFormats, breaks, m
     }
 }
 
+################################
+choro_obs_aggBias_hotspots_oneSeason_wrapper <- function(pltFormats, breaks, manualPalette){
+    print(match.call())
+
+    # set up plot formatting
+    dbCode <- pltFormats$dbCode; scaleDiff <- pltFormats$scaleDiff
+    pltFormats$breaks <- breaks
+    pltFormats$manualPalette <- manualPalette
+
+    fname <- list.files(string_msResults_folder(), pattern = paste("aggBias_hotSpots", scaleDiff, dbCode, sep = "_"), full.names = TRUE)
+
+    # rename variables
+    prepDat <- read_csv(fname, col_types = "icddddiddd")
+
+    # use breaks from original irDt aggBias choropleths
+
+    plotDat <- prepDat %>%
+    mutate(obs_diff = cut(obs_aggBias, breaks, right = TRUE, include.lowest = TRUE, ordered_result = TRUE)) 
+    factorlvls <- levels(plotDat$obs_aggBias)
+
+    seasLs <- plotDat %>% distinct(season) %>% unlist
+    for (s in seasLs){
+
+      pltFormats$exportFname <- paste0(string_exportFig_aggBias_data_folder(), dbCode, "/choro_obs_aggBias_hotspots_", scaleDiff, "_", dbCode, "_S", s, ".png")
+      pltDat <- plotDat %>% filter(season == s)
+
+      choro_aggBias_oneSeason(pltDat, pltFormats)
+    }
+}
+
 #################################
 
 
@@ -357,8 +418,8 @@ choro_aggBias_oneSeason <- function(pltDat, pltFormats){
     # plot
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
-      geom_map(data = pltDat, map = ctyMap, aes(fill = obs_diff, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_manual(name = "Aggregation Bias", values = manualPalette, na.value = "grey60", drop = FALSE) +
+      geom_map(data = pltDat, map = ctyMap, aes(fill = obs_diff, map_id = fips), color = "grey60", size = 0.025) +
+      scale_fill_manual(name = "Aggregation Bias", values = manualPalette, na.value = "grey20", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 10), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom")

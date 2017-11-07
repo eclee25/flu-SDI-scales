@@ -11,7 +11,7 @@ string_msResults_folder <- function(){
 
 #### reporting functions ################################
 ################################
-identify_aggBias_hotSpots <- function(datFormats){
+identify_aggBias_hotSpots_oneSeason <- function(datFormats){
   print(match.call())
 
   # data formatting
@@ -42,6 +42,34 @@ identify_aggBias_hotSpots <- function(datFormats){
   return(hotspotDat)
 }
 ################################
+identify_aggBias_hotSpots_allSeasons <- function(datFormats){
+  print(match.call())
+
+  # data formatting
+  dbCode <- datFormats$dbCode; scaleDiff <- datFormats$scaleDiff
+  neighSize <- datFormats$neighSize
+  quant_aggBias_threshold <- datFormats$quant_aggBias_threshold # 0.99 for top 1% aggBias magnitude
+
+  # import data
+  seasons <- 3:9
+  lisaDat_allSeas <- read_csv(paste0(string_exportDat_aggBias_data_folder(), "lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_allSeas.csv"))
+  
+  lisaDat <- lisaDat_allSeas %>% 
+    mutate(obs_aggBiasMag = abs(obs_aggBias))
+
+  # identify lisa hotspots with a large magnitude of aggregation bias
+  biasThresh <- quantile(lisaDat$obs_aggBiasMag, probs = quant_aggBias_threshold, na.rm = TRUE)
+  corrThresh <- median(lisaDat$correlation, na.rm = TRUE)
+
+  hotspotDat <- lisaDat
+    filter(correlation > corrThresh) %>%
+    filter(obs_aggBiasMag > biasThresh)
+
+  write_csv(hotspotDat, paste0(string_msResults_folder(), "aggBias_hotSpots_allSeas_", scaleDiff, "_", dbCode, "_neighSize", neighSize, ".csv"))
+
+  return(hotspotDat)
+}
+################################
 
 #### MAIN ################################
 #### set these ############################
@@ -54,7 +82,22 @@ hotspotFormatsDf <- tbl_df(data.frame(
     neighSize = 160,
     quant_aggBias_threshold = 0.99)) %>%
     mutate(pltVar = paste0("obs_diff_", scaleDiff))
+
+# by season
 hotspotLs = list()
 for (i in 1:nrow(hotspotFormatsDf)){
-  hotspotLs[[i]] <- identify_aggBias_hotSpots(as.list(hotspotFormatsDf[i,]))
+  hotspotLs[[i]] <- identify_aggBias_hotSpots_oneSeason(as.list(hotspotFormatsDf[i,]))
+}
+
+hotspotFormatsDf2 <- tbl_df(data.frame(
+    dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
+    scaleDiff = rep(c("stCty", "regCty"), 4), 
+    neighSize = 1000,
+    quant_aggBias_threshold = 0.99)) %>%
+    mutate(pltVar = paste0("obs_diff_", scaleDiff))
+
+# across all seasons 
+hotspotLs2 = list()
+for (i in 1:nrow(hotspotFormatsDf2)){
+  hotspotLs2[[i]] <- identify_aggBias_hotSpots_allSeasons(as.list(hotspotFormatsDf2[i,]))
 }
