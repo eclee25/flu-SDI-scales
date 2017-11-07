@@ -12,7 +12,7 @@ source("source_aggBias_data_explore_functions.R")
 
 #### set these! ###############################
 dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
-modules <- c("dataExport") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "dataExport", "correlog_allSeasons"
+modules <- c("choroHotspot") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "choroHotspot", dataExport", "correlog_allSeasons"
 
 ###############################
 ## PATHS ##
@@ -47,15 +47,15 @@ setwd(dirname(sys.frame(1)$ofile))
 offsetSetting <- FALSE
 dataParams <- list(offset_l = offsetSetting, filepathList = path_list)
 
-obs_wksToEpi_ctySt <- do.call(import_obs_wksToEpi_ctySt, c(dataParams))
-obs_wksToEpi_ctyReg <- do.call(import_obs_wksToEpi_ctyReg, c(dataParams))
-obs_wksToPeak_ctySt <- do.call(import_obs_wksToPeak_ctySt, c(dataParams))
-obs_wksToPeak_ctyReg <- do.call(import_obs_wksToPeak_ctyReg, c(dataParams))
-
-obs_iliEarly_ctySt <- do.call(import_obs_iliEarly_ctySt, c(dataParams))
-obs_iliEarly_ctyReg <- do.call(import_obs_iliEarly_ctyReg, c(dataParams))
-obs_iliPeak_ctySt <- do.call(import_obs_iliPeak_ctySt, c(dataParams))
-obs_iliPeak_ctyReg <- do.call(import_obs_iliPeak_ctyReg, c(dataParams))
+# obs_wksToEpi_ctySt <- do.call(import_obs_wksToEpi_ctySt, c(dataParams))
+# obs_wksToEpi_ctyReg <- do.call(import_obs_wksToEpi_ctyReg, c(dataParams))
+# obs_wksToPeak_ctySt <- do.call(import_obs_wksToPeak_ctySt, c(dataParams))
+# obs_wksToPeak_ctyReg <- do.call(import_obs_wksToPeak_ctyReg, c(dataParams))
+# 
+# obs_iliEarly_ctySt <- do.call(import_obs_iliEarly_ctySt, c(dataParams))
+# obs_iliEarly_ctyReg <- do.call(import_obs_iliEarly_ctyReg, c(dataParams))
+# obs_iliPeak_ctySt <- do.call(import_obs_iliPeak_ctySt, c(dataParams))
+# obs_iliPeak_ctyReg <- do.call(import_obs_iliPeak_ctyReg, c(dataParams))
 
 #### statistics ############################
 if("statistics" %in% modules){
@@ -72,9 +72,9 @@ if("statistics" %in% modules){
   iliPeakScale <- pairedTest_aggBias_spatialScales(obs_iliPeak_ctySt, obs_iliPeak_ctyReg)
   # list(histPlot=histPlot, absHistPlot=absHistPlot, dbPlot=dbPlot, absDbPlot=absDbPlot, ttest=ttest, absTtest=absTtest)
 }
-
+############################
 if("correlog_allSeasons" %in% modules){
-  staticFormats <- list(w = 6, h = 4, dataProcess = "irDt", incrementKm = 10, resamp = 25)
+  staticFormats <- list(w = 6, h = 4, dataProcess = "irDt", incrementKm = 10, resamp = 500)
   dynFormatLs <- data.frame(dataProcess = staticFormats$dataProcess, measure = c(rep("wksToEpi", 2), rep("wksToPeak", 2), rep("iliEarly", 2), rep("iliPeak", 2)), scaleDiff = rep(c("stCty", "regCty"), 4)) 
   dynFormats <- split(dynFormatLs, seq(nrow(dynFormatLs)))
 
@@ -87,13 +87,13 @@ if("correlog_allSeasons" %in% modules){
   correlogStat_aggBias_allSeasons(obs_iliPeak_ctySt, staticFormats, dynFormats[[7]])
   correlogStat_aggBias_allSeasons(obs_iliPeak_ctyReg, staticFormats, dynFormats[[8]])
 }
-
+############################
 if("lisa_oneSeason" %in% modules){
   plotFormatsDf <- tbl_df(data.frame(
     dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
     scaleDiff = rep(c("stCty", "regCty"), 4), 
     neighSize = 160, # km units
-    resamp = 100,
+    resamp = 500,
     w = 6, 
     h = 4)) %>%
     mutate(pltVar = paste0("obs_diff_", scaleDiff))
@@ -107,13 +107,13 @@ if("lisa_oneSeason" %in% modules){
   lisa_obs_iliPeak_ctySt_oneSeas <- lisa_aggBias_timingMagnitude_oneSeason(obs_iliPeak_ctySt, as.list(plotFormatsDf[7,]))
   lisa_obs_iliPeak_ctyReg_oneSeas <- lisa_aggBias_timingMagnitude_oneSeason(obs_iliPeak_ctyReg, as.list(plotFormatsDf[8,]))
 }
-
+############################
 if("lisa_allSeasons" %in% modules){
   plotFormatsDf <- tbl_df(data.frame(
     dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
     scaleDiff = rep(c("stCty", "regCty"), 4), 
     neighSize = 1000, # km units
-    resamp = 100,
+    resamp = 500,
     w = 6, 
     h = 4)) %>%
     mutate(pltVar = paste0("obs_diff_", scaleDiff))
@@ -144,7 +144,6 @@ if("scatterplot" %in% modules){
   scatter_obsCompare_aggBias_timingMagnitude(obs_iliPeak_ctySt, staticFormats, dynFormats[[7]])
   scatter_obsCompare_aggBias_timingMagnitude(obs_iliPeak_ctyReg, staticFormats, dynFormats[[8]])
 }
-
 ############################
 # choropleth of magnitude of aggregation bias - one season
 if("choro" %in% modules){
@@ -212,7 +211,38 @@ if("choro" %in% modules){
 
   # Interpretation: positive error (green) means that state model predicted a later epidemic onset than the county model
 }
- 
+############################
+# choropleth of magnitude of aggregation bias hotspots (identified with high spatial autocorrelation) - one season
+if("choroHotspot" %in% modules){
+  plotFormatsDf <- tbl_df(data.frame(
+    dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
+    scaleDiff = rep(c("stCty", "regCty"), 4), 
+    w = 6, 
+    h = 4)) 
+
+  breaksDf <- data.frame(
+    wksToEpi_ctySt = c(-22, -8, -3, -1, 1, 3, 8, 18), 
+    wksToEpi_ctyReg = c(-22, -8, -3,-1, 1, 3, 8, 16),
+    wksToPeak_ctySt = c(-20, -8, -3, -1, 1, 3, 8, 18),
+    wksToPeak_ctyReg = c(-18, -8, -3, -1, 1, 3, 8, 18),
+    iliEarly_ctySt = c(-22, -4, -2, -1, 1, 2, 4, 8),
+    iliEarly_ctyReg = c(-26, -4, -2, -1, 1, 2, 4, 8),
+    iliPeak_ctySt = c(-14, -4, -2, -1, 1, 2, 4, 6),
+    iliPeak_ctyReg = c(-16, -4, -3, -1, 1, 2, 4, 6)
+  )
+  paletteDf <- data.frame(
+    breaks8 = c("#10456a", "#1c73b1", "#67add4", "#cacaca", "#69a761", "#2f8e41", "#09622a") # 
+  )
+
+  choro_obs_aggBias_hotspots_oneSeason_wrapper(as.list(plotFormatsDf[1,]), breaksDf[,1], paletteDf[,1])
+  choro_obs_aggBias_hotspots_oneSeason_wrapper(as.list(plotFormatsDf[2,]), breaksDf[,2], paletteDf[,1])
+  choro_obs_aggBias_hotspots_oneSeason_wrapper(as.list(plotFormatsDf[3,]), breaksDf[,3], paletteDf[,1])
+  choro_obs_aggBias_hotspots_oneSeason_wrapper(as.list(plotFormatsDf[4,]), breaksDf[,4], paletteDf[,1])
+  choro_obs_aggBias_hotspots_oneSeason_wrapper(as.list(plotFormatsDf[5,]), breaksDf[,5], paletteDf[,1])
+  choro_obs_aggBias_hotspots_oneSeason_wrapper(as.list(plotFormatsDf[6,]), breaksDf[,6], paletteDf[,1])
+  choro_obs_aggBias_hotspots_oneSeason_wrapper(as.list(plotFormatsDf[7,]), breaksDf[,7], paletteDf[,1])
+  choro_obs_aggBias_hotspots_oneSeason_wrapper(as.list(plotFormatsDf[8,]), breaksDf[,8], paletteDf[,1])
+}
 ############################
 # choropleth of magnitude of aggregation bias - average seasons
 if("choroAvg" %in% modules){
@@ -259,7 +289,39 @@ if("choroAvg" %in% modules){
 
   # Interpretation: positive error (green) means that state model predicted a later epidemic onset than the county model
 }
+############################
+# choropleth of magnitude of aggregation bias - average seasons
+if("choroAvgHotspot" %in% modules){
+  plotFormatsDf <- tbl_df(data.frame(
+    dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
+    scaleDiff = rep(c("stCty", "regCty"), 4), 
+    # breaks = ,
+    w = 6, 
+    h = 4)) %>%
+    mutate(pltVar = paste0("obs_diff_", scaleDiff))
+  
+  breaksDf <- data.frame(
+    wksToEpi_ctySt = c(-14, -5, -3, -1, 1, 3, 5, 14), 
+    wksToEpi_ctyReg = c(-9, -6, -3,-1, 1, 3, 6, 9),
+    wksToPeak_ctySt = c(-7, -3, -2, -1, 1, 2, 3, 7),
+    wksToPeak_ctyReg = c(-7, -3, -2, -1, 1, 2, 3, 7),
+    iliEarly_ctySt = c(-20, -4, -2, -1, 1, 2, 4, 5),
+    iliEarly_ctyReg = c(-21, -4, -2, -1, 1, 2, 4, 6),
+    iliPeak_ctySt = c(-31, -4, -2, -1, 1, 2, 4, 6),
+    iliPeak_ctyReg = c(-34, -6, -3, -1, 1, 2, 3.5, 5))
+ 
+  choro_obs_aggBias_hotspots_avgSeason(as.list(plotFormatsDf[1,]), breaksDf$wksToEpi_ctySt)
+  choro_obs_aggBias_hotspots_avgSeason(as.list(plotFormatsDf[2,]), breaksDf$wksToEpi_ctyReg)
+  choro_obs_aggBias_hotspots_avgSeason(as.list(plotFormatsDf[3,]), breaksDf$wksToPeak_ctySt)
+  choro_obs_aggBias_hotspots_avgSeason(as.list(plotFormatsDf[4,]), breaksDf$wksToPeak_ctyReg)
+  choro_obs_aggBias_hotspots_avgSeason(as.list(plotFormatsDf[5,]), breaksDf$iliEarly_ctySt)
+  choro_obs_aggBias_hotspots_avgSeason(as.list(plotFormatsDf[6,]), breaksDf$iliEarly_ctyReg)
+  choro_obs_aggBias_hotspots_avgSeason(as.list(plotFormatsDf[7,]), breaksDf$iliPeak_ctySt)
+  choro_obs_aggBias_hotspots_avgSeason(as.list(plotFormatsDf[8,]), breaksDf$iliPeak_ctyReg)
 
+
+  # Interpretation: positive error (green) means that state model predicted a later epidemic onset than the county model
+}
 ############################
 # export data to file
 if("dataExport" %in% modules){
