@@ -4,10 +4,6 @@ source("source_import_modeldata.R")
 ################################################################
 
 #### filepath functions ################################
-string_msResults_folder <- function(){
-    return(paste0(dirname(sys.frame(1)$ofile), "/../R_export/msResults/"))
-}
-################################
 
 #### reporting functions ################################
 ################################
@@ -54,14 +50,18 @@ identify_aggBias_hotSpots_allSeasons <- function(datFormats){
   seasons <- 3:9
   lisaDat_allSeas <- read_csv(paste0(string_exportDat_aggBias_data_folder(), "lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_allSeas.csv"))
   
+  avg_aggBias <- lisaDat_allSeas %>% select(contains("z_S"))
+  obs_aggBias <- apply(avg_aggBias, 1, mean, na.rm = TRUE)
+
   lisaDat <- lisaDat_allSeas %>% 
+    mutate(obs_aggBias = obs_aggBias) %>%
     mutate(obs_aggBiasMag = abs(obs_aggBias))
 
   # identify lisa hotspots with a large magnitude of aggregation bias
   biasThresh <- quantile(lisaDat$obs_aggBiasMag, probs = quant_aggBias_threshold, na.rm = TRUE)
   corrThresh <- median(lisaDat$correlation, na.rm = TRUE)
 
-  hotspotDat <- lisaDat
+  hotspotDat <- lisaDat %>%
     filter(correlation > corrThresh) %>%
     filter(obs_aggBiasMag > biasThresh)
 
@@ -77,10 +77,10 @@ dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
 
 #### identify aggregation bias hotspots ################################
 hotspotFormatsDf <- tbl_df(data.frame(
-    dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
-    scaleDiff = rep(c("stCty", "regCty"), 4), 
+    dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)),
+    scaleDiff = rep(c("stCty", "regCty"), 4),
     neighSize = 160,
-    quant_aggBias_threshold = 0.99)) %>%
+    quant_aggBias_threshold = 0.90)) %>%
     mutate(pltVar = paste0("obs_diff_", scaleDiff))
 
 # by season
@@ -93,7 +93,7 @@ hotspotFormatsDf2 <- tbl_df(data.frame(
     dbCode = c(rep("irDt_wksToEpi", 2), rep("irDt_wksToPeak", 2), rep("irDt_iliEarly", 2), rep("irDt_iliPeak", 2)), 
     scaleDiff = rep(c("stCty", "regCty"), 4), 
     neighSize = 1000,
-    quant_aggBias_threshold = 0.99)) %>%
+    quant_aggBias_threshold = 0.90)) %>%
     mutate(pltVar = paste0("obs_diff_", scaleDiff))
 
 # across all seasons 
