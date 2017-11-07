@@ -11,7 +11,6 @@ require(lazyeval)
 require(ncf)
 setwd(dirname(sys.frame(1)$ofile))
 source("source_import_modeldata.R")
-source("source_export_msResults.R")
 
 #### statistics functions ################################
 pairedTest_aggBias_timingMagnitude <- function(obs_early, obs_peak){
@@ -115,7 +114,6 @@ pairedTest_aggBias_spatialScales <- function(obs_st, obs_reg){
   return(list(histPlot=histPlot, absHistPlot=absHistPlot, dbPlot=dbPlot, absDbPlot=absDbPlot, ttest=ttest, absTtest=absTtest))
 }
 ################################
-
 lisa_aggBias_timingMagnitude_oneSeason <- function(importDat, pltFormats){
   print(match.call())
   # examine local indicators of spatial autocorrelation for aggregation bias for wksToEpi, wksToPeak, iliEarly, and iliPeak measures, works for both ctySt and ctyReg levels
@@ -165,13 +163,15 @@ lisa_aggBias_timingMagnitude_allSeasons <- function(importDat, pltFormats){
     mutate(season = paste0("S", season)) %>%
     select(season, fips, latitude, longitude, obs_aggBias) %>%
     spread(season, obs_aggBias)
-
   statMx <- as.matrix(prepDat %>% select(num_range("S", 3:9)))
 
   # calculate lisas across alls easons
   lisaOut <- lisa.nc(x = prepDat$longitude, y = prepDat$latitude, z = statMx, neigh = neighSize, latlon = TRUE, resamp = resamp, na.rm = TRUE)
 
-  lisaDfOut <- data.frame(fips = prepDat$fips, correlation = lisaOut$correlation, p = lisaOut$p, mean = lisaOut$mean, dmean = lisaOut$dmean, n = lisaOut$n, z = lisaOut$z)
+  statMx2 <- as.data.frame(statMx)
+  names(statMx2) <- paste0("z_S", 3:9)
+  lisaDfOut <- data.frame(fips = prepDat$fips, correlation = lisaOut$correlation, p = lisaOut$p, dmean = lisaOut$dmean, n = lisaOut$n) %>%
+    bind_cols(statMx2)
   exportName <- paste0(string_exportDat_aggBias_data_folder(), "lisa_aggBias_", scaleDiff, "_", dbCode, "_neighSize", neighSize, "_allSeas.csv")
   write_csv(lisaDfOut, exportName)
 
@@ -315,7 +315,7 @@ choro_obs_aggBias_hotspots_avgSeason <- function(pltFormats, breaks){
 
     dbCode <- pltFormats$dbCode; scaleDiff <- pltFormats$scaleDiff
 
-    fname <- list.files(string_msResults_folder(), pattern = paste("aggBias_hotSpots_allSeas_", scaleDiff, dbCode, sep = "_"), full.names = TRUE)
+    fname <- list.files(string_msResults_folder(), pattern = paste("aggBias_hotSpots_allSeas", scaleDiff, dbCode, sep = "_"), full.names = TRUE)
 
     # import aggregation bias
     prepDat <- read_csv(fname)
@@ -417,8 +417,8 @@ choro_aggBias_oneSeason <- function(pltDat, pltFormats){
     
     # plot
     choro <- ggplot() +
-      geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
-      geom_map(data = pltDat, map = ctyMap, aes(fill = obs_diff, map_id = fips), color = "grey60", size = 0.025) +
+      geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region), color = "grey60") +
+      geom_map(data = pltDat, map = ctyMap, aes(fill = obs_diff, map_id = fips), color = "grey30", size = 0.025) +
       scale_fill_manual(name = "Aggregation Bias", values = manualPalette, na.value = "grey20", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +

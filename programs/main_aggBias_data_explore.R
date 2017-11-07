@@ -12,7 +12,7 @@ source("source_aggBias_data_explore_functions.R")
 
 #### set these! ###############################
 dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
-modules <- c("choroHotspot") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "choroHotspot", dataExport", "correlog_allSeasons"
+modules <- c("choroHotspot", "choroAvgHotspot") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "choroHotspot", "choroAvgHotspot", dataExport", "correlog_allSeasons"
 
 ###############################
 ## PATHS ##
@@ -51,7 +51,7 @@ dataParams <- list(offset_l = offsetSetting, filepathList = path_list)
 # obs_wksToEpi_ctyReg <- do.call(import_obs_wksToEpi_ctyReg, c(dataParams))
 # obs_wksToPeak_ctySt <- do.call(import_obs_wksToPeak_ctySt, c(dataParams))
 # obs_wksToPeak_ctyReg <- do.call(import_obs_wksToPeak_ctyReg, c(dataParams))
-# 
+
 # obs_iliEarly_ctySt <- do.call(import_obs_iliEarly_ctySt, c(dataParams))
 # obs_iliEarly_ctyReg <- do.call(import_obs_iliEarly_ctyReg, c(dataParams))
 # obs_iliPeak_ctySt <- do.call(import_obs_iliPeak_ctySt, c(dataParams))
@@ -233,7 +233,6 @@ if("choroHotspot" %in% modules){
   paletteDf <- data.frame(
     breaks8 = c("#10456a", "#1c73b1", "#67add4", "#cacaca", "#69a761", "#2f8e41", "#09622a") # 
   )
-
   choro_obs_aggBias_hotspots_oneSeason_wrapper(as.list(plotFormatsDf[1,]), breaksDf[,1], paletteDf[,1])
   choro_obs_aggBias_hotspots_oneSeason_wrapper(as.list(plotFormatsDf[2,]), breaksDf[,2], paletteDf[,1])
   choro_obs_aggBias_hotspots_oneSeason_wrapper(as.list(plotFormatsDf[3,]), breaksDf[,3], paletteDf[,1])
