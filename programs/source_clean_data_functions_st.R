@@ -741,8 +741,7 @@ identify_firstEpiWeekdate_st <- function(filepathList){
 
   print(match.call())
   
-  fullIndicDat <- read_csv(filepathList$path_fullIndic_st, col_types = cols_only(st_FIPS = "c", Thu.week = "D", season = "i", in.season = "l")) %>%
-    rename(fips_st = st_FIPS) %>%
+  fullIndicDat <- read_csv(filepathList$path_fullIndic_st, col_types = cols_only(fips_st = "c", Thu.week = "D", season = "i", in.season = "l")) %>%
     filter(in.season) %>%
     group_by(season, fips_st) %>%
     mutate(t.firstepiweek = ifelse(Thu.week==min(Thu.week), Thu.week, 0)) %>%
