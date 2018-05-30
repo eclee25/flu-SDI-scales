@@ -99,6 +99,8 @@ import_obs_correlog <- function(datFormats){
 
   return(correlogDat)
 }
+################################
+
 
 #### wks.to.epi ################################
 import_obsFit_wksToEpi <- function(modCodeStr, filepathList){
@@ -716,6 +718,38 @@ import_obs_iliPeak_ctyReg <- function(offset_l, filepathList){
     
     return(fullObsDat)
 }
+#### iliSum ################################
+import_obs_iliSum <- function(filepathList){
+  print(match.call())
+  # import observed data for ili for total flu season at county level
+  # acts as a wrapper for cleanR_iliSum_irDt_shift1_cty
+  
+  # import observed and expected ili for total flu season
+  inDat <- cleanR_iliSum_irDt_shift1_cty(filepathList) %>%
+        mutate(obs_y = y1, E = E) %>%
+        select(season, fips, obs_y, E)
+  # add lat/lon coords
+  coordDat <- read_csv(filepathList$path_latlon_cty, col_types = "_c__dd")
+  obsDat <- left_join(inDat, coordDat, by = c("fips")) %>%
+    filter(!(substring(fips, 1, 2) %in% c("02", "15")))
+  
+  return(obsDat)
+}
+################################
+import_obs_iliSum_st <- function(filepathList){
+  print(match.call())
+  # import observed data for ili for total flu season at state level
+  # acts as a wrapper for cleanR_iliSum_irDt_shift1_st
+  
+  # import observed and expected ili for total flu season
+  obsDat <- cleanR_iliSum_irDt_shift1_st(filepathList) %>%
+    mutate(obs_y = y1, E = E) %>%
+    select(season, fips_st, obs_y, E) %>%
+    filter(!(fips_st %in% c("02", "15")))
+  
+  return(obsDat)
+}
+
 ################################
 
 #### data processing ################################
