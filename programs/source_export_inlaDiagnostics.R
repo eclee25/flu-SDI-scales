@@ -533,10 +533,10 @@ plot_diag_scatter_hurdle_spatiotemporal_aggBias <- function(path_csvExport, path
   fitDat <- tbl_df(data.frame())
   
   for (infile in readfile_list){
-    seasFile <- read_csv(infile, col_types = "ccd_ccddddddddd")
+    seasFile <- read_csv(infile, col_types = "ccd_ccdddddddd")
     fitDat <- bind_rows(fitDat, seasFile)
   }
-  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "fit_rr_st", "fit_rr_cty", "y")
+  names(fitDat) <- c("modCodeStr", "dbCodeStr", "season", "fips", "ID", "mean", "sd", "q_025", "q_5", "q_975", "mode", "y", "y1")
   
   #### import id crosswalk ####
   readfile_list2 <- grep("ids_", list.files(), value = TRUE)
@@ -576,7 +576,7 @@ plot_diag_scatter_hurdle_spatiotemporal_aggBias <- function(path_csvExport, path
   if (errorbar){
     plotDat3 <- plotDat2 %>% filter(!is.na(pltVar) & !is.na(xVar))
     plotOutput <- ggplot(plotDat3, aes(x = xVar, y = pltVar)) +
-      geom_pointrange(aes(ymin = q_025, ymax = q_975, colour = season), alpha = 0.3) +
+      geom_pointrange(aes(ymin = LB, ymax = UB, colour = season), alpha = 0.3) +
       scale_y_continuous(paste(yaxisVariable, "(95%CI)")) +
       xlab(xaxisVariable) +
       theme(legend.position = "bottom") +

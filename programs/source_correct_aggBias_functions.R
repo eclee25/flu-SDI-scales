@@ -12,6 +12,7 @@ string_modData_fname <- function(modCodeStr){
   splitmod <- unlist(strsplit(modCodeStr, "_"))
   return(paste0(dirname(sys.frame(1)$ofile), "/../R_export/inlaModelData_import/inlaImport_model", splitmod[1], "_", splitmod[2], "_irDt_v7.csv"))
 }
+################################
 
 
 #### linear model components ################################
@@ -20,7 +21,8 @@ grab_coef_directionality <- function(modCodeStr, coefName){
   print(match.call())
   # grab coefficient directionality for the correction factor of interest
 
-  coefDat <- read_csv(string_coef_fname(modCodeStr), col_types = cols_only(RV = "c", mean = "d"))
+  coefDat <- read_csv(string_coef_fname(modCodeStr), col_types = cols_only(RV = "c", mean = "d")) %>%
+    bind_rows(data.frame(RV = "X_rnorm_nonzero", mean = rnorm(1)))
   coefDirection <- coefDat %>%
     filter(RV == paste0(coefName, "_nonzero")) %>%
     mutate(direction = ifelse(mean > 0 , 1, -1)) %>%
@@ -34,7 +36,9 @@ grab_predictor_data <- function(modCodeStr, coefName){
   print(match.call())
   # grab predictor data information
 
-  predData <- read_csv(string_modData_fname(modCodeStr)) %>%
+  inData <- read_csv(string_modData_fname(modCodeStr)) 
+  predData <- inData %>%
+    mutate(X_rnorm = rnorm(nrow(inData))) %>%
     select_("fips", "fips_st", "season", coefName) %>%
     rename_("corrFactor" = coefName)
 

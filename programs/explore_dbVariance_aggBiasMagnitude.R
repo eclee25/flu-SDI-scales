@@ -52,7 +52,7 @@ plot_st_function <- function(inDat){
   plotSt <- ggplot(plotDat, aes(x = obs_yVariance, y = obs_aggBiasMag)) +
     geom_point() + 
     scale_x_continuous(paste("Within-state variance in", plotDat$measureLab[1])) +
-    scale_y_continuous("Magnitude of state-county aggregation bias") +
+    scale_y_continuous("Magnitude of state-county error") +
     theme_bw() +
     theme(axis.text =element_text(size = 10)) +
     facet_wrap(~seasLabs, scales = "free")
@@ -69,11 +69,11 @@ season_labels <- function(){
 measure_labels <- function(){
   measureLabelsDf <- data.frame(
     measure = c("iliEarly", "iliPeak", "wksToEpi", "wksToPeak"), 
-    measureLab = c("Early Intensity", "Peak Intensity", "Onset Timing", "Peak Timing"),
+    measureLab = c("Onset Intensity", "Peak Intensity", "Onset Timing", "Peak Timing"),
     measureType = c(rep("Intensity", 2), rep("Timing", 2)),
     measureTiming = rep(c("Early", "Peak"), 2)) %>%
     mutate(measureType = factor(measureType, levels = c("Timing", "Intensity"))) %>%
-    mutate(measureTiming = factor(measureTiming, levels = c("Early", "Peak"))) 
+    mutate(measureTiming = factor(measureTiming, levels = c("Onset", "Peak"))) 
 
   return(measureLabelsDf)
 }

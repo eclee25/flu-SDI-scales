@@ -55,12 +55,12 @@ datFormats_correlog <- list(dataScale = "cty", resamp = 500)
 # obsDat <- import_obs_allMeasures_cty(path_list)
 # aggBiasDat_st <- import_obs_aggBias_allMeasures(path_list, datFormats_st)
 # aggBiasDat_reg <- import_obs_aggBias_allMeasures(path_list, datFormats_reg)
-correlogDat <- import_obs_correlog(datFormats_correlog) %>%
-  left_join(measure_labels(), by = "measure")
+# correlogDat <- import_obs_correlog(datFormats_correlog) %>%
+#   left_join(measure_labels(), by = "measure")
 
 
-#### FIGURE 1 ########################################################
-#### ALLMEASURES - CHOROS - ONE SEASON ####
+# #### FIGURE 1 ########################################################
+# #### ALLMEASURES - CHOROS - ONE SEASON ####
 # choro_obs_formats <- list(w = 3, h = 1.8, legendStep = 4)
 # choro_obs_timingMeasures_oneSeason(obsDat, choro_obs_formats)
 # choro_obs_formats <- list(w = 3, h = 1.8, legendStep = 0.5)
@@ -71,7 +71,13 @@ correlogDat <- import_obs_correlog(datFormats_correlog) %>%
 # choro_obs_aggBias_allMeasures_oneSeason(aggBiasDat_st, choro_aggBias_formats)
 
 
+# #### FIGURE  ########################################################
+# #### ALLMEASURES - CORRELOGRAMS - ONE SEASON ####
+# correlog_obs_formats <- list(w = 6, h = 3, dataScale = "cty")
+# correlog_obs_allMeasures(correlogDat, correlog_obs_formats)
+
 #### FIGURE  ########################################################
-#### ALLMEASURES - CORRELOGRAMS - ONE SEASON ####
-correlog_obs_formats <- list(w = 6, h = 3, dataScale = "cty")
-correlog_obs_allMeasures(correlogDat, correlog_obs_formats)
+#### ROC CURVES ####
+# no data import dependence
+line_corrFactor_formats <- list(w = 6, h = 3)
+line_corrFactor_auc(line_corrFactor_formats)

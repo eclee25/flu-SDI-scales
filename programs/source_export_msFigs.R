@@ -12,16 +12,20 @@ string_msFig_folder <- function(){
 string_refData_folder <- function(){
     return(paste0(dirname(sys.frame(1)$ofile), "/../reference_data/"))
 }
+################################
+string_corrFactor_auc_folder <- function(){
+    return(paste0(dirname(sys.frame(1)$ofile), "/../R_export/correct_aggBias/"))
+}
 
 #### cleaning functions ################################
 measure_labels <- function(){
   measureLabelsDf <- data.frame(
     measure = c("iliEarly", "iliPeak", "wksToEpi", "wksToPeak"), 
-    measureLab = c("Early Intensity", "Peak Intensity", "Onset Timing", "Peak Timing"),
+    measureLab = c("Onset Intensity", "Peak Intensity", "Onset Timing", "Peak Timing"),
     measureType = c(rep("Intensity", 2), rep("Timing", 2)),
-    measureTiming = rep(c("Early", "Peak"), 2)) %>%
+    measureTiming = rep(c("Onset", "Peak"), 2)) %>%
     mutate(measureType = factor(measureType, levels = c("Timing", "Intensity"))) %>%
-    mutate(measureTiming = factor(measureTiming, levels = c("Early", "Peak"))) 
+    mutate(measureTiming = factor(measureTiming, levels = c("Onset", "Peak"))) 
 
   return(measureLabelsDf)
 }
@@ -113,7 +117,7 @@ choro_obs_magnitudeMeasures_oneSeason <- function(obsAllMeasuresDat, pltFormats)
   plotDat <- prepDat %>%
     select(season, fips, iliEarly, iliPeak) %>%
     gather(fig, bin, iliEarly:iliPeak) %>%
-    mutate(fig = factor(fig, levels = c("iliEarly", "iliPeak"), labels = c("Early Season", "Peak Season"))) %>%
+    mutate(fig = factor(fig, levels = c("iliEarly", "iliPeak"), labels = c("Onset Intensity", "Peak Intensity"))) %>%
     mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE)) 
   print(levels(plotDat$bin))
  
@@ -163,7 +167,7 @@ choro_obs_aggBias_allMeasures_oneSeason <- function(obsBiasAllMeasuresDat, pltFo
   plotDat <- prepDat %>%
     select(season, fips, wksToEpi, wksToPeak, iliEarly, iliPeak) %>%
     gather(fig, bin, wksToEpi:iliPeak) %>%
-    mutate(fig = factor(fig, levels = c("wksToEpi", "wksToPeak", "iliEarly", "iliPeak"), labels = c("Onset Timing", "Peak Timing", "Early Season", "Peak Season"))) %>%
+    mutate(fig = factor(fig, levels = c("wksToEpi", "wksToPeak", "iliEarly", "iliPeak"), labels = c("Onset Timing", "Peak Timing", "Onset Intensity", "Peak Intensity"))) %>%
     mutate(bin = factor(bin, levels = factorlvls, labels = factorlvls, ordered = TRUE)) 
   print(levels(plotDat$bin))
  
@@ -180,7 +184,7 @@ choro_obs_aggBias_allMeasures_oneSeason <- function(obsBiasAllMeasuresDat, pltFo
     choro <- ggplot() +
       geom_map(data = ctyMap, map = ctyMap, aes(x = long, y = lat, map_id = region)) +
       geom_map(data = pltDat, map = ctyMap, aes(fill = bin, map_id = fips), color = "grey25", size = 0.025) +
-      scale_fill_manual(name = "Aggregation Bias", values = manualPalette, na.value = "grey60", drop = FALSE) +
+      scale_fill_manual(name = "Spatial Aggregation Error", values = manualPalette, na.value = "grey60", drop = FALSE) +
       expand_limits(x = ctyMap$long, y = ctyMap$lat) +
       theme_minimal() +
       theme(text = element_text(size = 9), axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.grid = element_blank(), legend.position = "bottom", legend.key.size = unit(.35, "cm"), legend.margin = margin(t = 0, r = 0, b = 2, l = 0, unit = "pt"), plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), legend.title = element_text(size = 8)) +
@@ -215,4 +219,41 @@ correlog_obs_allMeasures <- function(correlogDat, pltFormats){
   
   ggsave(exportFname, correlogPlot, width = w, height = h, dpi = dp)
 
+}
+################################
+line_corrFactor_auc <- function(pltFormats){
+  print(match.call())
+  # compare corrFactor ROC curve to replicates with random corrFactors
+
+  w <- pltFormats$w; h <- pltFormats$h; dp <- 300
+  # import data
+  fnameLs <- list.files(string_corrFactor_auc_folder(), full.names = TRUE)
+  inDat <- map_df(fnameLs, function(x){
+    return(read_csv(x))
+  })
+
+  corrFactorDat <- inDat %>%
+    mutate(measure = unlist(tstrsplit(modCodeStr, "_", keep = 2))) %>%
+    left_join(measure_labels(), by = "measure") %>%
+    mutate(colourlab = ifelse(grepl("rnorm", coefName), coefName, "corrFactor"))
+
+  # plot formatting
+  exportFname <- paste0(string_msFig_folder(), "line_corrFactor_auc_cty.png")
+  colorFormats <- corrFactorDat %>%
+    distinct(colourlab) %>%
+    mutate(colourname = ifelse(colourlab == "corrFactor", "#800000", "grey50"))
+  
+  # plot data
+  plt <- ggplot(corrFactorDat, aes(x = fpr, y = sensitivity)) +
+    geom_line(aes(colour = colourlab), alpha = 0.8, size = 1) +
+    geom_point(aes(colour = colourlab)) +
+    geom_abline(intercept = 0, slope = 1, colour = "black", linetype = 2) +
+    scale_colour_manual(values = colorFormats$colourname, breaks = colorFormats$colourlab) +
+    scale_x_continuous("False Positive Rate (1-Specificity)") +
+    scale_y_continuous("Sensitivity") +
+    theme_bw() +
+    theme(text = element_text(size = 12)) +
+    guides(colour = "none") +
+    facet_wrap(~measureLab)
+  ggsave(exportFname, plt, width = w, height = h, dpi = dp)
 }

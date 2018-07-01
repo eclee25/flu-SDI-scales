@@ -22,12 +22,13 @@ source("source_export_inlaDiagnostics.R") # plot_diag_scatter_hurdle function
 source("source_clean_response_functions_cty.R") # cty response functions
 
 #### set these! ################################
-dbCodeStr <- "_ilinDt_Octfit_span0.4_degree2"
+dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
 seasons <- c(3:9)
 
-modCodeStrLs <- paste0("11a_iliSum_v", 2, "-4")
+# modCodeStrLs <- c("11f_wksToEpi_anomHumidity")
+modCodeStrLs <- paste0("11b_iliPeak_v", 2, "-20")
 likString <- "normal"; likStrings <- c(likString) 
-source("source_calculate_residuals.R") # calculate_residuals function 
+source("source_calculate_residuals_shift1.R") # calculate_residuals function (y1 is the response)
 
 #### IMPORT FILEPATHS #################################
 setwd('../reference_data')
@@ -68,9 +69,9 @@ for (i in 1:length(modCodeStrLs)){
   ### model fit ###
   if ("normal" %in% likStrings | "poisson" %in% likStrings){
 
-    # scatter: predicted vs. observed data + 95%CI vs. observed y (fit_rr_st - fit_rr_cty)
+    # scatter: predicted vs. observed data + 95%CI vs. observed y 
     path_plotExport_predVsObs <- paste0(path_plotExport, sprintf("/diag_predVsObs_%s_%s.png", likString, modCodeStr))
-    plot_diag_scatter_hurdle_spatiotemporal_aggBias(path_csvExport, path_plotExport_predVsObs, likString, "y", "mean", TRUE)
+    plot_diag_scatter_hurdle_spatiotemporal_aggBias(path_csvExport, path_plotExport_predVsObs, likString, "y1", "mean", TRUE)
 
     # scatter: standardized residuals vs. predicted 
     path_plotExport_residVsPred <- paste0(path_plotExport, sprintf("/diag_residVsPred_%s_%s.png", likString, modCodeStr))
@@ -79,7 +80,7 @@ for (i in 1:length(modCodeStrLs)){
 
     # scatter: standardized residuals vs. observed y (fit_rr_st - fit_rr_cty)
     path_plotExport_residVsObs <- paste0(path_plotExport, sprintf("/diag_residVsObs_%s_%s.png", likString, modCodeStr))
-    plot_diag_scatter_hurdle_spatiotemporal_aggBias(path_csvExport, path_plotExport_residVsObs, likString, "y", "yhat_resid", FALSE)
+    plot_diag_scatter_hurdle_spatiotemporal_aggBias(path_csvExport, path_plotExport_residVsObs, likString, "y1", "yhat_resid", FALSE)
 
     # scatter: predicted SD vs. predicted
     path_plotExport_predsdVsPred <- paste0(path_plotExport, sprintf("/diag_predsdVsPred_%s_%s.png", likString, modCodeStr))
@@ -129,9 +130,9 @@ for (i in 1:length(modCodeStrLs)){
     #### nonzero model figures ####
     if ("gamma" %in% likStrings | "normal" %in% likStrings | "poisson" %in% likStrings){
       path_csvImport_fittedNz <- paste0(path_csvExport, sprintf("/summaryStatsFitted_%s_%s.csv", likString, modCodeStr))
-      mod_nz_import <- read_csv(path_csvImport_fittedNz, col_types = cols(fips = col_character(), ID = col_character(), fit_rr_cty = col_double(), fit_rr_st = col_double())) %>%
+      mod_nz_import <- read_csv(path_csvImport_fittedNz, col_types = cols(fips = col_character(), ID = col_character())) %>%
         filter(season == s)
-      mod_nz_fitted <- calculate_residuals(mod_nz_import, TRUE) # 2nd arg: nonzeronOnly
+      mod_nz_fitted <- calculate_residuals(mod_nz_import)
 
       if (nrow(mod_nz_fitted %>% filter(!is.na(y))) > 0){
         # choropleth: observed y (fit_rr_st - fit_rr_cty) - Magnitude of non-zero epidemic

@@ -18,8 +18,10 @@ source("source_correct_aggBias_functions.R")
 
 dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
 measure <- "wksToEpi"
-coefName <- "X_anomHumidity"
+coefName <- "X_rnorm"
 modCodeStr <- "8f_wksToEpi_v2-21"
+seed <- 944
+set.seed(seed)
 
 #### PATHS ##################################
 setwd('../reference_data')
@@ -82,8 +84,14 @@ stROC <- roc(as.numeric(trueClassif) ~ as.numeric(testClassif), data = fullClass
 plotDat_cty <- identify_sensitive_specific(fullClassif_cty)
 plotDat_st <- identify_sensitive_specific(fullClassif_st)
 
+#### WRITE DATA ####
+# for ROC curves
+exportFname1 <- paste0(getwd(), "/../R_export/correct_aggBias/rocCty_", gsub("X_", "", coefName), ifelse(coefName == "X_rnorm", seed, ""), "_", modCodeStr, ".csv")
+write_csv(plotDat_cty %>% mutate(coefName = ifelse(coefName == "X_rnorm", paste0("rnorm", seed), gsub("X_", "", coefName))) %>% mutate(modCodeStr = modCodeStr), exportFname1)
+
+
 #### PLOT DATA ####
-fname <- paste0(getwd(), "/../graph_outputs/correct_aggBias/rocCty_", gsub("X_", "", coefName), "_", modCodeStr, ".png")
+fname <- paste0(getwd(), "/../graph_outputs/correct_aggBias/rocCty_", gsub("X_", "", coefName), ifelse(coefName == "X_rnorm", seed, ""), "_", modCodeStr, ".png")
 
 png(filename = fname, units = "in", width = 4, height = 4, res = 300)
 plot(plotDat_cty$fpr, plotDat_cty$sensitivity, xlab = "False Positive Rate (1-Specificity)", ylab = "Sensitivity", main = "") 

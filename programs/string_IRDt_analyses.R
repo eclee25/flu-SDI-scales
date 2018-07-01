@@ -59,7 +59,7 @@ substr.Right <- function(x, numchar){
 
 #### set these! ####################################
 spatial.scale <- "county"
-agegroups <- "_totAge" # _totAge, _child, _adult
+agegroups <- "_child" # _totAge, _child, _adult
 span.list <- seq(0.4, 0.42, by=0.1)
 deg <- 2
 
@@ -96,13 +96,13 @@ if (spatial.scale == "state"){
 for (span in span.list){
   params <- list(span.var = span, degree.var = deg, spatial = spatial.params)
 
-  do.call(write_loess_fits_IR, c(params))
-  do.call(explore_loess_fits_IR, c(params))
+  # do.call(write_loess_fits_IR, c(params))
+  # do.call(explore_loess_fits_IR, c(params))
   do.call(write_periodicReg_fits_irDt_Octfit, c(params))
   do.call(write_fullIndic_periodicReg_irDt, c(params))
   do.call(explore_periodicReg_fits_irDt, c(params))
-  do.call(write_relativeDiseaseBurden_irDt, c(params))
-  do.call(explore_dbMetricsDistribution_irDt, c(params))
-  do.call(explore_periodicReg_inSeasonFits_irDt, c(params))
+  # do.call(write_relativeDiseaseBurden_irDt, c(params))
+  # do.call(explore_dbMetricsDistribution_irDt, c(params))
+  # do.call(explore_periodicReg_inSeasonFits_irDt, c(params))
 }
 
