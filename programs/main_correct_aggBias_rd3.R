@@ -72,11 +72,11 @@ if(measure == "wksToEpi"){
 postSamplesDat <- import_posteriorSamples_data_st(modCodeStr)
 
 #### IMPORT PREDICTOR DATA ####
-ctyStar <- calculate_new_cty_burden(postSamplesDat, trueCtyObsDat)
+ctyStar <- calculate_new_cty_burden_mag(postSamplesDat, trueCtyObsDat)
+WRITE FUNCTION TO COMPARE CTY STAR TO TRUE CTY VALUE
+# p1 <- ggplot(trueCtyObsDat, aes(obs_y)) + geom_histogram() + facet_wrap(~season)
+# p2 <- ggplot(ctyStar, aes(q_5)) + geom_histogram() + facet_wrap(~season)
 
-p1 <- ggplot(trueCtyObsDat, aes(obs_y)) + geom_histogram() + facet_wrap(~season)
-p2 <- ggplot(ctyStar, aes(q_5)) + geom_histogram() + facet_wrap(~season)
-
-# #### PLOT PREDICTOR DATA ####
-# scatFormats <- list(w = 6, h = 4, measure = measure, coefName = coefName)
+# # #### PLOT PREDICTOR DATA ####
+# # scatFormats <- list(w = 6, h = 4, measure = measure, coefName = coefName)
 # scatterPlt <- scatter_cty_ctyStar(ctyStar, scatFormats)

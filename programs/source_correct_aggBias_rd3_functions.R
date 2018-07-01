@@ -39,7 +39,7 @@ import_posteriorSamples_data_st <- function(modCodeStr){
 
 
 #### calculate new cty bias ################################
-calculate_new_cty_burden <- function(postSamplesLs_st, ctyObs){
+calculate_new_cty_burden_mag <- function(postSamplesLs_st, ctyObs){
   print(match.call())
 
   ## 5/29/18 checked that sum of county populations is equivalent to state population
@@ -47,27 +47,30 @@ calculate_new_cty_burden <- function(postSamplesLs_st, ctyObs){
     mutate(fips_st = substring(fips, 1, 2)) %>%
     select(season, fips, fips_st, pop)
 
-  ## redistribute by population
+
+  ## redistribute by population after transforming posterior samples back to original scale (magnitude db measures)
   samp_df <- postSamplesLs_st[["obs_samples_df"]] %>%
     rename(pop_st = pop) %>%
     full_join(ctyObs_sub, by = c("season", "fips_st")) %>%
     mutate(prop_stPop = pop/pop_st) %>%
-    mutate_at(.vars = vars(contains("V")), .funs = funs(.*prop_stPop))
+    mutate_at(.vars = vars(contains("V")), .funs = funs((exp(.)-1)*prop_stPop))
 
-  ## calculate quantiles for redistributed intensity
-  samp_summ <- samp_df %>% select(contains("V")) 
+  ## import inflow data
+  inflowDat <- process_commuting_flows() %>% dplyr::select(-pop, -net_flow)
+  samp_df2 <- left_join(samp_df, inflowDat, by = c("fips")) %>%
+    mutate_at(.vars = vars(contains("V")), .funs = funs(. + netinflow_prop*.))
+
+  ## calculate quantiles for intensity redistributed by population
+  samp_summ <- samp_df2 %>% select(contains("V")) 
   q_5 <- apply(samp_summ, 1, quantile, probs = c(.5), na.rm = TRUE)
   q_025 <- apply(samp_summ, 1, quantile, probs = c(.025), na.rm = TRUE)
   q_975 <- apply(samp_summ, 1, quantile, probs = c(.975), na.rm = TRUE)
-
-  cty_star_df <- samp_df %>%
-    select(-contains("V")) %>%
-    mutate(q_5 = q_5, q_025 = q_025, q_975 = q_975)
-
-  ## 5/29/18 Why aren't the quantiles sums adding to the obs_db intensity?
-  test <- cty_star_df %>% group_by(season, fips_st) %>% summarise(obs_db = first(obs_db), q_5 = sum(q_5, na.rm = TRUE), q_025 = sum(q_025, na.rm = TRUE), q_975 = sum(q_975, na.rm = TRUE), prop_stPop = sum(prop_stPop, na.rm=TRUE))
-
-  browser()
+  
+  cty_star_df <- samp_df2 %>%
+    select(-contains("V")) %>%    
+    dplyr::mutate(q_5 = q_5, q_025 = q_025, q_975 = q_975) %>%
+    dplyr::filter(fips_st != "11")
+  
 
   # # clean data for cty_star estimation
   # aggBias_samp_mx <- aggBias_samp_df %>% select(num_range("V", 1:200)) %>% as.matrix
@@ -115,4 +118,28 @@ calculate_new_cty_burden <- function(postSamplesLs_st, ctyObs){
   #   bind_cols(cty_star_summ)
 
   return(cty_star_df)
+}
+
+process_commuting_flows <- function(filename = "../reference_data/US_countyCommuter_fullData.csv"){
+  
+  origDat <- read_csv(filename, col_types = "ccdddd______") %>%
+    dplyr::mutate(net_12 = commuters_12 - commuters_21) %>%
+    dplyr::mutate(net_21 = commuters_21 - commuters_12)
+  
+  ## calculate net county inflows
+  dat_into1 <- origDat %>%
+    group_by(fips1) %>%
+    summarise(net_flow = sum(net_21), pop = first(pop1)) %>%
+    dplyr::rename(fips = fips1)
+  dat_into2 <- origDat %>%
+    group_by(fips2) %>%
+    summarise(net_flow = sum(net_12), pop = first(pop2)) %>%
+    dplyr::rename(fips = fips2)
+  inflowDat <- bind_rows(dat_into1, dat_into2) %>%
+    group_by(fips) %>%
+    summarise(net_flow = sum(net_flow), pop = first(pop)) %>%
+    dplyr::mutate(netinflow_prop = net_flow/pop) 
+
+  return(inflowDat)
+
 }
