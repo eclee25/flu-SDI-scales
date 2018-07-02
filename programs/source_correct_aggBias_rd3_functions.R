@@ -144,13 +144,20 @@ compare_true_star_ctyDat <- function(trueDat, starDat){
 
   true_cl <- trueDat %>%
     dplyr::select(season, fips, obs_y) %>%
-    dplyr::mutate(true_y = obs_y-1) 
+    dplyr::mutate(true_y = obs_y-1) %>%
+    dplyr::arrange(true_y) %>%
+    dplyr::mutate(true_rank = 1:n())
+
   star_cl <- starDat %>%
     dplyr::select(season, fips, db_obs, q_5, q_025, q_975, q_sd) %>%
-    dplyr::rename(true_y_st = db_obs)
+    dplyr::rename(true_y_st = db_obs) %>%
+    dplyr::arrange(q_5) %>%
+    dplyr::mutate(star_rank = 1:n())
+  
   fullDat <- full_join(true_cl, star_cl, by = c("season", "fips")) %>%
     dplyr::mutate(std_resid = (true_y-q_5)/q_sd) %>%
-    dplyr::mutate(match = ifelse(true_y >= q_025 & true_y <= q_975, TRUE, FALSE))
+    dplyr::mutate(match = ifelse(true_y >= q_025 & true_y <= q_975, TRUE, FALSE)) %>%
+    dplyr::filter(!is.na(match))
 
   return(fullDat)
 }

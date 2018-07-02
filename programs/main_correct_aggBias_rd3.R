@@ -79,21 +79,30 @@ postSamplesDat <- import_posteriorSamples_data_st(modCodeStr)
 #### IMPORT PREDICTOR DATA ####
 ctyStarDat <- calculate_new_cty_burden(postSamplesDat, trueCtyObsDat)
 compareDat <- compare_true_star_ctyDat(trueCtyObsDat, ctyStarDat)
-# WRITE FXN FOR RANK ORDER COMPARISONS
-## explore matches and residuals
-p1 <- ggplot(compareDat %>% dplyr::filter(!is.na(match)), aes(x = true_y, y = q_5)) +
+
+#### EXPLORE MATCHES AND RESIDUALS ####
+p1 <- ggplot(compareDat, aes(x = true_y, y = q_5)) +
   geom_point() +
   geom_errorbar(aes(ymin = q_025, ymax = q_975)) +
   theme_bw() +
   facet_wrap(~season, scales = "free_y")
-p2 <- ggplot(compareDat %>% dplyr::filter(!is.na(match)), aes(x = q_5, y = std_resid)) + 
+p2 <- ggplot(compareDat, aes(x = q_5, y = std_resid)) + 
   geom_point(aes(colour = match)) + 
   theme_bw() +
   facet_wrap(~season, scales = "free_y")
-hist(compareDat$std_resid)
+
+## examine rank correlation coefficient in a single season
+seasDat <- compareDat %>% dplyr::filter(season == 4)  
+cor.test(seasDat$q_5, seasDat$true_y, method = "spearman")
+
+p3 <- ggplot(seasDat, aes(x = true_rank, y = star_rank)) +
+  geom_point() +
+  theme_bw() +
+  theme(legend.position = "bottom")
 
 print(p1)
 print(p2)
+print(p3)
 
 # p2 <- ggplot(compareDat, aes(x = )) + geom_histogram() + facet_wrap(~season)
 
