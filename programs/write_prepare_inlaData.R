@@ -90,25 +90,31 @@ fname_8i <- "inlaImport_model8i_wksToPeak_irDt_log_v7"
 fname_8h <- "inlaImport_model8h_iliEarly_irDt_v7"
 fname_8b <- "inlaImport_model8b_iliPeak_irDt_v7"
 
-# write_csv(mod_8fV7, paste0(path_dataExport, fname_8f, ".csv"))
-# write_csv(mod_8iV7, paste0(path_dataExport, fname_8i, ".csv"))
-# write_csv(mod_8hV7, paste0(path_dataExport, fname_8h, ".csv"))
-# write_csv(mod_8bV7, paste0(path_dataExport, fname_8b, ".csv"))
+write_csv(mod_8fV7, paste0(path_dataExport, fname_8f, ".csv"))
+write_csv(mod_8iV7, paste0(path_dataExport, fname_8i, ".csv"))
+write_csv(mod_8hV7, paste0(path_dataExport, fname_8h, ".csv"))
+write_csv(mod_8bV7, paste0(path_dataExport, fname_8b, ".csv"))
 
 ##################################################################
 #### state level data ####
 mod_10bV2 <- model10b_iliPeak_irDt_v2(path_list) 
 mod_10hV2 <- model10h_iliEarly_irDt_v2(path_list)
 mod_10aV2 <- model10a_iliSum_irDt_v2(path_list)
+mod_10fV2 <- model10f_wksToEpi_v2(path_list)
+mod_10iV2 <- model10i_wksToPeak_v2(path_list)
 
 # fnames
 fname_10b <- "inlaImport_model10b_iliPeak_irDt_v7"
 fname_10h <- "inlaImport_model10h_iliEarly_irDt_v7"
 fname_10a <- "inlaImport_model10a_iliSum_irDt_v7"
+fname_10f <- "inlaImport_model10f_wksToEpi_irDt_v7"
+fname_10i <- "inlaImport_model10i_wksToPeak_irDt_v7"
 
 write_csv(mod_10bV2, paste0(path_dataExport, fname_10b, ".csv"))
 write_csv(mod_10hV2, paste0(path_dataExport, fname_10h, ".csv"))
 write_csv(mod_10aV2, paste0(path_dataExport, fname_10a, ".csv"))
+write_csv(mod_10fV2, paste0(path_dataExport, fname_10f, ".csv"))
+write_csv(mod_10iV2, paste0(path_dataExport, fname_10i, ".csv"))
 
 #### aggregation bias data ####
 mod_11fV7 <- mod_8fV7 %>%
@@ -138,10 +144,10 @@ fname_11i <- "inlaImport_model11i_wksToPeak_irDt_v7"
 fname_11h <- "inlaImport_model11h_iliEarly_irDt_v7"
 fname_11b <- "inlaImport_model11b_iliPeak_irDt_v7"
 
-# write_csv(mod_11fV7, paste0(path_dataExport, fname_11f, ".csv"))
-# write_csv(mod_11iV7, paste0(path_dataExport, fname_11i, ".csv"))
-# write_csv(mod_11hV7, paste0(path_dataExport, fname_11h, ".csv"))
-# write_csv(mod_11bV7, paste0(path_dataExport, fname_11b, ".csv"))
+write_csv(mod_11fV7, paste0(path_dataExport, fname_11f, ".csv"))
+write_csv(mod_11iV7, paste0(path_dataExport, fname_11i, ".csv"))
+write_csv(mod_11hV7, paste0(path_dataExport, fname_11h, ".csv"))
+write_csv(mod_11bV7, paste0(path_dataExport, fname_11b, ".csv"))
 
 ##################################################################
 #### plot response data ####
