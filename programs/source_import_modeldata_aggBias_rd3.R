@@ -105,6 +105,70 @@ import_obs_iliPeak_reg <- function(filepathList){
     return(obsDat)
 }
 
+#### wksToPeak ################################
+import_obs_wksToPeak <- function(filepathList){
+  print(match.call())
+  # import observed data for wks to peak at county level
+  # acts as a wrapper for cleanR_wksToPeak_cty
+  
+  # import observed and expected ili in early flu season
+  inDat <- cleanR_wksToPeak_cty(filepathList) %>%
+        mutate(obs_y = y1, E = E) %>%
+        select(season, fips, obs_y, E, pop)
+  # add lat/lon coords
+  coordDat <- read_csv(filepathList$path_latlon_cty, col_types = "_c__dd")
+  obsDat <- left_join(inDat, coordDat, by = c("fips")) %>%
+    filter(!(substring(fips, 1, 2) %in% c("02", "15")))
+  
+  return(obsDat)
+}
+################################
+import_obs_wksToPeak_st <- function(filepathList){
+  print(match.call())
+  # import observed data for wks to peak at state level
+  # acts as a wrapper for cleanR_wksToPeak_st
+  
+  # import observed and expected ili peak
+  obsDat <- cleanR_wksToPeak_st(filepathList) %>%
+    mutate(obs_y = y1, E = E) %>%
+    select(season, fips_st, obs_y, E, pop) %>%
+    filter(!(fips_st %in% c("02", "15")))
+  
+  return(obsDat)
+}
+
+#### wksToEpi ################################
+import_obs_wksToEpi <- function(filepathList){
+  print(match.call())
+  # import observed data for wks to epi at county level
+  # acts as a wrapper for cleanR_wksToEpi_cty
+  
+  # import observed and expected ili in early flu season
+  inDat <- cleanR_wksToEpi_cty(filepathList) %>%
+        mutate(obs_y = y1, E = E) %>%
+        select(season, fips, obs_y, E, pop)
+  # add lat/lon coords
+  coordDat <- read_csv(filepathList$path_latlon_cty, col_types = "_c__dd")
+  obsDat <- left_join(inDat, coordDat, by = c("fips")) %>%
+    filter(!(substring(fips, 1, 2) %in% c("02", "15")))
+  
+  return(obsDat)
+}
+################################
+import_obs_wksToEpi_st <- function(filepathList){
+  print(match.call())
+  # import observed data for wks to epi at state level
+  # acts as a wrapper for cleanR_wksToEpi_st
+  
+  # import observed and expected ili peak
+  obsDat <- cleanR_wksToEpi_st(filepathList) %>%
+    mutate(obs_y = y1, E = E) %>%
+    select(season, fips_st, obs_y, E, pop) %>%
+    filter(!(fips_st %in% c("02", "15")))
+  
+  return(obsDat)
+}
+
 #### iliSum ################################
 import_obs_iliSum <- function(filepathList){
   print(match.call())
