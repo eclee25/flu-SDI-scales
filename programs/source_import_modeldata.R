@@ -8,6 +8,7 @@
 
 require(tidyverse)
 require(data.table)
+library(maps)
 
 setwd(dirname(sys.frame(1)$ofile))
 source("source_clean_response_functions_cty.R") # functions to clean response and IMS coverage data (cty)
@@ -794,6 +795,10 @@ string_exportFig_wksToEpiAndPeak_folder <- function(){
 
 #### plotting dependencies ################################
 ################################
+substr.Right <- function(x, numchar){
+  return(substr(x, nchar(x)-(numchar-1), nchar(x)))
+}
+
 import_county_geomMap <- function(){
   print(match.call())
   
@@ -801,7 +806,7 @@ import_county_geomMap <- function(){
   data(county.fips)
   polynameSplit <- tstrsplit(county.fips$polyname, ",")
   county_geomMap <- tbl_df(county.fips) %>%
-    mutate(fips = substr.Right(paste0("0", fips), 5)) %>%
+    mutate(fips = substr.Right(paste0("0", fips), 5)) %>% 
     mutate(region = polynameSplit[[1]]) %>%
     mutate(subregion = polynameSplit[[2]]) %>%
     full_join(countyMap, by = c("region", "subregion")) %>%
@@ -811,4 +816,23 @@ import_county_geomMap <- function(){
     select(-polyname)
   
   return(county_geomMap)
+}
+
+import_state_geomMap <- function(){
+  print(match.call())
+  
+  stateMap <- ggplot2::map_data("state")
+  data(state.fips)
+  polynameSplit <- tstrsplit(state.fips$polyname, ":")
+  state_geomMap <- tbl_df(state.fips) %>%
+    mutate(fips = substr.Right(paste0("0", fips), 2)) %>% 
+    mutate(region = polynameSplit[[1]]) %>%
+    mutate(subregion = polynameSplit[[2]]) %>%
+    full_join(stateMap, by = c("region", "subregion")) %>%
+    filter(!is.na(polyname) & !is.na(long)) %>%
+    rename(state = region) %>%
+    rename(region = fips) %>%
+    select(-polyname)
+  
+  return(state_geomMap)
 }

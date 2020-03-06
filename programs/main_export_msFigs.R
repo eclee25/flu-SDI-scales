@@ -58,7 +58,6 @@ datFormats_correlog <- list(dataScale = "cty", resamp = 500)
 # correlogDat <- import_obs_correlog(datFormats_correlog) %>%
 #   left_join(measure_labels(), by = "measure")
 
-
 # #### FIGURE 1 ########################################################
 # #### ALLMEASURES - CHOROS - ONE SEASON ####
 # choro_obs_formats <- list(w = 3, h = 1.8, legendStep = 4)

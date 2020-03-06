@@ -69,7 +69,7 @@ calculate_correlation_distance_onsetWeek <- function(distData){
 	onsetVec <- distData$y1
 	evalCols <- names(distData %>% select(matches("srcID")))
 	corrData <- distData %>% 
-		summarise_at(.cols = evalCols, cor, y = onsetVec, method = "pearson", use = "complete.obs")
+		summarise_at(vars(evalCols), cor, y = onsetVec, method = "pearson", use = "complete.obs")
 
 	return(corrData)
 }

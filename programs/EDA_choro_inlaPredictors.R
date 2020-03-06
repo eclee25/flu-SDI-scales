@@ -12,9 +12,9 @@
 
 #### header #################################
 rm(list = ls())
-require(dplyr); require(tidyr); require(readr); require(DBI); require(RMySQL) # clean_data_functions dependencies
+require(dplyr); require(tidyr); require(readr); require(DBI)#; require(RMySQL) # clean_data_functions dependencies
 require(maptools); require(spdep) # prepare_inlaData_st.R dependencies
-require(INLA) # main dependencies
+#require(INLA) # main dependencies
 require(RColorBrewer); require(ggplot2) # export_inlaData_st dependencies
 
 
@@ -173,15 +173,15 @@ plot_countyChoro_predictors <- function(exportPath, pltDat, pltVarTxt, code, zer
 #   plot_countyChoro_predictors(path_choroDummy, modData3, v, "gradient", FALSE)
 # }
 
-for (v in varnames[c(13, 14, 17, 18)]){
-  for (s in seasons){
-    subData <- modData3 %>%
-      select_("season", "fips", v) %>%
-      filter(season == s)
-    path_choroDummy_1seas <- paste0(path_plotExport, "/choro_", v, "_S", s, "_grad.png")
-    plot_countyChoro(path_choroDummy_1seas, subData, v, "gradient", FALSE)
-  }
-}
+# for (v in varnames[c(13, 14, 17, 18)]){
+#   for (s in seasons){
+#     subData <- modData3 %>%
+#       select_("season", "fips", v) %>%
+#       filter(season == s)
+#     path_choroDummy_1seas <- paste0(path_plotExport, "/choro_", v, "_S", s, "_grad.png")
+#     plot_countyChoro(path_choroDummy_1seas, subData, v, "gradient", FALSE)
+#   }
+# }
 
 #### Quantify variation of predictors ################################
 varDf <- modData2 %>%

@@ -12,7 +12,7 @@ source("source_aggBias_data_explore_functions.R")
 
 #### set these! ###############################
 dbCodeStr <- "_irDt_Octfit_span0.4_degree2"
-modules <- c("choroHotspot", "choroAvgHotspot") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "choroHotspot", "choroAvgHotspot", dataExport", "correlog_allSeasons"
+modules <- c("scatter_burden_aggBias") # "statistics", "lisa_oneSeason", "lisa_allSeasons", scatterplot", "choro", "choroAvg", "choroHotspot", "choroAvgHotspot", dataExport", "correlog_allSeasons", "scatter_burden_aggBias"
 
 ###############################
 ## PATHS ##
@@ -47,7 +47,7 @@ setwd(dirname(sys.frame(1)$ofile))
 offsetSetting <- FALSE
 dataParams <- list(offset_l = offsetSetting, filepathList = path_list)
 
-# obs_wksToEpi_ctySt <- do.call(import_obs_wksToEpi_ctySt, c(dataParams))
+obs_wksToEpi_ctySt <- do.call(import_obs_wksToEpi_ctySt, c(dataParams))
 # obs_wksToEpi_ctyReg <- do.call(import_obs_wksToEpi_ctyReg, c(dataParams))
 # obs_wksToPeak_ctySt <- do.call(import_obs_wksToPeak_ctySt, c(dataParams))
 # obs_wksToPeak_ctyReg <- do.call(import_obs_wksToPeak_ctyReg, c(dataParams))
@@ -342,3 +342,12 @@ if("dataExport" %in% modules){
   # cty aggBias doesn't answer the correct question
 
 }
+############################
+# export data to file
+if("scatter_burden_aggBias" %in% modules){
+   add code to import plot formats
+  scatter_burden_vs_aggBias(obs_wksToEpi_ctySt)
+  scatter_burden_vs_aggBias(obs_wksToPeak_ctySt)
+  scatter_burden_vs_aggBias(obs_iliEarly_ctySt)
+  scatter_burden_vs_aggBias(obs_iliPeak_ctySt)
+}  

@@ -369,7 +369,6 @@ choro_obs_aggBias_oneSeason_wrapper <- function(importDat, pltFormats, breaks, m
         choro_aggBias_oneSeason(pltDat, pltFormats)
     }
 }
-
 ################################
 choro_obs_aggBias_hotspots_oneSeason_wrapper <- function(pltFormats, breaks, manualPalette){
     print(match.call())
@@ -399,9 +398,22 @@ choro_obs_aggBias_hotspots_oneSeason_wrapper <- function(pltFormats, breaks, man
       choro_aggBias_oneSeason(pltDat, pltFormats)
     }
 }
-
 #################################
+scatter_burden_vs_aggBias <- function(importDat, pltFormats){
+  print(match.call())
 
+  exportFname <- pltFormats$exportFname
+    h <- pltFormats$h; w <- pltFormats$w; dp <- 300
+
+  plt <- ggplot(importDat, aes(x = obs_y_cty, y = obs_diff_stCty)) +
+    geom_point() +
+    theme_bw() +
+    theme(legend.position = "bottom") +
+    facet_wrap(~season)
+  
+  ggsave(exportFname, plt, height = h, width = w, dpi = dp)
+}
+#################################
 
 #### internal plotting functions ################################
 choro_aggBias_oneSeason <- function(pltDat, pltFormats){
