@@ -48,11 +48,11 @@ fullDat <- bind_rows(ctyDat2, stDat2, regDat2) %>%
   dplyr::mutate(plt.date = ifelse(lubridate::month(Thu.week)>=11, paste0("2005", substring(Thu.week, 5, 10)), paste0("2006", substring(Thu.week, 5, 10)))) %>%
   dplyr::mutate(plt.date = lubridate::as_date(plt.date)) %>%
   dplyr::mutate(plt.season = factor(season, levels = 3:9, labels = c("2002-2003", "2003-2004", "2004-2005", "2005-2006", "2006-2007", "2007-2008", "2008-2009"))) %>%
-  dplyr::mutate(plt.region = factor(region, levels = paste0("R", 1:10), labels = c("Boston", "New York", "Philadelphia", "Atlanta", "Chicago", "Dallas", "Kansas City", "Denver", "San Francisco", "Seattle")))
+  dplyr::mutate(plt.region = factor(region, levels = paste0("R", 1:10), labels = c("Region 1:\nCT,ME,MA,\nNH,RI,VT", "Region 2:\nNJ,NY", "Region 3:\nDE,MD,PA,\nVA,WV", "Region 4:\nAL,FL,GA,\nKY,MS,NC,\nSC,TN", "Region 5:\nIL,IN,MI,\nMN,OH,WI", "Region 6:\nAR,LA,NM,\nOK,TX", "Region 7:\nIA,KS,MO,NE", "Region 8:\nCO,MT,ND,\nSD,UT,WY", "Region 9:\nAZ,CA,NV", "Region 10:\nAK,ID,OR,WA")))
 
 colvec <- c("county" = "grey70", "state" = "black", "region" = "red")
-szvec <- c("county" = 1, "state" = 1.5, "region" = 1.5)
-alphvec <- c("county" = 0.1, "state" = 1, "region" = .5)
+szvec <- c("county" = .9, "state" = 1.5, "region" = 1.5)
+alphvec <- c("county" = 0.05, "state" = 1, "region" = .5)
 
 ####################################
 ## NON-CUMULATIVE ##
@@ -65,7 +65,7 @@ plt <- ggplot(fullDat, aes(x = plt.date, y = ir.dt, group = loc)) +
   scale_x_date(date_labels = "%b", date_breaks = "2 months") +
   scale_y_continuous("Intensity") +
   theme_bw() +
-  theme(legend.position = "bottom", axis.title.x = element_blank(), text = element_text(size=10)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(), text = element_text(size=10), strip.text.y = element_text(size=8, angle=360)) +
   guides(alpha = "none") +
   facet_grid(plt.region~plt.season, scales = "free_y")
 
@@ -84,7 +84,7 @@ plt <- ggplot(fullDat, aes(x = plt.date, y = ir.dt.cumnorm, group = loc)) +
   scale_x_date(date_labels = "%b", date_breaks = "2 months") +
   scale_y_continuous("Cumulative Intensity", breaks = c(0, 0.5, 1)) +
   theme_bw() +
-  theme(legend.position = "bottom", axis.title.x = element_blank(), text = element_text(size=10)) +
+  theme(legend.position = "bottom", axis.title.x = element_blank(), text = element_text(size=10), strip.text.y = element_text(size=8, angle=360)) +
   guides(alpha = "none") +
   facet_grid(plt.region~plt.season)
 
