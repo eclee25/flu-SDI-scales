@@ -7,8 +7,10 @@ stDat <- read_csv("../R_export/fullIndicAll_periodicReg_irDt_Octfit_span0.4_degr
 regDat <- read_csv("../R_export/fullIndicAll_periodicReg_irDt_Octfit_span0.4_degree2_analyzeDB_reg.csv")
 refs <- read_csv("../reference_data/state_abbreviations_FIPS_region.csv") %>%
   dplyr::mutate(region = paste0("R", Region)) %>%
-  dplyr::rename(fips_st = fips) %>%
-  dplyr::select(fips_st, region)
+  dplyr::rename(fips_st = fips, abbr_st = Abbreviation) %>%
+  dplyr::select(fips_st, region, abbr_st)
+refs_reg <- refs %>% dplyr::select(fips_st, region)
+refs_st <- refs %>% dplyr::select(fips_st, abbr_st)
 
 stpops <- stDat %>%
   dplyr::filter(lubridate::month(Thu.week) < 9) %>%
@@ -31,7 +33,7 @@ cty_onset_1 <- ctyDat %>%
   dplyr::filter(Thu.week == min(Thu.week)) %>%
   ungroup %>%
   dplyr::mutate(fips_st = str_sub(fips, 1, 2)) %>%
-  left_join(refs, by = c("fips_st")) %>%
+  left_join(refs_reg, by = c("fips_st")) %>%
   left_join(stpops, by = c("fips_st", "season")) %>%
   group_by(Thu.week, fips_st) %>%
   summarise(region = first(region), season = first(season), pop_cty = sum(pop), num_cty = n(), pop_st = first(pop_st)) %>%
@@ -41,7 +43,7 @@ cty_onset_1 <- ctyDat %>%
 dummyWeekTemplate <- weeksTemplate %>%
   dplyr::filter(!(uqid %in% cty_onset_1$uqid)) %>%
   dplyr::select(-uqid) %>%
-  left_join(refs, by = c("fips_st")) %>%
+  left_join(refs_reg, by = c("fips_st")) %>%
   left_join(stpops, by = c("fips_st", "season")) %>%
   dplyr::mutate(pop_cty = 0)
 cty_onset <- cty_onset_1 %>%
@@ -70,7 +72,7 @@ dummyStartEnd_st <- stDat %>%
   ungroup %>%
   dplyr::rename(onsetwk_cty = Thu.week) %>%
   dplyr::select(fips_st, season, onsetwk_cty, cumpop_prop_cty) %>%
-  left_join(refs, by = c("fips_st")) %>%
+  left_join(refs_reg, by = c("fips_st")) %>%
   left_join(realOnset, by = c("fips_st", "season")) %>%
   dplyr::filter(onsetwk_cty < realOnsetWk) %>%
   dplyr::mutate(uqid = paste(onsetwk_cty, fips_st, by = "_")) %>%
@@ -117,7 +119,7 @@ onsetDat <- bind_rows(cty_onset, dummyStartEnd_st) %>%
   dplyr::mutate(dummy1 = -.03, dummy2=-.1, dummy3 = -.07)
 
 ####################################
-## Plot onset ##
+## Plot onset vs cumulative pop ##
 
 plt <- ggplot(onsetDat, aes(x = plt.date_cty, y = cumpop_prop_cty, group = fips_st)) +
   geom_line(aes(colour = plt.st.color)) +
@@ -146,3 +148,44 @@ plt <- ggplot(onsetDat, aes(x = plt.date_cty, y = cumpop_prop_cty, group = fips_
   facet_grid(plt.region~plt.season)
 
 ggsave("../graph_outputs/explore_irDt_cumpop/onset_cumpop_region_season_grid_wScales.png", plt, width = 7, height = 9)
+
+####################################
+## % of county population with flu outbreaks at the time when state outbreak is identified
+
+stateOnsetDat <- onsetDat %>%
+  dplyr::filter(onsetwk_cty == onsetwk_st) %>%
+  left_join(refs_st, by = c("fips_st"))
+seasons <- sort(unique(stateOnsetDat$season))
+
+for(s in seasons){
+
+  dummyDat <- stateOnsetDat %>% 
+    dplyr::filter(season == s) %>%
+    dplyr::arrange(desc(cumpop_prop_cty))
+  pltdat <- dummyDat %>%
+    dplyr::mutate(abbr_st = factor(abbr_st, levels = dummyDat$abbr_st))
+  plt <- ggplot(pltdat, aes(x = abbr_st, y = cumpop_prop_cty)) +
+    geom_col() +
+    theme_bw() +
+    theme(legend.position = "bottom", axis.title.x = element_blank(), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+    scale_y_continuous("Cumulative county population (%)\nin the influenza season at state onset")
+  ggsave(paste0("../graph_outputs/explore_irDt_cumpop/onset_cumpop_state_S", s, ".png"), plt, width = 7, height = 3)
+}
+
+stateOnsetsummaryDat <- stateOnsetDat %>%
+  group_by(abbr_st) %>%
+  summarise(cumpop_prop_cty_mn = mean(cumpop_prop_cty), cumpop_prop_cty_sd = sd(cumpop_prop_cty)) %>%
+  dplyr::mutate(cumpop_min = cumpop_prop_cty_mn-cumpop_prop_cty_sd,
+                cumpop_max = cumpop_prop_cty_mn+cumpop_prop_cty_sd ) %>%
+  dplyr::arrange(desc(cumpop_prop_cty_mn))
+pltDat2 <- stateOnsetsummaryDat %>%
+  dplyr::mutate(abbr_st = factor(abbr_st, levels = stateOnsetsummaryDat$abbr_st))
+
+plt <- ggplot(pltDat2, aes(x = abbr_st, y = cumpop_prop_cty_mn)) +
+    geom_linerange(aes(ymin = cumpop_min, ymax = cumpop_max)) +
+    geom_point() +
+    geom_hline(aes(yintercept = 0.5), colour = "red") +
+    theme_bw() +
+    theme(legend.position = "bottom", axis.title.x = element_blank(), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+    scale_y_continuous("Cumulative county population (%)\nin the influenza season at state onset", limits = c(0,1.1), breaks = c(0,.25,.5,.75,1))
+  ggsave(paste0("../graph_outputs/explore_irDt_cumpop/onset_cumpop_state_Sall.png"), plt, width = 7, height = 3)
