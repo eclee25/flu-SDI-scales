@@ -184,8 +184,9 @@ pltDat2 <- statePeaksummaryDat %>%
 plt <- ggplot(pltDat2, aes(x = abbr_st, y = cumpop_prop_cty_mn)) +
     geom_linerange(aes(ymin = cumpop_min, ymax = cumpop_max)) +
     geom_point() +
-    geom_hline(yintercept = 0.5, colour = "red") +
+    geom_hline(aes(yintercept = mean(cumpop_prop_cty_mn)), colour = "red") +
     theme_bw() +
-    theme(legend.position = "bottom", axis.title.x = element_blank(), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
-    scale_y_continuous("Cumulative county population (%)\npast peak season at state peak", limits = c(0,1.1), breaks = c(0,.25,.5,.75,1))
-  ggsave(paste0("../graph_outputs/explore_irDt_cumpop/peak_cumpop_state_Sall.png"), plt, width = 7, height = 3)
+    theme(legend.position = "bottom", axis.title.y = element_blank()) +
+    scale_y_continuous("Cumulative county population (%)\npast peak season at state peak", limits = c(0,1.1), breaks = c(0,.25,.5,.75,1)) +
+    coord_flip()
+  ggsave(paste0("../graph_outputs/explore_irDt_cumpop/peak_cumpop_state_Sall.png"), plt, width = 2.75, height = 6.5)

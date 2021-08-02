@@ -115,7 +115,7 @@ onsetDat <- bind_rows(cty_onset, dummyStartEnd_st) %>%
   dplyr::mutate(plt.date_reg = ifelse(lubridate::month(onsetwk_reg)>=11, paste0("2005", substring(onsetwk_reg, 5, 10)), paste0("2006", substring(onsetwk_reg, 5, 10)))) %>%
   dplyr::mutate(plt.date_reg = lubridate::as_date(plt.date_reg)) %>%
   dplyr::mutate(plt.season = factor(season, levels = 3:9, labels = c("2002-2003", "2003-2004", "2004-2005", "2005-2006", "2006-2007", "2007-2008", "2008-2009"))) %>%
-  dplyr::mutate(plt.region = factor(region, levels = paste0("R", 1:10), labels = c("Region 1:\nCT,ME,MA,\nNH,RI,VT", "Region 2:\nNJ,NY", "Region 3:\nDE,MD,PA,\nVA,WV", "Region 4:\nAL,FL,GA,\nKY,MS,NC,\nSC,TN", "Region 5:\nIL,IN,MI,\nMN,OH,WI", "Region 6:\nAR,LA,NM,\nOK,TX", "Region 7:\nIA,KS,MO,NE", "Region 8:\nCO,MT,ND,\nSD,UT,WY", "Region 9:\nAZ,CA,NV", "Region 10:\nAK,ID,OR,WA"))) %>%
+  dplyr::mutate(plt.region = factor(region, levels = paste0("R", 1:10), labels = c("Region 1:\nCT,ME,MA,\nNH,RI,VT", "Region 2:\nNJ,NY", "Region 3:\nDE,DC,MD,\nPA,VA,WV", "Region 4:\nAL,FL,GA,\nKY,MS,NC,\nSC,TN", "Region 5:\nIL,IN,MI,\nMN,OH,WI", "Region 6:\nAR,LA,NM,\nOK,TX", "Region 7:\nIA,KS,MO,NE", "Region 8:\nCO,MT,ND,\nSD,UT,WY", "Region 9:\nAZ,CA,HI,NV", "Region 10:\nAK,ID,OR,WA"))) %>%
   dplyr::mutate(dummy1 = -.03, dummy2=-.1, dummy3 = -.07)
 
 ####################################
@@ -184,8 +184,10 @@ pltDat2 <- stateOnsetsummaryDat %>%
 plt <- ggplot(pltDat2, aes(x = abbr_st, y = cumpop_prop_cty_mn)) +
     geom_linerange(aes(ymin = cumpop_min, ymax = cumpop_max)) +
     geom_point() +
-    geom_hline(aes(yintercept = 0.5), colour = "red") +
+    geom_hline(aes(yintercept = mean(cumpop_prop_cty_mn)), colour = "red") +
     theme_bw() +
-    theme(legend.position = "bottom", axis.title.x = element_blank(), axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
-    scale_y_continuous("Cumulative county population (%)\nin the influenza season at state onset", limits = c(0,1.1), breaks = c(0,.25,.5,.75,1))
-  ggsave(paste0("../graph_outputs/explore_irDt_cumpop/onset_cumpop_state_Sall.png"), plt, width = 7, height = 3)
+    theme(legend.position = "bottom", axis.title.y = element_blank()) +
+    scale_y_continuous("Cumulative county population (%)\nin flu season at state onset", limits = c(0,1.1), breaks = c(0,.25,.5,.75,1)) +
+    coord_flip()
+  ggsave(paste0("../graph_outputs/explore_irDt_cumpop/onset_cumpop_state_Sall.png"), plt, width = 2.75, height = 6.5)
+# axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
